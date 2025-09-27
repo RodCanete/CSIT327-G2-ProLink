@@ -8,16 +8,19 @@
 </head>
 <body>
 	<div class="login-container">
-		<h2>Login</h2>
+		<h2>ProLink</h2>
 		{% if error %}
 			<div class="error">{{ error }}</div>
 		{% endif %}
 		<form id="login-form" method="post">
 			{% csrf_token %}
-			<input type="text" id="username" name="username" placeholder="Username">
+			<input type="text" id="username" name="username" placeholder="Email Address">
 			<input type="password" id="password" name="password" placeholder="Password">
-			<button type="submit">Login</button>
+			<button type="submit">Sign In</button>
 		</form>
+		<p style="font-size:14px; margin-top:15px;">
+			Don't have an account? <a href="#" style="color:#2563eb; text-decoration:none; font-weight:600;">Sign up</a>
+		</p>
 	</div>
 	<script src="/static/js/script.js"></script>
 </body>
