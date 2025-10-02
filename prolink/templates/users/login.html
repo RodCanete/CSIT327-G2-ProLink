@@ -3,25 +3,83 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Login</title>
+	<title>ProLink - Sign In</title>
 	<link rel="stylesheet" href="/static/css/style.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
-<body>
-	<div class="login-container">
-		<h2>ProLink</h2>
-		{% if error %}
-			<div class="error">{{ error }}</div>
-		{% endif %}
-		<form id="login-form" method="post">
-			{% csrf_token %}
-			<input type="text" id="username" name="username" placeholder="Email Address">
-			<input type="password" id="password" name="password" placeholder="Password">
-			<button type="submit">Sign In</button>
-		</form>
-		<p style="font-size:14px; margin-top:15px;">
-			Don't have an account? <a href="#" style="color:#2563eb; text-decoration:none; font-weight:600;">Sign up</a>
-		</p>
+<body class="login-page">
+	<div class="login-background">
+		<div class="login-overlay"></div>
 	</div>
+	
+	<div class="login-container">
+		<div class="login-header">
+			<h1 class="login-title">Welcome back</h1>
+			<p class="login-subtitle">Sign in to your ProLink account</p>
+		</div>
+		
+		<div class="login-form-card">
+			<div class="form-header">
+				<h2 class="form-title">Sign In</h2>
+				<p class="form-subtitle">Enter your credentials to access your account</p>
+			</div>
+			
+			{% if error %}
+				<div class="error-message">
+					<i class="fas fa-exclamation-circle"></i>
+					{{ error }}
+				</div>
+			{% endif %}
+			
+			<form id="login-form" method="post">
+				{% csrf_token %}
+				<div class="form-group">
+					<label for="email" class="form-label">Email address</label>
+					<input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
+				</div>
+				
+				<div class="form-group">
+					<label for="password" class="form-label">Password</label>
+					<div class="password-input-wrapper">
+						<input type="password" id="password" name="password" class="form-input" placeholder="Enter your password" required>
+						<button type="button" class="password-toggle" onclick="togglePassword()">
+							<i class="fas fa-eye" id="password-icon"></i>
+						</button>
+					</div>
+				</div>
+				
+				<button type="submit" class="login-button">
+					<span>Sign In</span>
+					<i class="fas fa-arrow-right"></i>
+				</button>
+			</form>
+			
+			<div class="login-footer">
+				<p class="signup-text">
+					Don't have an account? 
+					<a href="{% url 'signup' %}" class="signup-link">Sign up</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	
 	<script src="/static/js/script.js"></script>
+	<script>
+		function togglePassword() {
+			const passwordInput = document.getElementById('password');
+			const passwordIcon = document.getElementById('password-icon');
+			
+			if (passwordInput.type === 'password') {
+				passwordInput.type = 'text';
+				passwordIcon.classList.remove('fa-eye');
+				passwordIcon.classList.add('fa-eye-slash');
+			} else {
+				passwordInput.type = 'password';
+				passwordIcon.classList.remove('fa-eye-slash');
+				passwordIcon.classList.add('fa-eye');
+			}
+		}
+	</script>
 </body>
 </html>

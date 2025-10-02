@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ProLink - Registration Successful</title>
+	<link rel="stylesheet" href="/static/css/style.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+	<style>
+		.success-page {
+			min-height: 100vh;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
+						url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80');
+			background-size: cover;
+			background-position: center;
+			background-attachment: fixed;
+			padding: 2rem;
+		}
+		
+		.success-container {
+			background: rgba(255, 255, 255, 0.95);
+			backdrop-filter: blur(10px);
+			-webkit-backdrop-filter: blur(10px);
+			border-radius: 20px;
+			padding: 3rem;
+			box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+			text-align: center;
+			max-width: 500px;
+			width: 100%;
+			border: 1px solid rgba(255, 255, 255, 0.2);
+		}
+		
+		.success-icon {
+			width: 80px;
+			height: 80px;
+			background: linear-gradient(135deg, #10b981, #059669);
+			border-radius: 50%;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			margin: 0 auto 2rem;
+			animation: successPulse 2s ease-in-out infinite;
+		}
+		
+		.success-icon i {
+			font-size: 2.5rem;
+			color: white;
+		}
+		
+		@keyframes successPulse {
+			0%, 100% { transform: scale(1); }
+			50% { transform: scale(1.05); }
+		}
+		
+		.success-title {
+			font-size: 2.5rem;
+			font-weight: 700;
+			color: #1e293b;
+			margin-bottom: 1rem;
+		}
+		
+		.success-subtitle {
+			font-size: 1.25rem;
+			color: #64748b;
+			margin-bottom: 2rem;
+			line-height: 1.6;
+		}
+		
+		.success-details {
+			background: #f8fafc;
+			border-radius: 12px;
+			padding: 1.5rem;
+			margin-bottom: 2rem;
+			border-left: 4px solid #10b981;
+		}
+		
+		.success-details h3 {
+			font-size: 1.125rem;
+			font-weight: 600;
+			color: #1e293b;
+			margin-bottom: 0.5rem;
+		}
+		
+		.success-details p {
+			color: #64748b;
+			margin: 0;
+		}
+		
+		.success-actions {
+			display: flex;
+			gap: 1rem;
+			justify-content: center;
+			flex-wrap: wrap;
+		}
+		
+		.btn-primary {
+			background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+			color: white;
+			padding: 0.875rem 2rem;
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+		
+		.btn-primary:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+		}
+		
+		.btn-secondary {
+			background: white;
+			color: #64748b;
+			padding: 0.875rem 2rem;
+			border-radius: 8px;
+			text-decoration: none;
+			font-weight: 600;
+			transition: all 0.3s ease;
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			border: 2px solid #e2e8f0;
+		}
+		
+		.btn-secondary:hover {
+			background: #f8fafc;
+			border-color: #cbd5e1;
+		}
+		
+		@media (max-width: 768px) {
+			.success-container {
+				padding: 2rem;
+				margin: 1rem;
+			}
+			
+			.success-title {
+				font-size: 2rem;
+			}
+			
+			.success-subtitle {
+				font-size: 1.125rem;
+			}
+			
+			.success-actions {
+				flex-direction: column;
+			}
+			
+			.btn-primary,
+			.btn-secondary {
+				width: 100%;
+				justify-content: center;
+			}
+		}
+	</style>
+</head>
+<body class="success-page">
+	<div class="success-container">
+		<div class="success-icon">
+			<i class="fas fa-check"></i>
+		</div>
+		
+		<h1 class="success-title">Congratulations!</h1>
+		<p class="success-subtitle">You are now registered with ProLink</p>
+		
+		<div class="success-details">
+			<h3>Welcome, {{ name|default:"User" }}!</h3>
+			<p>Your account has been created successfully with email: <strong>{{ email }}</strong></p>
+		</div>
+		
+		<div class="success-actions">
+			<a href="{% url 'login' %}" class="btn-primary">
+				<i class="fas fa-sign-in-alt"></i>
+				Sign In to Your Account
+			</a>
+			<a href="{% url 'landing' %}" class="btn-secondary">
+				<i class="fas fa-home"></i>
+				Back to Home
+			</a>
+		</div>
+	</div>
+</body>
+</html>

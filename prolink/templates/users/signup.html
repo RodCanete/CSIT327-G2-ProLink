@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>ProLink - Sign Up</title>
+	<link rel="stylesheet" href="/static/css/style.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="login-page">
+	<div class="login-background">
+		<div class="login-overlay"></div>
+	</div>
+	
+	<div class="login-container">
+		<div class="login-header">
+			<h1 class="login-title">Join ProLink</h1>
+			<p class="login-subtitle">Create your account and start connecting with professionals</p>
+		</div>
+		
+		<div class="login-form-card">
+			<div class="form-header">
+				<h2 class="form-title">Create Account</h2>
+				<p class="form-subtitle">Choose your role and get started</p>
+			</div>
+			
+			{% if error %}
+				<div class="error-message">
+					<i class="fas fa-exclamation-circle"></i>
+					{{ error }}
+				</div>
+			{% endif %}
+			
+			<form id="signup-form" method="post">
+				{% csrf_token %}
+				
+				<!-- Role Selection -->
+				<div class="form-group">
+					<label class="form-label">I am a:</label>
+					<div class="role-selection">
+						<div class="role-option">
+							<input type="radio" id="professional" name="role" value="professional" required>
+							<label for="professional" class="role-label">
+								<i class="fas fa-user-tie"></i>
+								<span>Professional</span>
+					
+							</label>
+						</div>
+						<div class="role-option">
+							<input type="radio" id="student" name="role" value="student" required>
+							<label for="student" class="role-label">
+								<i class="fas fa-graduation-cap"></i>
+								<span>Student</span>
+							
+							</label>
+						</div>
+						<div class="role-option">
+							<input type="radio" id="worker" name="role" value="worker" required>
+							<label for="worker" class="role-label">
+								<i class="fas fa-briefcase"></i>
+								<span>Worker</span>
+			
+							</label>
+						</div>
+					</div>
+				</div>
+				
+				<!-- Personal Information -->
+				<div class="form-row">
+					<div class="form-group">
+						<label for="first_name" class="form-label">First Name</label>
+						<input type="text" id="first_name" name="first_name" class="form-input" placeholder="Enter your first name" required>
+					</div>
+					<div class="form-group">
+						<label for="last_name" class="form-label">Last Name</label>
+						<input type="text" id="last_name" name="last_name" class="form-input" placeholder="Enter your last name" required>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label for="email" class="form-label">Email Address</label>
+					<input type="email" id="email" name="email" class="form-input" placeholder="Enter your email" required>
+				</div>
+				
+				<div class="form-group">
+					<label for="password1" class="form-label">Password</label>
+					<div class="password-input-wrapper">
+						<input type="password" id="password1" name="password1" class="form-input" placeholder="Create a password" required>
+						<button type="button" class="password-toggle" onclick="togglePassword('password1')">
+							<i class="fas fa-eye" id="password1-icon"></i>
+						</button>
+					</div>
+					<div class="password-strength">
+						<div class="strength-bar">
+							<div class="strength-fill" id="strength-fill"></div>
+						</div>
+						<span class="strength-text" id="strength-text">Password strength</span>
+					</div>
+				</div>
+				
+				<div class="form-group">
+					<label for="password2" class="form-label">Confirm Password</label>
+					<div class="password-input-wrapper">
+						<input type="password" id="password2" name="password2" class="form-input" placeholder="Confirm your password" required>
+						<button type="button" class="password-toggle" onclick="togglePassword('password2')">
+							<i class="fas fa-eye" id="password2-icon"></i>
+						</button>
+					</div>
+				</div>
+				
+				<!-- Professional-specific fields -->
+				<div id="professional-fields" class="professional-fields" style="display: none;">
+					<div class="professional-section-header">
+						<h3 class="section-title">
+							<i class="fas fa-briefcase"></i>
+							Professional Information
+						</h3>
+						<p class="section-subtitle">Help us understand your professional background</p>
+					</div>
+					
+					<div class="form-row">
+						<div class="form-group">
+							<label for="profession" class="form-label">
+								<i class="fas fa-user-tie"></i>
+								Profession
+							</label>
+							<div class="select-wrapper">
+								<select id="profession" name="profession" class="form-input enhanced-select">
+									<option value="">Select your profession</option>
+									<option value="software_engineer">Software Engineer</option>
+									<option value="data_scientist">Data Scientist</option>
+									<option value="designer">Designer</option>
+									<option value="writer">Writer</option>
+									<option value="consultant">Consultant</option>
+									<option value="educator">Educator</option>
+									<option value="marketing">Marketing Specialist</option>
+									<option value="finance">Finance Professional</option>
+									<option value="healthcare">Healthcare Professional</option>
+									<option value="legal">Legal Professional</option>
+									<option value="other">Other</option>
+								</select>
+							</div>
+						</div>
+						
+						<div class="form-group">
+							<label for="experience" class="form-label">
+								<i class="fas fa-chart-line"></i>
+								Years of Experience
+							</label>
+							<div class="select-wrapper">
+								<select id="experience" name="experience" class="form-input enhanced-select">
+									<option value="">Select experience level</option>
+									<option value="0-1">0-1 years (Entry Level)</option>
+									<option value="2-5">2-5 years (Mid Level)</option>
+									<option value="6-10">6-10 years (Senior Level)</option>
+									<option value="10+">10+ years (Expert Level)</option>
+								</select>
+							</div>
+						</div>
+					</div>
+					
+					<!-- Other profession input field -->
+					<div id="other-profession-field" class="form-group" style="display: none;">
+						<label for="other_profession" class="form-label">
+							<i class="fas fa-edit"></i>
+							Please specify your profession
+						</label>
+						<input type="text" id="other_profession" name="other_profession" class="form-input" placeholder="Enter your profession">
+					</div>
+				</div>
+				
+				<!-- Terms and Conditions -->
+				<div class="form-group">
+					<label class="checkbox-label">
+						<input type="checkbox" id="terms" name="terms" required>
+						<span class="checkmark"></span>
+						I agree to the <a href="/terms/" class="link">Terms of Service</a> and <a href="/privacy/" class="link">Privacy Policy</a>
+					</label>
+				</div>
+				
+				<button type="submit" class="login-button">
+					<span>Create Account</span>
+					<i class="fas fa-arrow-right"></i>
+				</button>
+			</form>
+			
+			<div class="login-footer">
+				<p class="signup-text">
+					Already have an account? 
+					<a href="{% url 'login' %}" class="signup-link">Sign in</a>
+				</p>
+			</div>
+		</div>
+	</div>
+	
+	<script src="/static/js/script.js"></script>
+	<script>
+		function togglePassword(fieldId) {
+			const passwordInput = document.getElementById(fieldId);
+			const passwordIcon = document.getElementById(fieldId + '-icon');
+			
+			if (passwordInput.type === 'password') {
+				passwordInput.type = 'text';
+				passwordIcon.classList.remove('fa-eye');
+				passwordIcon.classList.add('fa-eye-slash');
+			} else {
+				passwordInput.type = 'password';
+				passwordIcon.classList.remove('fa-eye-slash');
+				passwordIcon.classList.add('fa-eye');
+			}
+		}
+		
+		// Show/hide professional fields based on role selection
+		document.querySelectorAll('input[name="role"]').forEach(radio => {
+			radio.addEventListener('change', function() {
+				const professionalFields = document.getElementById('professional-fields');
+				if (this.value === 'professional') {
+					professionalFields.style.display = 'block';
+				} else {
+					professionalFields.style.display = 'none';
+				}
+			});
+		});
+		
+		// Show/hide other profession field
+		function toggleOtherProfessionField() {
+			const professionSelect = document.getElementById('profession');
+			const otherField = document.getElementById('other-profession-field');
+			const otherInput = document.getElementById('other_profession');
+			
+			if (professionSelect.value === 'other') {
+				otherField.style.display = 'block';
+				otherInput.required = true;
+			} else {
+				otherField.style.display = 'none';
+				otherInput.required = false;
+				otherInput.value = '';
+			}
+		}
+		
+		// Add event listener for profession selection
+		document.getElementById('profession').addEventListener('change', toggleOtherProfessionField);
+		
+		// Password strength indicator
+		document.getElementById('password1').addEventListener('input', function() {
+			const password = this.value;
+			const strengthFill = document.getElementById('strength-fill');
+			const strengthText = document.getElementById('strength-text');
+			
+			let strength = 0;
+			let strengthLabel = '';
+			
+			if (password.length >= 8) strength++;
+			if (/[a-z]/.test(password)) strength++;
+			if (/[A-Z]/.test(password)) strength++;
+			if (/[0-9]/.test(password)) strength++;
+			if (/[^A-Za-z0-9]/.test(password)) strength++;
+			
+			strengthFill.style.width = (strength * 20) + '%';
+			
+			if (strength <= 1) {
+				strengthFill.style.backgroundColor = '#ef4444';
+				strengthLabel = 'Weak';
+			} else if (strength <= 3) {
+				strengthFill.style.backgroundColor = '#f59e0b';
+				strengthLabel = 'Medium';
+			} else {
+				strengthFill.style.backgroundColor = '#10b981';
+				strengthLabel = 'Strong';
+			}
+			
+			strengthText.textContent = strengthLabel;
+		});
+		
+		// Password confirmation validation
+		document.getElementById('password2').addEventListener('input', function() {
+			const password1 = document.getElementById('password1').value;
+			const password2 = this.value;
+			
+			if (password2 && password1 !== password2) {
+				this.style.borderColor = '#ef4444';
+			} else {
+				this.style.borderColor = '#e5e7eb';
+			}
+		});
+	</script>
+</body>
+</html>
