@@ -134,3 +134,9 @@ def signup(request):
 				error = f"Registration failed: {str(e)}"
 	
 	return render(request, "users/signup.html", {"error": error})
+
+def terms(request):
+    return render(request, 'users/terms.html')
+
+def privacy(request):
+    return render(request, 'users/privacy.html')
