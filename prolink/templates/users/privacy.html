@@ -8,6 +8,41 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        body {
+            margin: 0;
+            font-family: Arial, Helvetica, sans-serif; /* More professional font */
+            background: linear-gradient(to right, #6b6fd5, #008cea);
+            color: var(--white); 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            opacity: 0;
+            animation: fadeIn 2s forwards;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        /* Privacy Policy Card Styles */
+        .privacy-card {
+            position: relative;
+            width: 80%;
+            max-width: 600px;
+            background-color: #ecf7fe;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            padding: 20px;
+            z-index: 1000;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        /* Header */
         .privacy-header {
             position: sticky;
             top: 0;
@@ -17,7 +52,7 @@
             padding: 20px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             border-radius: 10px;
         }
@@ -26,9 +61,36 @@
             text-align: center;
             flex: 1;
         }
-        .privacy-card {
-            max-height: 90vh;
-            overflow-y: auto;
+        /* Close Button */
+        .close-button {
+            background: none;
+            border: none;
+            font-size: 1.5em;
+            text-decoration: none;
+            color: #2a1c5f;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+        .close-button:hover {
+            color: #3300ff;
+        }
+        /* Content */
+        .privacy-content {
+            font-size: 0.95em;
+            color: #444;
+            line-height: 1.6;
+        }
+        .privacy-content p {
+            text-align: justify;
+        }
+
+        .privacy-content ol {
+            padding-left: 20px;
+        }
+
+        .privacy-content ul {
+            padding-left: 20px;
+            list-style-type: disc;
         }
         ul li {
             margin-top: 15px;
@@ -39,22 +101,19 @@
         ul li::before {
             content: none; /* Ensure no custom bullet is applied */
         }
-        .close-button {
-            text-decoration: none; /* Remove underline from the close button */
 
-        }
-        
     </style>
 </head>
 <body>
     <div class="privacy-card">
         <div class="privacy-header">
             <h2>Privacy Policy</h2>
+            <!-- Redirect to signup page when clicked -->
             <a href="/signup" class="close-button">&times;</a>
         </div>
         <div class="privacy-content">
             <p><strong>Effective Date:</strong> October 2, 2025</p>
-            <p><b>ProLink</b> values your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and safeguard your data when you access and use our web-based consultation and validation platform. By using ProLink, you agree to the terms outlined in this policy.</p>
+            <p><b>ProLink</b> values your privacy and is committed to protecting your personal information. This Privacy Policy explains how we collect, use, store, and safeguard your data when you access and use our web-based consultation and validation platform. By using ProLink, you agree to the privacy outlined in this policy.</p>
             <ol>
                 <br>
                 <li><strong>Information We Collect</strong>
@@ -73,7 +132,7 @@
                         <li>To facilitate consultations and services between students/workers and professionals.</li>
                         <li>To process payments and transactions through trusted third-party providers.</li>
                         <li>To improve platform functionality, including troubleshooting, analytics, and system upgrades.</li>
-                        <li>To enforce our Terms of Service and protect against fraudulent or unauthorized activity.</li>
+                        <li>To enforce our privacy of Service and protect against fraudulent or unauthorized activity.</li>
                         <li>To communicate updates, including policy changes, system announcements, and support responses.</li>
                     </ul>
                 </li>
