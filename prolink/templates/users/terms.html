@@ -4,18 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Terms of Service</title>
-    <link rel="stylesheet" href="/static/css/terms.css">
+    <link rel="stylesheet" href="/static/css/terms.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .terms-header {
             position: sticky;
             top: 0;
-            background: linear-gradient(to right, #6b6fd5, #008cea);
+            background: linear-gradient(to right, var(--primary-color), var(--info-color));
             color: var(--white); 
             z-index: 1000;
             padding: 20px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: var(--box-shadow);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -24,7 +24,7 @@
             margin: 0;
             text-align: center;
             flex: 1;
-            color: black;
+            color: var(--white);
         }
         .terms-content p {
             text-align: justify;

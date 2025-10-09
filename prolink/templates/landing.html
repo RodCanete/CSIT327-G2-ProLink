@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProLink - Professional Consultation & Validation Platform</title>
     <meta name="description" content="Connect with verified professionals for expert feedback, validation, and consultation on your academic and work-related projects. Secure, transparent, and reliable.">
-    <link rel="stylesheet" href="/static/css/landing.css">
+    <link rel="stylesheet" href="/static/css/landing.css?v=5">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -98,7 +98,7 @@
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon">
-                        <i class="fas fa-shield-check"></i>
+                        <i class="fas fa-user"></i>
                     </div>
                     <h3>Verified Professionals</h3>
                     <p>All experts are thoroughly vetted and verified to ensure quality and reliability in every consultation.</p>
@@ -227,11 +227,11 @@
                     </div>
                     <div class="testimonial-author">
                         <div class="author-avatar">
-                            <img src="https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=150&q=80" alt="Sarah Chen">
+                            <img src="https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?auto=compress&cs=tinysrgb&w=150&h=150&fit=crop" alt="Sarah Chen">
                         </div>
                         <div class="author-info">
                             <h4>Sarah Chen</h4>
-                            <span>Graduate Student, Computer Science</span>
+                            <span>Graduate Student, MBA</span>
                         </div>
                     </div>
                 </div>
@@ -374,5 +374,17 @@
     </footer>
 
     <script src="/static/js/landing.js"></script>
+    
+    <script>
+        // Navbar scroll effect
+        window.addEventListener('scroll', function() {
+            const navbar = document.querySelector('.navbar');
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+    </script>
 </body>
 </html>

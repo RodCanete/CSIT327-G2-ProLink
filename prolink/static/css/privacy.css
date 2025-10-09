@@ -1,3 +1,6 @@
+/* Import color variables */
+@import url('colors.css');
+
 /* Background */
 .privacy-card {
     position: relative;

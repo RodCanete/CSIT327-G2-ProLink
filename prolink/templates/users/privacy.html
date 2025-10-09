@@ -4,14 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Privacy Policy</title>
-    <link rel="stylesheet" href="/static/css/privacy.css">
+    <link rel="stylesheet" href="/static/css/privacy.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif; /* More professional font */
-            background: linear-gradient(to right, #6b6fd5, #008cea);
+            font-family: var(--font-family);
+            background: linear-gradient(to right, var(--primary-color), var(--info-color));
             color: var(--white); 
             display: flex;
             justify-content: center;
@@ -33,7 +33,7 @@
             position: relative;
             width: 80%;
             max-width: 600px;
-            background-color: #ecf7fe;
+            background-color: var(--gray-100);
             border-radius: 10px;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
@@ -46,7 +46,7 @@
         .privacy-header {
             position: sticky;
             top: 0;
-            background: linear-gradient(to right, #6b6fd5, #008cea);
+            background: linear-gradient(to right, var(--primary-color), var(--info-color));
             color: var(--white); 
             z-index: 1000;
             padding: 20px;
@@ -67,12 +67,12 @@
             border: none;
             font-size: 1.5em;
             text-decoration: none;
-            color: #2a1c5f;
+            color: var(--gray-800);
             cursor: pointer;
             transition: color 0.3s;
         }
         .close-button:hover {
-            color: #3300ff;
+            color: var(--primary-color);
         }
         /* Content */
         .privacy-content {

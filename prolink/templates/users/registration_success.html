@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>ProLink - Registration Successful</title>
-	<link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 	<style>
@@ -13,31 +13,27 @@
 			display: flex;
 			align-items: center;
 			justify-content: center;
-			background: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), 
-						url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80');
-			background-size: cover;
-			background-position: center;
-			background-attachment: fixed;
+			background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
 			padding: 2rem;
 		}
 		
 		.success-container {
-			background: rgba(255, 255, 255, 0.95);
+			background: var(--white);
 			backdrop-filter: blur(10px);
 			-webkit-backdrop-filter: blur(10px);
-			border-radius: 20px;
+			border-radius: var(--border-radius-xl);
 			padding: 3rem;
-			box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(255, 255, 255, 0.1);
+			box-shadow: var(--box-shadow-xl);
 			text-align: center;
 			max-width: 500px;
 			width: 100%;
-			border: 1px solid rgba(255, 255, 255, 0.2);
+			border: 1px solid var(--gray-200);
 		}
 		
 		.success-icon {
 			width: 80px;
 			height: 80px;
-			background: linear-gradient(135deg, #10b981, #059669);
+			background: linear-gradient(135deg, var(--success-color), var(--primary-dark));
 			border-radius: 50%;
 			display: flex;
 			align-items: center;
@@ -48,7 +44,7 @@
 		
 		.success-icon i {
 			font-size: 2.5rem;
-			color: white;
+			color: var(--white);
 		}
 		
 		@keyframes successPulse {
@@ -59,34 +55,34 @@
 		.success-title {
 			font-size: 2.5rem;
 			font-weight: 700;
-			color: #1e293b;
+			color: var(--gray-800);
 			margin-bottom: 1rem;
 		}
 		
 		.success-subtitle {
 			font-size: 1.25rem;
-			color: #64748b;
+			color: var(--gray-600);
 			margin-bottom: 2rem;
 			line-height: 1.6;
 		}
 		
 		.success-details {
-			background: #f8fafc;
+			background: var(--gray-100);
 			border-radius: 12px;
 			padding: 1.5rem;
 			margin-bottom: 2rem;
-			border-left: 4px solid #10b981;
+			border-left: 4px solid var(--success-color);
 		}
 		
 		.success-details h3 {
 			font-size: 1.125rem;
 			font-weight: 600;
-			color: #1e293b;
+			color: var(--gray-800);
 			margin-bottom: 0.5rem;
 		}
 		
 		.success-details p {
-			color: #64748b;
+			color: var(--gray-600);
 			margin: 0;
 		}
 		
@@ -98,7 +94,7 @@
 		}
 		
 		.btn-primary {
-			background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+			background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
 			color: white;
 			padding: 0.875rem 2rem;
 			border-radius: 8px;
@@ -117,7 +113,7 @@
 		
 		.btn-secondary {
 			background: white;
-			color: #64748b;
+			color: var(--gray-600);
 			padding: 0.875rem 2rem;
 			border-radius: 8px;
 			text-decoration: none;
@@ -126,12 +122,12 @@
 			display: inline-flex;
 			align-items: center;
 			gap: 0.5rem;
-			border: 2px solid #e2e8f0;
+			border: 2px solid var(--gray-300);
 		}
 		
 		.btn-secondary:hover {
-			background: #f8fafc;
-			border-color: #cbd5e1;
+			background: var(--gray-100);
+			border-color: var(--gray-300);
 		}
 		
 		@media (max-width: 768px) {
