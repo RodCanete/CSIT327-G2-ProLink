@@ -9,17 +9,29 @@
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body class="login-page">
-	<div class="login-background">
-		<div class="login-overlay"></div>
-	</div>
-	
-	<div class="login-container">
-		<div class="login-header">
-			<h1 class="login-title">Join ProLink</h1>
-			<p class="login-subtitle">Create your account and start connecting with professionals</p>
+	<div class="login-layout">
+		<!-- Left Column - Professional Image -->
+		<div class="login-left-column">
+			<div class="professional-image-container">
+				<img src="https://images.pexels.com/photos/3184465/pexels-photo-3184465.jpeg?auto=compress&cs=tinysrgb&w=800&h=600&fit=crop" alt="Professional team collaboration" class="professional-image">
+				<div class="image-overlay">
+					<div class="overlay-content">
+						<h2>Join Our Community</h2>
+						<p>Connect with thousands of professionals, students, and workers who are building their careers with ProLink.</p>
+					</div>
+				</div>
+			</div>
 		</div>
 		
-		<div class="login-form-card">
+		<!-- Right Column - Signup Form -->
+		<div class="login-right-column">
+			<div class="login-form-container">
+				<div class="login-header">
+					<h1 class="login-title">Join ProLink</h1>
+					<p class="login-subtitle">Create your account and start connecting with professionals</p>
+				</div>
+				
+				<div class="login-form-card">
 			<div class="form-header">
 				<h2 class="form-title">Create Account</h2>
 				<p class="form-subtitle">Choose your role and get started</p>
@@ -185,11 +197,12 @@
 				</button>
 			</form>
 			
-			<div class="login-footer">
-				<p class="signup-text">
-					Already have an account? 
-					<a href="{% url 'login' %}" class="signup-link">Sign in</a>
-				</p>
+				<div class="login-footer">
+					<p class="signup-text">
+						Already have an account? 
+						<a href="{% url 'login' %}" class="signup-link">Sign in</a>
+					</p>
+				</div>
 			</div>
 		</div>
 	</div>
