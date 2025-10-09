@@ -4,7 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>ProLink - Sign Up</title>
-	<link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/style.css?v=3">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 	<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
@@ -260,13 +260,13 @@
 			strengthFill.style.width = (strength * 20) + '%';
 			
 			if (strength <= 1) {
-				strengthFill.style.backgroundColor = '#ef4444';
+				strengthFill.style.backgroundColor = 'var(--danger-color)';
 				strengthLabel = 'Weak';
 			} else if (strength <= 3) {
-				strengthFill.style.backgroundColor = '#f59e0b';
+				strengthFill.style.backgroundColor = 'var(--warning-color)';
 				strengthLabel = 'Medium';
 			} else {
-				strengthFill.style.backgroundColor = '#10b981';
+				strengthFill.style.backgroundColor = 'var(--success-color)';
 				strengthLabel = 'Strong';
 			}
 			
@@ -279,9 +279,9 @@
 			const password2 = this.value;
 			
 			if (password2 && password1 !== password2) {
-				this.style.borderColor = '#ef4444';
+				this.style.borderColor = 'var(--danger-color)';
 			} else {
-				this.style.borderColor = '#e5e7eb';
+				this.style.borderColor = 'var(--gray-300)';
 			}
 		});
 	</script>

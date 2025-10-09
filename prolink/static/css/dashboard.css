@@ -1,33 +1,59 @@
 /* ProLink Dashboard - Web Application CSS */
 
-/* CSS Variables for consistent theming */
+/* Color Variables - Beautiful Green Palette */
 :root {
-    --primary-color: #2563eb;
-    --primary-dark: #1d4ed8;
-    --secondary-color: #64748b;
-    --success-color: #10b981;
-    --warning-color: #f59e0b;
-    --danger-color: #ef4444;
-    --info-color: #06b6d4;
-    --light-color: #f8fafc;
-    --dark-color: #1e293b;
-    --white: #ffffff;
-    --gray-50: #f8fafc;
-    --gray-100: #f1f5f9;
-    --gray-200: #e2e8f0;
-    --gray-300: #cbd5e1;
-    --gray-400: #94a3b8;
-    --gray-500: #64748b;
-    --gray-600: #475569;
-    --gray-700: #334155;
-    --gray-800: #1e293b;
-    --gray-900: #0f172a;
+    /* Primary Colors - Rich Forest Green */
+    --primary-color: #2D5016;
+    --primary-dark: #1A3009;
+    --primary-light: #4A7C59;
     
+    /* Secondary Colors - Fresh Mint */
+    --secondary-color: #7FB069;
+    --secondary-light: #A8D5A0;
+    
+    /* Accent Colors */
+    --accent-color: #5A8A47;
+    --accent-light: #8FBC8F;
+    
+    /* Status Colors */
+    --success-color: #2D5016;
+    --warning-color: #8B7355;
+    --danger-color: #B85450;
+    --info-color: #7FB069;
+    
+    /* Light and Dark */
+    --light-color: #F7F9F5;
+    --dark-color: #1A3009;
+    --white: #ffffff;
+    
+    /* Gray Scale - Green Tinted */
+    --gray-50: #F7F9F5;
+    --gray-100: #E8F0E3;
+    --gray-200: #D4E4CC;
+    --gray-300: #B8D4A8;
+    --gray-400: #7FB069;
+    --gray-500: #5A8A47;
+    --gray-600: #4A7C59;
+    --gray-700: #2D5016;
+    --gray-800: #1A3009;
+    --gray-900: #0F1F06;
+    
+    /* Design System Variables */
     --border-radius: 8px;
     --border-radius-lg: 12px;
+    --border-radius-xl: 16px;
+    
+    /* Box Shadows */
     --box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
     --box-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --box-shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    
+    /* Transitions */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.2s ease;
+    
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
 /* Reset and Base Styles */
