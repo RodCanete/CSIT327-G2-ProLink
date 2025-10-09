@@ -22,8 +22,19 @@ def dashboard(request):
 	
 	# Get user info from session
 	user_email = request.session.get('user_email', 'User')
+	user_role = request.session.get('user_role', 'student')
 	
-	return render(request, "dashboard.html", {"user_email": user_email})
+	# Route to appropriate dashboard based on role
+	if user_role == 'professional':
+		return render(request, "dashboard_professional.html", {
+			"user_email": user_email,
+			"user_role": user_role
+		})
+	else:  # student or worker
+		return render(request, "dashboard_client.html", {
+			"user_email": user_email,
+			"user_role": user_role
+		})
 
 def logout(request):
 	# Clear session data
@@ -67,9 +78,14 @@ def login(request):
 			})
 			
 			if response.user:
+				# Get user metadata
+				user_metadata = response.user.user_metadata or {}
+				user_role = user_metadata.get('role', 'student')  # default to student
+				
 				# Store user session
 				request.session['user_id'] = response.user.id
 				request.session['user_email'] = response.user.email
+				request.session['user_role'] = user_role  # Add role to session
 				request.session['access_token'] = response.session.access_token
 				request.session['refresh_token'] = response.session.refresh_token
 				
@@ -95,6 +111,21 @@ def signup(request):
 		role = request.POST.get("role")
 		terms = request.POST.get("terms")
 		
+		# Get role-specific data
+		profession = request.POST.get("profession", "")
+		experience = request.POST.get("experience", "")
+		other_profession = request.POST.get("other_profession", "")
+		
+		# Student-specific fields
+		school_name = request.POST.get("school_name", "")
+		major = request.POST.get("major", "")
+		year_level = request.POST.get("year_level", "")
+		graduation_year = request.POST.get("graduation_year", "")
+		
+		# Worker-specific fields
+		company_name = request.POST.get("company_name", "")
+		job_title = request.POST.get("job_title", "")
+		
 		# Basic validation
 		if not all([first_name, last_name, email, password1, password2, role, terms]):
 			error = "Please fill in all required fields."
@@ -108,16 +139,40 @@ def signup(request):
 				# Initialize Supabase client
 				supabase = get_supabase_client()
 				
+				# Prepare user metadata based on role
+				user_metadata = {
+					"first_name": first_name,
+					"last_name": last_name,
+					"role": role
+				}
+				
+				# Add role-specific data
+				if role == "professional":
+					if profession:
+						user_metadata["profession"] = other_profession if profession == "other" else profession
+					if experience:
+						user_metadata["experience"] = experience
+				elif role == "student":
+					if school_name:
+						user_metadata["school_name"] = school_name
+					if major:
+						user_metadata["major"] = major
+					if year_level:
+						user_metadata["year_level"] = year_level
+					if graduation_year:
+						user_metadata["graduation_year"] = graduation_year
+				elif role == "worker":
+					if company_name:
+						user_metadata["company_name"] = company_name
+					if job_title:
+						user_metadata["job_title"] = job_title
+				
 				# Sign up with Supabase
 				response = supabase.auth.sign_up({
 					"email": email,
 					"password": password1,
 					"options": {
-						"data": {
-							"first_name": first_name,
-							"last_name": last_name,
-							"role": role
-						}
+						"data": user_metadata
 					}
 				})
 				
