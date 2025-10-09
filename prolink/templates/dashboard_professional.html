@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProLink - Professional Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/services/" class="nav-link">
+                <i class="fas fa-briefcase"></i>
+                <span>My Services</span>
+            </a>
+            <a href="/requests/" class="nav-link">
+                <i class="fas fa-inbox"></i>
+                <span>Client Requests</span>
+            </a>
+            <a href="/earnings/" class="nav-link">
+                <i class="fas fa-dollar-sign"></i>
+                <span>Earnings</span>
+            </a>
+            <a href="/reviews/" class="nav-link">
+                <i class="fas fa-star"></i>
+                <span>Reviews</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/007bff/ffffff?text=P" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Professional Dashboard</h1>
+                    <p>Welcome back, {{ user_email|default:"Professional" }}! Here's your professional dashboard.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        Create Service
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-chart-line"></i>
+                        View Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+18%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="42">0</h3>
+                            <p class="metric-label">Total Clients Served</p>
+                            <span class="metric-subtitle">5 new this month</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="8">0</h3>
+                            <p class="metric-label">Active Projects</p>
+                            <span class="metric-subtitle">3 pending requests</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+25%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="2850">0</h3>
+                            <p class="metric-label">Earnings This Month</p>
+                            <span class="metric-subtitle">$350 average per project</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="metric-trend neutral">
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="4.8">0</h3>
+                            <p class="metric-label">Average Rating</p>
+                            <span class="metric-subtitle">Based on 24 reviews</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Quick Actions Panel -->
+                <div class="panel quick-actions-panel">
+                    <div class="panel-header">
+                        <h3>Quick Actions</h3>
+                        <span class="panel-subtitle">Manage your professional services</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="action-grid">
+                            <a href="/services/create/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Create New Service</h4>
+                                    <p>Add a new service to your portfolio</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/requests/pending/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>View Pending Requests</h4>
+                                    <p>Review and respond to client requests</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/availability/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-calendar-check"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Update Availability</h4>
+                                    <p>Set your working hours and schedule</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/portfolio/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Manage Portfolio</h4>
+                                    <p>Update your work samples and credentials</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Panel -->
+                <div class="panel activity-panel">
+                    <div class="panel-header">
+                        <h3>Recent Activity</h3>
+                        <a href="/activity/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Project completed</strong> for Sarah Chen - Web Design</p>
+                                    <span class="activity-time">2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-inbox"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>New request</strong> from Mike Johnson - Logo Design</p>
+                                    <span class="activity-time">4 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon warning">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Received 5-star review</strong> from Emma Davis</p>
+                                    <span class="activity-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Payment received</strong> $450 for Brand Identity project</p>
+                                    <span class="activity-time">2 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Client Requests Queue -->
+                <div class="panel requests-panel">
+                    <div class="panel-header">
+                        <h3>Client Requests Queue</h3>
+                        <a href="/requests/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="requests-list">
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <h4>Logo Design for Startup</h4>
+                                    <p>Client: Alex Rodriguez</p>
+                                    <span class="request-budget">Budget: $300</span>
+                                </div>
+                                <div class="request-actions">
+                                    <button class="btn btn-sm btn-primary">Accept</button>
+                                    <button class="btn btn-sm btn-secondary">Decline</button>
+                                </div>
+                            </div>
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <h4>Website Redesign</h4>
+                                    <p>Client: Maria Garcia</p>
+                                    <span class="request-budget">Budget: $800</span>
+                                </div>
+                                <div class="request-actions">
+                                    <button class="btn btn-sm btn-primary">Accept</button>
+                                    <button class="btn btn-sm btn-secondary">Decline</button>
+                                </div>
+                            </div>
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <h4>Brand Consultation</h4>
+                                    <p>Client: David Kim</p>
+                                    <span class="request-budget">Budget: $150</span>
+                                </div>
+                                <div class="request-actions">
+                                    <button class="btn btn-sm btn-primary">Accept</button>
+                                    <button class="btn btn-sm btn-secondary">Decline</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Earnings Summary -->
+                <div class="panel earnings-panel">
+                    <div class="panel-header">
+                        <h3>Earnings Summary</h3>
+                        <span class="panel-subtitle">Last 30 days</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="earnings-chart">
+                            <div class="earnings-stats">
+                                <div class="stat-item">
+                                    <span class="stat-label">Total Earnings</span>
+                                    <span class="stat-value">$2,850</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Completed Projects</span>
+                                    <span class="stat-value">8</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-label">Average per Project</span>
+                                    <span class="stat-value">$356</span>
+                                </div>
+                            </div>
+                            <div class="earnings-trend">
+                                <i class="fas fa-chart-line"></i>
+                                <span>+25% from last month</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

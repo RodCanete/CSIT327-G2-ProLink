@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProLink - Client Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/28a745/ffffff?text=C" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Client Dashboard</h1>
+                    <p>Welcome back, {{ user_email|default:"User" }}! Find professionals to help you succeed.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-search"></i>
+                        Find Professional
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-plus"></i>
+                        New Request
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-clipboard-list"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+3</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="5">0</h3>
+                            <p class="metric-label">Active Requests</p>
+                            <span class="metric-subtitle">2 in progress</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+8%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="12">0</h3>
+                            <p class="metric-label">Completed Validations</p>
+                            <span class="metric-subtitle">3 this month</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+2</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="8">0</h3>
+                            <p class="metric-label">Professionals Connected</p>
+                            <span class="metric-subtitle">1 new connection</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-credit-card"></i>
+                            </div>
+                            <div class="metric-trend neutral">
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="1240">0</h3>
+                            <p class="metric-label">Total Spent</p>
+                            <span class="metric-subtitle">$320 this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Quick Actions Panel -->
+                <div class="panel quick-actions-panel">
+                    <div class="panel-header">
+                        <h3>Quick Actions</h3>
+                        <span class="panel-subtitle">Get the help you need</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="action-grid">
+                            <a href="/professionals/browse/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Browse Professionals</h4>
+                                    <p>Find experts in your field</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/requests/create/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-clipboard-check"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Request Validation</h4>
+                                    <p>Submit work for expert review</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/requests/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-list-alt"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>View My Requests</h4>
+                                    <p>Track your active requests</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/transactions/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-receipt"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Transaction History</h4>
+                                    <p>View payment history</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Panel -->
+                <div class="panel activity-panel">
+                    <div class="panel-header">
+                        <h3>Recent Activity</h3>
+                        <a href="/activity/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Validation completed</strong> for "Research Paper" by Dr. Sarah Chen</p>
+                                    <span class="activity-time">3 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-user-plus"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>New professional match</strong> - Alex Rodriguez (Design)</p>
+                                    <span class="activity-time">1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Request in progress</strong> - "Logo Design" by Maria Garcia</p>
+                                    <span class="activity-time">2 days ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Left 5-star review</strong> for Mike Johnson's work</p>
+                                    <span class="activity-time">3 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommended Professionals -->
+                <div class="panel recommendations-panel">
+                    <div class="panel-header">
+                        <h3>Recommended Professionals</h3>
+                        <a href="/professionals/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="professionals-list">
+                            <div class="professional-item">
+                                <div class="professional-avatar">
+                                    <img src="https://via.placeholder.com/48x48/007bff/ffffff?text=AR" alt="Alex Rodriguez">
+                                </div>
+                                <div class="professional-info">
+                                    <h4>Alex Rodriguez</h4>
+                                    <p>Graphic Designer</p>
+                                    <div class="professional-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <span>4.9 (23 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="professional-actions">
+                                    <button class="btn btn-sm btn-primary">Connect</button>
+                                </div>
+                            </div>
+                            <div class="professional-item">
+                                <div class="professional-avatar">
+                                    <img src="https://via.placeholder.com/48x48/28a745/ffffff?text=SC" alt="Sarah Chen">
+                                </div>
+                                <div class="professional-info">
+                                    <h4>Sarah Chen</h4>
+                                    <p>Academic Consultant</p>
+                                    <div class="professional-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <span>5.0 (18 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="professional-actions">
+                                    <button class="btn btn-sm btn-primary">Connect</button>
+                                </div>
+                            </div>
+                            <div class="professional-item">
+                                <div class="professional-avatar">
+                                    <img src="https://via.placeholder.com/48x48/ffc107/ffffff?text=MG" alt="Maria Garcia">
+                                </div>
+                                <div class="professional-info">
+                                    <h4>Maria Garcia</h4>
+                                    <p>Web Developer</p>
+                                    <div class="professional-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <span>4.8 (31 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="professional-actions">
+                                    <button class="btn btn-sm btn-primary">Connect</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Requests Tracking -->
+                <div class="panel requests-tracking-panel">
+                    <div class="panel-header">
+                        <h3>Active Requests</h3>
+                        <a href="/requests/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="requests-tracking">
+                            <div class="tracking-item">
+                                <div class="tracking-info">
+                                    <h4>Logo Design Project</h4>
+                                    <p>Professional: Alex Rodriguez</p>
+                                    <div class="tracking-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 75%"></div>
+                                        </div>
+                                        <span>75% Complete</span>
+                                    </div>
+                                </div>
+                                <div class="tracking-status">
+                                    <span class="status-badge in-progress">In Progress</span>
+                                </div>
+                            </div>
+                            <div class="tracking-item">
+                                <div class="tracking-info">
+                                    <h4>Research Paper Review</h4>
+                                    <p>Professional: Sarah Chen</p>
+                                    <div class="tracking-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 100%"></div>
+                                        </div>
+                                        <span>Completed</span>
+                                    </div>
+                                </div>
+                                <div class="tracking-status">
+                                    <span class="status-badge completed">Completed</span>
+                                </div>
+                            </div>
+                            <div class="tracking-item">
+                                <div class="tracking-info">
+                                    <h4>Website Consultation</h4>
+                                    <p>Professional: Maria Garcia</p>
+                                    <div class="tracking-progress">
+                                        <div class="progress-bar">
+                                            <div class="progress-fill" style="width: 25%"></div>
+                                        </div>
+                                        <span>25% Complete</span>
+                                    </div>
+                                </div>
+                                <div class="tracking-status">
+                                    <span class="status-badge pending">Pending</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
