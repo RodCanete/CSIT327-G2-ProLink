@@ -134,9 +134,7 @@ The platform is designed to:
 ---
 
 ## 🌐 Deployed Link
-**Live Application:** [Not yet deployed]
-
-_Note: The deployment link will be updated once the application is hosted._
+**Live Application:** https://prolink-vysv.onrender.com/
 
 ---
 
