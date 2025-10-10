@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProLink Student Dashboard</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/consultations/" class="nav-link">
+                <i class="fas fa-clipboard-check"></i>
+                <span>My Consultations</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-users"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Payments</span>
+            </a>
+            <a href="/reviews/" class="nav-link">
+                <i class="fas fa-star"></i>
+                <span>My Reviews</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">3</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/B3D8A8/ffffff?text=S" alt="Student" class="user-avatar">
+                    <span class="user-name">{{ user_name|default:"Student" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>{% if user_role == 'worker' %}Worker{% else %}Student{% endif %} Dashboard</h1>
+                    <p>Welcome back, {{ user_name|default:"Student" }}! Find expert professionals to validate and improve your work.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        New Consultation
+                    </button>
+                    <button class="btn btn-secondary">
+                        <i class="fas fa-search"></i>
+                        Browse Experts
+                    </button>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="metrics-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-clipboard-check"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="18">0</h3>
+                            <p class="metric-label">Total Consultations</p>
+                            <span class="metric-subtitle">3 completed this month</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+8%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="12">0</h3>
+                            <p class="metric-label">Connected Professionals</p>
+                            <span class="metric-subtitle">2 new connections</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="metric-trend neutral">
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="15">0</h3>
+                            <p class="metric-label">Reviews Given</p>
+                            <span class="metric-subtitle">4.8 avg rating given</span>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-header">
+                            <div class="metric-icon">
+                                <i class="fas fa-dollar-sign"></i>
+                            </div>
+                            <div class="metric-trend positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+25%</span>
+                            </div>
+                        </div>
+                        <div class="metric-content">
+                            <h3 class="metric-number" data-target="1250">0</h3>
+                            <p class="metric-label">Total Invested</p>
+                            <span class="metric-subtitle">$350 this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Grid -->
+            <div class="content-grid">
+                <!-- Quick Actions Panel -->
+                <div class="panel quick-actions-panel">
+                    <div class="panel-header">
+                        <h3>Quick Actions</h3>
+                        <span class="panel-subtitle">Get expert help for your projects</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="action-grid">
+                            <a href="/consultations/request/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-upload"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Submit Work for Review</h4>
+                                    <p>Upload your project for validation</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/professionals/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Find Professionals</h4>
+                                    <p>Browse experts in your field</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/consultations/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-history"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>View Consultation History</h4>
+                                    <p>Track your progress</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                            <a href="/favorites/" class="action-item">
+                                <div class="action-icon">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h4>Favorite Professionals</h4>
+                                    <p>Quick access to trusted experts</p>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activity Panel -->
+                <div class="panel activity-panel">
+                    <div class="panel-header">
+                        <h3>Recent Activity</h3>
+                        <a href="/activity/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="activity-list">
+                            <div class="activity-item">
+                                <div class="activity-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Consultation completed</strong> with Dr. Sarah Johnson</p>
+                                    <span class="activity-time">Research Paper Review - 2 hours ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-message"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>New feedback received</strong> from Michael Rodriguez</p>
+                                    <span class="activity-time">Web Development Project - 1 day ago</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon warning">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Consultation scheduled</strong> with Emily Chen</p>
+                                    <span class="activity-time">Marketing Strategy - Tomorrow 2:00 PM</span>
+                                </div>
+                            </div>
+                            <div class="activity-item">
+                                <div class="activity-icon info">
+                                    <i class="fas fa-star"></i>
+                                </div>
+                                <div class="activity-content">
+                                    <p><strong>Review submitted</strong> for David Kim</p>
+                                    <span class="activity-time">5-star rating given - 3 days ago</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Additional Student Features -->
+            <div class="content-grid">
+                <!-- Recommended Professionals Panel -->
+                <div class="panel recommendations-panel">
+                    <div class="panel-header">
+                        <h3>Recommended for You</h3>
+                        <a href="/professionals/" class="panel-link">View All</a>
+                    </div>
+                    <div class="panel-content">
+                        <div class="recommendations-list">
+                            <div class="recommendation-item">
+                                <img src="https://via.placeholder.com/48x48/3D8D7A/ffffff?text=SJ" alt="Sarah Johnson" class="recommendation-avatar">
+                                <div class="recommendation-content">
+                                    <h4>Dr. Sarah Johnson</h4>
+                                    <p>Research & Academic Writing</p>
+                                    <div class="recommendation-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.9 (127 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="recommendation-price">$75/hr</div>
+                            </div>
+                            <div class="recommendation-item">
+                                <img src="https://via.placeholder.com/48x48/B3D8A8/ffffff?text=MR" alt="Michael Rodriguez" class="recommendation-avatar">
+                                <div class="recommendation-content">
+                                    <h4>Michael Rodriguez</h4>
+                                    <p>Software Development</p>
+                                    <div class="recommendation-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.8 (89 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="recommendation-price">$85/hr</div>
+                            </div>
+                            <div class="recommendation-item">
+                                <img src="https://via.placeholder.com/48x48/A3D1C6/ffffff?text=EC" alt="Emily Chen" class="recommendation-avatar">
+                                <div class="recommendation-content">
+                                    <h4>Emily Chen</h4>
+                                    <p>Digital Marketing</p>
+                                    <div class="recommendation-rating">
+                                        <i class="fas fa-star"></i>
+                                        <span>4.9 (156 reviews)</span>
+                                    </div>
+                                </div>
+                                <div class="recommendation-price">$65/hr</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Learning Resources Panel -->
+                <div class="panel resources-panel">
+                    <div class="panel-header">
+                        <h3>Learning Resources</h3>
+                        <span class="panel-subtitle">Improve your skills</span>
+                    </div>
+                    <div class="panel-content">
+                        <div class="resources-list">
+                            <div class="resource-item">
+                                <i class="fas fa-book"></i>
+                                <div class="resource-content">
+                                    <h4>How to Write Better</h4>
+                                    <p>Academic writing guide</p>
+                                </div>
+                            </div>
+                            <div class="resource-item">
+                                <i class="fas fa-video"></i>
+                                <div class="resource-content">
+                                    <h4>Project Presentation Tips</h4>
+                                    <p>Video tutorial series</p>
+                                </div>
+                            </div>
+                            <div class="resource-item">
+                                <i class="fas fa-file-pdf"></i>
+                                <div class="resource-content">
+                                    <h4>Professional Standards</h4>
+                                    <p>Industry best practices</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+
