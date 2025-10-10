@@ -20,6 +20,8 @@ static_root/
 # Environment variables
 .env
 *.env
+# Supabase configuration (contains secrets)
+supabase_config.py
 # IDE settings
 .vscode/
 .idea/

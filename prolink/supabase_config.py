@@ -3,7 +3,7 @@
 
 SUPABASE_URL = "https://gxwvncpgdkmcvmangljn.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4d3ZuY3BnZGttY3ZtYW5nbGpuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTkyOTU5ODUsImV4cCI6MjA3NDg3MTk4NX0.4TwIN5LngfdW4-xUQjGox4_O53dMuy_BDB3rZz3Ibvs"
-SUPABASE_SERVICE_ROLE_KEY = "your-service-role-key-here"  # You'll need to get this from Supabase dashboard
+SUPABASE_SERVICE_ROLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd4d3ZuY3BnZGttY3ZtYW5nbGpuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1OTI5NTk4NSwiZXhwIjoyMDc0ODcxOTg1fQ.ohdcIe8UDkP7n9IMZzi8DqMGsj9aqNZ4fPIG9phgZbo"  # You'll need to get this from Supabase dashboard
 
 # Database Configuration (Optional - if you want to use Supabase PostgreSQL)
 DATABASE_URL = "postgresql://postgres:prolink123@db.gxwvncpgdkmcvmangljn.supabase.co:5432/postgres"
