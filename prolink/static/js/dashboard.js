@@ -737,7 +737,7 @@ function initRequestActions() {
     
     window.createNewRequest = function() {
         // Redirect to create request page or show modal
-        window.location.href = '/professionals/';
+        window.location.href = '/requests/create/';
     };
 }
 
