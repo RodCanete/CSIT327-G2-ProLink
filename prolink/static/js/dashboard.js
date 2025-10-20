@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initActionItems();
     initActivityFeed();
     initResponsiveFeatures();
+    initRequestsPage();
 });
 
 // Animated counter for metrics
@@ -539,3 +540,219 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
+// Requests page functionality
+function initRequestsPage() {
+    // Only initialize if we're on the requests page
+    if (!document.querySelector('.requests-grid')) {
+        return;
+    }
+    
+    initRequestFilters();
+    initRequestSearch();
+    initRequestModals();
+    initRequestActions();
+}
+
+// Filter functionality for requests
+function initRequestFilters() {
+    const filterTabs = document.querySelectorAll('.filter-tab');
+    
+    filterTabs.forEach(tab => {
+        tab.addEventListener('click', function() {
+            const status = this.dataset.status;
+            const url = new URL(window.location);
+            url.searchParams.set('status', status);
+            window.location.href = url.toString();
+        });
+    });
+}
+
+// Search functionality for requests
+function initRequestSearch() {
+    const searchInput = document.getElementById('searchInput');
+    
+    if (searchInput) {
+        // Only search when Enter key is pressed
+        searchInput.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const searchQuery = this.value.trim();
+                const url = new URL(window.location);
+                
+                if (searchQuery) {
+                    url.searchParams.set('search', searchQuery);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                
+                window.location.href = url.toString();
+            }
+        });
+    }
+}
+
+// Modal functionality for requests
+function initRequestModals() {
+    // Request detail modal
+    const requestDetailModal = document.getElementById('requestDetailModal');
+    const messageModal = document.getElementById('messageModal');
+    
+    // Close modals when clicking outside
+    window.addEventListener('click', function(event) {
+        if (event.target === requestDetailModal) {
+            closeRequestModal();
+        }
+        if (event.target === messageModal) {
+            closeMessageModal();
+        }
+    });
+    
+    // Close modals with escape key
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeRequestModal();
+            closeMessageModal();
+        }
+    });
+}
+
+// Request action handlers
+function initRequestActions() {
+    // These functions are defined in the template but we can enhance them here
+    window.viewRequestDetails = function(requestId) {
+        // Load detailed request information
+        const modal = document.getElementById('requestDetailModal');
+        const modalContent = document.getElementById('modalContent');
+        
+        // For now, show sample content
+        modalContent.innerHTML = `
+            <div class="request-detail">
+                <h3>Request #${requestId}</h3>
+                <p>Detailed request information would be loaded here...</p>
+                <div class="request-timeline">
+                    <h4>Timeline</h4>
+                    <div class="timeline-item">
+                        <span class="timeline-date">2024-01-15</span>
+                        <span class="timeline-action">Request created</span>
+                    </div>
+                    <div class="timeline-item">
+                        <span class="timeline-date">2024-01-16</span>
+                        <span class="timeline-action">Professional assigned</span>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        modal.style.display = 'block';
+    };
+    
+    window.closeRequestModal = function() {
+        document.getElementById('requestDetailModal').style.display = 'none';
+    };
+    
+    window.openMessageModal = function(requestId) {
+        const modal = document.getElementById('messageModal');
+        const messageThread = document.getElementById('messageThread');
+        
+        // Load message thread
+        messageThread.innerHTML = `
+            <div class="message-item">
+                <div class="message-header">
+                    <span class="message-sender">You</span>
+                    <span class="message-time">2 hours ago</span>
+                </div>
+                <div class="message-content">Hello, I have a question about my request...</div>
+            </div>
+            <div class="message-item">
+                <div class="message-header">
+                    <span class="message-sender">Dr. Sarah Johnson</span>
+                    <span class="message-time">1 hour ago</span>
+                </div>
+                <div class="message-content">Hi! I'm working on your request and will have it ready by tomorrow.</div>
+            </div>
+        `;
+        
+        modal.style.display = 'block';
+    };
+    
+    window.closeMessageModal = function() {
+        document.getElementById('messageModal').style.display = 'none';
+    };
+    
+    window.sendMessage = function() {
+        const messageText = document.getElementById('messageText');
+        const message = messageText.value.trim();
+        
+        if (message) {
+            // Add message to thread
+            const messageThread = document.getElementById('messageThread');
+            const now = new Date().toLocaleTimeString();
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message-item';
+            messageElement.innerHTML = `
+                <div class="message-header">
+                    <span class="message-sender">You</span>
+                    <span class="message-time">${now}</span>
+                </div>
+                <div class="message-content">${message}</div>
+            `;
+            
+            messageThread.appendChild(messageElement);
+            messageText.value = '';
+            
+            // Scroll to bottom
+            messageThread.scrollTop = messageThread.scrollHeight;
+            
+            // In a real implementation, send to server
+            console.log('Sending message:', message);
+        }
+    };
+    
+    window.cancelRequest = function(requestId) {
+        if (confirm('Are you sure you want to cancel this request? This action cannot be undone.')) {
+            // In a real implementation, send cancellation request to server
+            fetch(`/requests/${requestId}/cancel/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show updated status
+                    window.location.reload();
+                } else {
+                    alert('Error cancelling request: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error cancelling request. Please try again.');
+            });
+        }
+    };
+    
+    window.createNewRequest = function() {
+        // Redirect to create request page or show modal
+        window.location.href = '/professionals/';
+    };
+}
+
+// Utility function to get CSRF token
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
