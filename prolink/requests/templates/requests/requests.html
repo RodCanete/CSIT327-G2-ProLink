@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -46,7 +47,7 @@
             </div>
             <div class="user-menu">
                 <div class="user-info">
-                    <img src="https://via.placeholder.com/32x32/28a745/ffffff?text={{ user_role|first|upper }}" alt="User" class="user-avatar">
+                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
                     <span class="user-name">{{ user_email|default:"User" }}</span>
                 </div>
                 <div class="user-dropdown">

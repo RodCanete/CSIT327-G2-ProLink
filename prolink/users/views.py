@@ -15,26 +15,35 @@ def landing(request):
 	return render(request, "landing.html")
 
 def dashboard(request):
-	# Check if user is authenticated
-	if not request.session.get('user_id'):
-		messages.error(request, "Please log in to access the dashboard.")
-		return redirect("login")
-	
-	# Get user info from session
-	user_email = request.session.get('user_email', 'User')
-	user_role = request.session.get('user_role', 'student')
-	
-	# Route to appropriate dashboard based on role
-	if user_role == 'professional':
-		return render(request, "dashboard_professional.html", {
-			"user_email": user_email,
-			"user_role": user_role
-		})
-	else:  # student or worker
-		return render(request, "dashboard_client.html", {
-			"user_email": user_email,
-			"user_role": user_role
-		})
+    # Check if user is authenticated
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to access the dashboard.")
+        return redirect("login")
+    
+    # Get user info from session
+    user_email = request.session.get('user_email', 'User')
+    user_role = request.session.get('user_role', 'student')
+    
+    # --- ADD THIS LINE TO GET THE FIRST NAME ---
+    user_first_name = request.session.get('first_name', '')
+    
+    # Use the first name for display, falling back to email if name is empty
+    # We use .title() for consistent capitalization if the name exists
+    display_name = user_first_name.title() if user_first_name else user_email
+    
+    # Define the context dictionary
+    context = {
+        # CHANGE: Pass the 'display_name' instead of 'user_email' for welcome message
+        "display_name": display_name, 
+        "user_email": user_email,
+        "user_role": user_role
+    }
+    
+    # Route to appropriate dashboard based on role
+    if user_role == 'professional':
+        return render(request, "dashboard_professional.html", context)
+    else:  # student or worker (client)
+        return render(request, "dashboard_client.html", context)
 
 def logout(request):
 	# Clear session data
@@ -89,6 +98,9 @@ def login(request):
 				request.session['access_token'] = response.session.access_token
 				request.session['refresh_token'] = response.session.refresh_token
 				
+				request.session['first_name'] = user_metadata.get('first_name', '') 
+				request.session['access_token'] = response.session.access_token
+				request.session['refresh_token'] = response.session.refresh_token
 				messages.success(request, "Login successful!")
 				return redirect("dashboard")
 			else:
