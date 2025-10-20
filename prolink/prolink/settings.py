@@ -142,9 +142,16 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Supabase Configuration
-SUPABASE_URL = os.getenv('SUPABASE_URL', '')
-SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
-SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
+# Import from supabase_config.py as fallback if environment variables are not set
+try:
+    from supabase_config import SUPABASE_URL as CONFIG_URL, SUPABASE_ANON_KEY as CONFIG_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY as CONFIG_SERVICE_KEY
+    SUPABASE_URL = os.getenv('SUPABASE_URL', CONFIG_URL)
+    SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', CONFIG_ANON_KEY)
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', CONFIG_SERVICE_KEY)
+except ImportError:
+    SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+    SUPABASE_ANON_KEY = os.getenv('SUPABASE_ANON_KEY', '')
+    SUPABASE_SERVICE_ROLE_KEY = os.getenv('SUPABASE_SERVICE_ROLE_KEY', '')
 
 # Security settings for production
 if not DEBUG:
