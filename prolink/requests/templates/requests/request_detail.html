@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Details - ProLink</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link active">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/28a745/ffffff?text={{ user_role|first|upper }}" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Request Details</h1>
+                    <p>View and manage your validation request.</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/requests/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Requests
+                    </a>
+                    {% if request.status != 'completed' and request.status != 'cancelled' %}
+                    <button class="btn btn-danger" onclick="cancelRequest({{ request.id }})">
+                        <i class="fas fa-times"></i>
+                        Cancel Request
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div class="request-detail-container">
+                <!-- Request Header -->
+                <div class="request-detail-header">
+                    <div class="request-title-section">
+                        <h2>{{ request.title }}</h2>
+                        <span class="request-id">#{{ request.id }}</span>
+                    </div>
+                    <div class="request-status-section">
+                        <span class="status-badge status-{{ request.status }}">
+                            {% if request.status == 'in_progress' %}In Progress
+                            {% elif request.status == 'pending' %}Pending
+                            {% elif request.status == 'completed' %}Completed
+                            {% elif request.status == 'cancelled' %}Cancelled
+                            {% else %}{{ request.status|title }}
+                            {% endif %}
+                        </span>
+                        {% if request.status == 'in_progress' %}
+                        <div class="progress-section">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ request.progress }}%"></div>
+                            </div>
+                            <span class="progress-text">{{ request.progress }}% Complete</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Request Content Grid -->
+                <div class="request-detail-grid">
+                    <!-- Main Content -->
+                    <div class="request-detail-main">
+                        <!-- Description Section -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-align-left"></i>
+                                Description
+                            </h3>
+                            <div class="detail-content">
+                                <p>{{ request.description|linebreaks }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Professional Section -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-user-tie"></i>
+                                Professional Assignment
+                            </h3>
+                            <div class="detail-content">
+                                {% if request.professional %}
+                                <div class="professional-info">
+                                    <div class="professional-avatar">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="professional-details">
+                                        <h4>{{ request.professional }}</h4>
+                                        <p>Assigned Professional</p>
+                                    </div>
+                                </div>
+                                {% else %}
+                                <div class="professional-info">
+                                    <div class="professional-avatar pending">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div class="professional-details">
+                                        <h4>Awaiting Assignment</h4>
+                                        <p>No professional assigned yet</p>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Attached Files Section -->
+                        {% if request.attached_files %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-paperclip"></i>
+                                Attached Files
+                            </h3>
+                            <div class="detail-content">
+                                <div class="files-list">
+                                    {% for file in request.attached_files %}
+                                    <div class="file-item">
+                                        <div class="file-icon">
+                                            <i class="fas fa-file"></i>
+                                        </div>
+                                        <div class="file-info">
+                                            <span class="file-name">{{ file.original_name }}</span>
+                                            <span class="file-size">({{ file.size|filesizeformat }})</span>
+                                        </div>
+                                        <a href="/media/{{ file.saved_name }}" class="file-download" target="_blank">
+                                            <i class="fas fa-download"></i>
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Messages Section -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-comments"></i>
+                                Messages
+                            </h3>
+                            <div class="detail-content">
+                                <div class="messages-container">
+                                    {% if request.messages %}
+                                        {% for message in request.messages %}
+                                        <div class="message-item {% if message.is_from_professional %}from-professional{% else %}from-client{% endif %}">
+                                            <div class="message-header">
+                                                <span class="message-sender">{{ message.sender_email }}</span>
+                                                <span class="message-time">{{ message.created_at }}</span>
+                                            </div>
+                                            <div class="message-content">
+                                                {{ message.message|linebreaks }}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                    <div class="no-messages">
+                                        <i class="fas fa-comment-slash"></i>
+                                        <p>No messages yet</p>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                {% if request.professional and request.status != 'completed' and request.status != 'cancelled' %}
+                                <div class="message-input-section">
+                                    <form id="messageForm" class="message-form">
+                                        {% csrf_token %}
+                                        <div class="message-input-group">
+                                            <textarea id="messageText" placeholder="Type your message..." rows="3"></textarea>
+                                            <button type="submit" class="btn btn-primary">
+                                                <i class="fas fa-paper-plane"></i>
+                                                Send
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="request-detail-sidebar">
+                        <!-- Request Info -->
+                        <div class="detail-card">
+                            <h4>Request Information</h4>
+                            <div class="info-item">
+                                <span class="info-label">Created</span>
+                                <span class="info-value">{{ request.created_at }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Last Updated</span>
+                                <span class="info-value">{{ request.updated_at }}</span>
+                            </div>
+                            {% if request.completed_at %}
+                            <div class="info-item">
+                                <span class="info-label">Completed</span>
+                                <span class="info-value">{{ request.completed_at }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Budget & Timeline -->
+                        <div class="detail-card">
+                            <h4>Budget & Timeline</h4>
+                            <div class="info-item">
+                                <span class="info-label">Budget</span>
+                                <span class="info-value">
+                                    {% if request.price %}
+                                        ${{ request.price|floatformat:2 }}
+                                    {% else %}
+                                        Not specified
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Timeline</span>
+                                <span class="info-value">{{ request.timeline_days }} days</span>
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="detail-card">
+                            <h4>Actions</h4>
+                            <div class="action-buttons">
+                                {% if request.professional and request.status != 'completed' and request.status != 'cancelled' %}
+                                <button class="btn btn-primary btn-block" onclick="openMessageModal({{ request.id }})">
+                                    <i class="fas fa-message"></i>
+                                    Send Message
+                                </button>
+                                {% endif %}
+                                {% if request.status == 'pending' or request.status == 'in_progress' %}
+                                <button class="btn btn-danger btn-block" onclick="cancelRequest({{ request.id }})">
+                                    <i class="fas fa-times"></i>
+                                    Cancel Request
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Message form handling
+        document.getElementById('messageForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const messageText = document.getElementById('messageText').value.trim();
+            if (messageText) {
+                sendMessage({{ request.id }}, messageText);
+            }
+        });
+
+        function sendMessage(requestId, message) {
+            fetch(`/requests/${requestId}/message/`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Reload page to show new message
+                    location.reload();
+                } else {
+                    alert('Error sending message: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error sending message');
+            });
+        }
+
+        function cancelRequest(requestId) {
+            if (confirm('Are you sure you want to cancel this request?')) {
+                fetch(`/requests/${requestId}/cancel/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken')
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    } else {
+                        alert('Error cancelling request: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error cancelling request');
+                });
+            }
+        }
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+</body>
+</html>

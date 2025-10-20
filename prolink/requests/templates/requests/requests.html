@@ -282,8 +282,8 @@
 
         // Modal functions
         function viewRequestDetails(requestId) {
-            // This would load detailed request information
-            document.getElementById('requestDetailModal').style.display = 'block';
+            // Redirect to request detail page
+            window.location.href = `/requests/${requestId}/`;
         }
 
         function closeRequestModal() {
@@ -316,7 +316,7 @@
 
         function createNewRequest() {
             // Redirect to create request page
-            window.location.href = '/professionals/';
+            window.location.href = '/requests/create/';
         }
 
         // Close modals when clicking outside

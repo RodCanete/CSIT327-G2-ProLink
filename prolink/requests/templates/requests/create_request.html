@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Request - ProLink</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link active">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/28a745/ffffff?text={{ user_role|first|upper }}" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Create New Request</h1>
+                    <p>Submit your work for professional validation and feedback.</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/requests/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Requests
+                    </a>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <form method="post" enctype="multipart/form-data" class="request-form">
+                    {% csrf_token %}
+                    
+                    <!-- Error Messages -->
+                    {% if errors %}
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div class="alert-content">
+                            <h4>Please fix the following errors:</h4>
+                            <ul>
+                                {% for error in errors %}
+                                <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            Basic Information
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="title" class="form-label">
+                                Request Title <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="title" 
+                                   name="title" 
+                                   class="form-input" 
+                                   value="{{ title|default:'' }}"
+                                   placeholder="Enter a descriptive title for your request"
+                                   maxlength="200"
+                                   required>
+                            <div class="form-help">
+                                <span id="title-count">0</span>/200 characters
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">
+                                Description <span class="required">*</span>
+                            </label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      class="form-textarea" 
+                                      rows="6"
+                                      placeholder="Provide detailed information about what you need validated or reviewed. Include specific requirements, context, and any important details."
+                                      maxlength="5000"
+                                      required>{{ description|default:'' }}</textarea>
+                            <div class="form-help">
+                                <span id="description-count">0</span>/5000 characters
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="category" class="form-label">Category</label>
+                                <select id="category" name="category" class="form-select">
+                                    <option value="">Select a category</option>
+                                    <option value="academic" {% if category == 'academic' %}selected{% endif %}>Academic</option>
+                                    <option value="design" {% if category == 'design' %}selected{% endif %}>Design</option>
+                                    <option value="development" {% if category == 'development' %}selected{% endif %}>Development</option>
+                                    <option value="business" {% if category == 'business' %}selected{% endif %}>Business</option>
+                                    <option value="marketing" {% if category == 'marketing' %}selected{% endif %}>Marketing</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="priority" class="form-label">Priority Level</label>
+                                <select id="priority" name="priority" class="form-select">
+                                    <option value="low" {% if priority == 'low' %}selected{% endif %}>Low</option>
+                                    <option value="medium" {% if priority == 'medium' %}selected{% endif %}>Medium</option>
+                                    <option value="high" {% if priority == 'high' %}selected{% endif %}>High</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget & Timeline Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-dollar-sign"></i>
+                            Budget & Timeline
+                        </h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="price" class="form-label">Budget (Optional)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           id="price" 
+                                           name="price" 
+                                           class="form-input" 
+                                           value="{{ price|default:'' }}"
+                                           placeholder="0.00"
+                                           min="0"
+                                           step="0.01">
+                                </div>
+                                <div class="form-help">Leave empty if you're flexible with pricing</div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="timeline_days" class="form-label">
+                                    Timeline <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" 
+                                           id="timeline_days" 
+                                           name="timeline_days" 
+                                           class="form-input" 
+                                           value="{{ timeline_days|default:'' }}"
+                                           placeholder="7"
+                                           min="1"
+                                           max="365"
+                                           required>
+                                    <span class="input-group-text">days</span>
+                                </div>
+                                <div class="form-help">How many days do you need this completed?</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Professional Selection Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-user-tie"></i>
+                            Professional Selection
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="professional" class="form-label">Preferred Professional (Optional)</label>
+                            <input type="text" 
+                                   id="professional" 
+                                   name="professional" 
+                                   class="form-input" 
+                                   value="{{ professional|default:'' }}"
+                                   placeholder="Enter professional email or leave empty for auto-assignment">
+                            <div class="form-help">Leave empty to have a professional assigned automatically</div>
+                        </div>
+                    </div>
+
+                    <!-- File Upload Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-paperclip"></i>
+                            File Attachments
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="attached_files" class="form-label">Upload Files (Optional)</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <div class="file-upload-content">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <h4>Drag & drop files here</h4>
+                                    <p>or <span class="file-upload-link">browse files</span></p>
+                                    <div class="file-upload-info">
+                                        <small>Maximum 5 files, 10MB each</small>
+                                        <br>
+                                        <small>Supported: PDF, DOC, DOCX, PNG, JPG, ZIP</small>
+                                    </div>
+                                </div>
+                                <input type="file" 
+                                       id="attached_files" 
+                                       name="attached_files" 
+                                       class="file-input" 
+                                       multiple
+                                       accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip">
+                            </div>
+                            <div id="file-list" class="file-list"></div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="window.location.href='/requests/'">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i>
+                            Submit Request
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Character counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const titleCount = document.getElementById('title-count');
+            const descriptionCount = document.getElementById('description-count');
+
+            function updateCount(input, counter, max) {
+                const count = input.value.length;
+                counter.textContent = count;
+                if (count > max * 0.9) {
+                    counter.style.color = '#dc3545';
+                } else if (count > max * 0.8) {
+                    counter.style.color = '#ffc107';
+                } else {
+                    counter.style.color = '#6c757d';
+                }
+            }
+
+            titleInput.addEventListener('input', function() {
+                updateCount(this, titleCount, 200);
+            });
+
+            descriptionInput.addEventListener('input', function() {
+                updateCount(this, descriptionCount, 5000);
+            });
+
+            // Initialize counts
+            updateCount(titleInput, titleCount, 200);
+            updateCount(descriptionInput, descriptionCount, 5000);
+        });
+
+        // File upload handling
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        const fileInput = document.getElementById('attached_files');
+        const fileList = document.getElementById('file-list');
+
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+        fileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.add('drag-over');
+        });
+        fileUploadArea.addEventListener('dragleave', () => {
+            fileUploadArea.classList.remove('drag-over');
+        });
+        fileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileUploadArea.classList.remove('drag-over');
+            fileInput.files = e.dataTransfer.files;
+            updateFileList();
+        });
+
+        fileInput.addEventListener('change', updateFileList);
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            const files = Array.from(fileInput.files);
+            
+            if (files.length === 0) {
+                fileList.style.display = 'none';
+                return;
+            }
+
+            fileList.style.display = 'block';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <i class="fas fa-file"></i>
+                        <span class="file-name">${file.name}</span>
+                        <span class="file-size">(${formatFileSize(file.size)})</span>
+                    </div>
+                    <button type="button" class="file-remove" onclick="removeFile(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        function removeFile(index) {
+            const files = Array.from(fileInput.files);
+            files.splice(index, 1);
+            
+            const newFileList = new DataTransfer();
+            files.forEach(file => newFileList.items.add(file));
+            fileInput.files = newFileList.files;
+            
+            updateFileList();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Form validation
+        document.querySelector('.request-form').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const timeline = document.getElementById('timeline_days').value;
+
+            if (title.length < 5) {
+                e.preventDefault();
+                alert('Title must be at least 5 characters long.');
+                return;
+            }
+
+            if (description.length < 50) {
+                e.preventDefault();
+                alert('Description must be at least 50 characters long.');
+                return;
+            }
+
+            if (!timeline || timeline < 1 || timeline > 365) {
+                e.preventDefault();
+                alert('Timeline must be between 1 and 365 days.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>
