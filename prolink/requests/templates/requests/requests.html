@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Requests - ProLink</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link active">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="https://via.placeholder.com/32x32/28a745/ffffff?text={{ user_role|first|upper }}" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>My Requests</h1>
+                    <p>Track and manage your validation requests with professionals.</p>
+                </div>
+                <div class="page-actions">
+                    <button class="btn btn-primary" onclick="createNewRequest()">
+                        <i class="fas fa-plus"></i>
+                        New Request
+                    </button>
+                </div>
+            </div>
+
+            <!-- Filters and Search -->
+            <div class="filters-section">
+                <div class="filter-tabs">
+                    <button class="filter-tab {% if current_status == 'all' %}active{% endif %}" data-status="all">
+                        All Requests
+                        <span class="filter-count">{{ all_requests_count }}</span>
+                    </button>
+                    <button class="filter-tab {% if current_status == 'pending' %}active{% endif %}" data-status="pending">
+                        Pending
+                        <span class="filter-count">{{ pending_count }}</span>
+                    </button>
+                    <button class="filter-tab {% if current_status == 'in_progress' %}active{% endif %}" data-status="in_progress">
+                        In Progress
+                        <span class="filter-count">{{ in_progress_count }}</span>
+                    </button>
+                    <button class="filter-tab {% if current_status == 'completed' %}active{% endif %}" data-status="completed">
+                        Completed
+                        <span class="filter-count">{{ completed_count }}</span>
+                    </button>
+                    <button class="filter-tab {% if current_status == 'cancelled' %}active{% endif %}" data-status="cancelled">
+                        Cancelled
+                        <span class="filter-count">{{ cancelled_count }}</span>
+                    </button>
+                </div>
+                
+                <div class="search-section">
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Search by title or professional..." value="{{ search_query }}">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Requests Grid -->
+            <div class="requests-grid">
+                {% if requests %}
+                    {% for request in requests %}
+                    <div class="request-card" data-request-id="{{ request.id }}">
+                        <div class="request-header">
+                            <div class="request-title">
+                                <h3>{{ request.title }}</h3>
+                                <span class="request-id">#{{ request.id }}</span>
+                            </div>
+                            <div class="request-status">
+                                <span class="status-badge status-{{ request.status }}">
+                                    {% if request.status == 'in_progress' %}In Progress
+                                    {% elif request.status == 'pending' %}Pending
+                                    {% elif request.status == 'completed' %}Completed
+                                    {% elif request.status == 'cancelled' %}Cancelled
+                                    {% else %}{{ request.status|title }}
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="request-content">
+                            <p class="request-description">{{ request.description|truncatewords:20 }}</p>
+                            
+                            {% if request.professional %}
+                            <div class="request-professional">
+                                <i class="fas fa-user-tie"></i>
+                                <span>{{ request.professional }}</span>
+                            </div>
+                            {% else %}
+                            <div class="request-professional">
+                                <i class="fas fa-clock"></i>
+                                <span>Awaiting professional assignment</span>
+                            </div>
+                            {% endif %}
+                            
+                            <div class="request-details">
+                                <div class="detail-item">
+                                    <i class="fas fa-dollar-sign"></i>
+                                    <span>${{ request.price }}</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-calendar"></i>
+                                    <span>{{ request.timeline_days }} days</span>
+                                </div>
+                                <div class="detail-item">
+                                    <i class="fas fa-clock"></i>
+                                    <span>{{ request.created_at }}</span>
+                                </div>
+                            </div>
+                            
+                            {% if request.status == 'in_progress' %}
+                            <div class="progress-section">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: {{ request.progress }}%"></div>
+                                </div>
+                                <span class="progress-text">{{ request.progress }}% Complete</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="request-actions">
+                            <button class="btn btn-sm btn-outline" onclick="viewRequestDetails({{ request.id }})">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                            {% if request.professional and request.status != 'completed' and request.status != 'cancelled' %}
+                            <button class="btn btn-sm btn-primary" onclick="openMessageModal({{ request.id }})">
+                                <i class="fas fa-message"></i>
+                                Message
+                            </button>
+                            {% endif %}
+                            {% if request.status == 'pending' or request.status == 'in_progress' %}
+                            <button class="btn btn-sm btn-danger" onclick="cancelRequest({{ request.id }})">
+                                <i class="fas fa-times"></i>
+                                Cancel
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <div class="empty-icon">
+                            <i class="fas fa-clipboard-list"></i>
+                        </div>
+                        <h3>No requests found</h3>
+                        <p>You haven't created any requests yet, or no requests match your current filters.</p>
+                        <button class="btn btn-primary" onclick="createNewRequest()">
+                            <i class="fas fa-plus"></i>
+                            Create Your First Request
+                        </button>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Request Detail Modal -->
+    <div id="requestDetailModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Request Details</h2>
+                <button class="modal-close" onclick="closeRequestModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modalContent">
+                    <!-- Content will be loaded dynamically -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Message Modal -->
+    <div id="messageModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Send Message</h2>
+                <button class="modal-close" onclick="closeMessageModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="message-thread" id="messageThread">
+                    <!-- Messages will be loaded here -->
+                </div>
+                <div class="message-input">
+                    <textarea id="messageText" placeholder="Type your message..."></textarea>
+                    <button class="btn btn-primary" onclick="sendMessage()">
+                        <i class="fas fa-paper-plane"></i>
+                        Send
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Filter functionality
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                const status = this.dataset.status;
+                const url = new URL(window.location);
+                url.searchParams.set('status', status);
+                window.location.href = url.toString();
+            });
+        });
+
+        // Search functionality - only search on Enter key press
+        document.getElementById('searchInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                const searchQuery = this.value.trim();
+                const url = new URL(window.location);
+                if (searchQuery) {
+                    url.searchParams.set('search', searchQuery);
+                } else {
+                    url.searchParams.delete('search');
+                }
+                window.location.href = url.toString();
+            }
+        });
+
+        // Modal functions
+        function viewRequestDetails(requestId) {
+            // This would load detailed request information
+            document.getElementById('requestDetailModal').style.display = 'block';
+        }
+
+        function closeRequestModal() {
+            document.getElementById('requestDetailModal').style.display = 'none';
+        }
+
+        function openMessageModal(requestId) {
+            document.getElementById('messageModal').style.display = 'block';
+        }
+
+        function closeMessageModal() {
+            document.getElementById('messageModal').style.display = 'none';
+        }
+
+        function sendMessage() {
+            const messageText = document.getElementById('messageText').value;
+            if (messageText.trim()) {
+                // Send message via AJAX
+                console.log('Sending message:', messageText);
+                document.getElementById('messageText').value = '';
+            }
+        }
+
+        function cancelRequest(requestId) {
+            if (confirm('Are you sure you want to cancel this request?')) {
+                // Cancel request via AJAX
+                console.log('Cancelling request:', requestId);
+            }
+        }
+
+        function createNewRequest() {
+            // Redirect to create request page
+            window.location.href = '/professionals/';
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(event) {
+            const requestModal = document.getElementById('requestDetailModal');
+            const messageModal = document.getElementById('messageModal');
+            
+            if (event.target === requestModal) {
+                closeRequestModal();
+            }
+            if (event.target === messageModal) {
+                closeMessageModal();
+            }
+        });
+    </script>
+</body>
+</html>
