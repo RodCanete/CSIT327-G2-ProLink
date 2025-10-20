@@ -208,3 +208,60 @@ def terms(request):
 def privacy(request):
     return render(request, 'users/privacy.html')
 
+def dashboard_client(request):
+    return render(request, 'dashboard_client.html')
+
+def client_profile(request):
+    # Check if user is authenticated
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to access your profile.")
+        return redirect("login")
+
+    # Get the access token from session
+    access_token = request.session.get('access_token')
+    if not access_token:
+        messages.error(request, "Session expired. Please log in again.")
+        return redirect("login")
+
+    try:
+        # Initialize Supabase client
+        supabase = get_supabase_client()
+        
+        # Get user data from Supabase using the access token
+        response = supabase.auth.get_user(access_token)
+        user = response.user
+        if not user:
+            messages.error(request, "User not found. Please log in again.")
+            return redirect("login")
+
+        user_metadata = user.user_metadata or {}
+        first_name = user_metadata.get('first_name', '')
+        last_name = user_metadata.get('last_name', '')
+        user_email = user.email
+        display_name = f"{first_name} {last_name}".strip() if first_name or last_name else user_email
+
+        # Also, we can get other information from the user_metadata, such as role, profession, etc.
+        # But note: the profile page is for clients, so we might want to display client-specific data.
+
+        context = {
+            "first_name": first_name,
+            "last_name": last_name,
+            "user_email": user_email,
+            "display_name": display_name,
+            # Add other fields you want to display from user_metadata
+            "role": user_metadata.get('role', ''),
+            "profession": user_metadata.get('profession', ''),
+            "company_name": user_metadata.get('company_name', ''),
+            "job_title": user_metadata.get('job_title', ''),
+            "school_name": user_metadata.get('school_name', ''),
+            "major": user_metadata.get('major', ''),
+            "year_level": user_metadata.get('year_level', ''),
+            "graduation_year": user_metadata.get('graduation_year', ''),
+            "experience": user_metadata.get('experience', ''),
+        }
+        return render(request, 'users/client_profile.html', context)
+
+    except Exception as e:
+        messages.error(request, f"Error retrieving profile: {str(e)}")
+        return redirect("dashboard")
+

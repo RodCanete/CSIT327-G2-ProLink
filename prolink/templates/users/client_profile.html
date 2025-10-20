@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProLink - Client Profile</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <link rel="stylesheet" href="{% static 'css/client_profile.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user_email }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/" class="active">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <!-- Profile Content -->
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>My Profile</h1>
+                    <p>Manage your personal information and account settings</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/dashboard/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Profile Content Grid -->
+            <div class="profile-content-grid">
+                <!-- Left Profile Section -->
+                <div class="profile-sidebar">
+                    <div class="profile-image-container">
+                        <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image">
+                        <button class="edit-profile-btn">
+                            <i class="fas fa-edit"></i>
+                            Edit Profile Picture
+                        </button>
+                    </div>
+                    
+                    <div class="profile-details">
+                        <h2 class="profile-name">{{ first_name }} {{ last_name }}</h2>
+                        
+                        <div class="profile-info-section">
+                            <h3>Contact Information</h3>
+                            <div class="info-item">
+                                <span class="info-label">Email:</span>
+                                <span class="info-value">{{ user_email }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Full Name:</span>
+                                <span class="info-value">{{ first_name }} {{ last_name }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Account Status:</span>
+                                <span class="info-value status-active">Active</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-info-section">
+                            <h3>Account Details</h3>
+                            <div class="info-item">
+                                <span class="info-label">User ID:</span>
+                                <span class="info-value">{{ request.session.user_id|slice:":8" }}...</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Member Since:</span>
+                                <span class="info-value">January 2023</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Last Login:</span>
+                                <span class="info-value">Today, 10:30 AM</span>
+                            </div>
+                        </div>
+                        
+                        <div class="profile-info-section">
+                            <h3>Security Settings</h3>
+                            <div class="info-item">
+                                <span class="info-label">Password Strength:</span>
+                                <span class="info-value status-strong">Strong</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Two-Factor Auth:</span>
+                                <span class="info-value status-enabled">Enabled</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Login Activity:</span>
+                                <span class="info-value">Active Now</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Content Area -->
+                <div class="profile-main-content">
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Personal Information</h3>
+                            <button class="btn btn-sm btn-primary">
+                                <i class="fas fa-edit"></i>
+                                Edit Information
+                            </button>
+                        </div>
+                        <div class="panel-content">
+                            <div class="info-grid">
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Basic Information</h4>
+                                        <div class="info-details">
+                                            <p><strong>First Name:</strong> {{ first_name }}</p>
+                                            <p><strong>Last Name:</strong> {{ last_name }}</p>
+                                            <p><strong>Display Name:</strong> {{ display_name }}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="info-card">
+                                    <div class="info-icon">
+                                        <i class="fas fa-envelope"></i>
+                                    </div>
+                                    <div class="info-content">
+                                        <h4>Contact Details</h4>
+                                        <div class="info-details">
+                                            <p><strong>Email:</strong> {{ user_email }}</p>
+                                            <p><strong>Email Verified:</strong> <span class="status-verified">Verified</span></p>
+                                            <p><strong>Notification Preference:</strong> Email & In-App</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Account Statistics</h3>
+                        </div>
+                        <div class="panel-content">
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <div class="stat-number">5</div>
+                                    <div class="stat-label">Active Requests</div>
+                                    <div class="stat-trend positive">+2 this week</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">12</div>
+                                    <div class="stat-label">Completed Projects</div>
+                                    <div class="stat-trend positive">+3 this month</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">8</div>
+                                    <div class="stat-label">Connections</div>
+                                    <div class="stat-trend positive">+1 new</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">95%</div>
+                                    <div class="stat-label">Satisfaction Rate</div>
+                                    <div class="stat-trend positive">+5%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel">
+                        <div class="panel-header">
+                            <h3>Recent Activity</h3>
+                            <a href="/activity/" class="panel-link">View All</a>
+                        </div>
+                        <div class="panel-content">
+                            <div class="activity-list">
+                                <div class="activity-item">
+                                    <div class="activity-icon success">
+                                        <i class="fas fa-user-edit"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p><strong>Profile updated</strong> - Personal information modified</p>
+                                        <span class="activity-time">2 days ago</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon info">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p><strong>Security settings updated</strong> - Two-factor authentication enabled</p>
+                                        <span class="activity-time">1 week ago</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon warning">
+                                        <i class="fas fa-credit-card"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p><strong>Payment method updated</strong> - New credit card added</p>
+                                        <span class="activity-time">2 weeks ago</span>
+                                    </div>
+                                </div>
+                                <div class="activity-item">
+                                    <div class="activity-icon success">
+                                        <i class="fas fa-bell"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <p><strong>Notification preferences changed</strong> - Email notifications enabled</p>
+                                        <span class="activity-time">3 weeks ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
