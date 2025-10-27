@@ -49,9 +49,17 @@
             <div class="user-menu">
                 
                 <div class="user-info">
-                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
-                    <span class="user-name">{{ user_email|default:"User" }}</span>
+                    <img src="{% if request.session.profile_picture_url %}{{ request.session.profile_picture_url }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
+                        alt="User" class="user-avatar" id="navbar-avatar">
+                    <span class="user-name">
+                        {% if request.session.user_email %}
+                            {{ request.session.user_email }}
+                        {% else %}
+                            User
+                        {% endif %}
+                    </span>
                 </div>
+
 
                 <div class="user-dropdown">
                     <a href="/profile/">Profile</a>

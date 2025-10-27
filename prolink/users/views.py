@@ -6,6 +6,13 @@ from django.contrib import messages
 from django.conf import settings
 from supabase import create_client, Client
 import json
+from django.http import JsonResponse
+from .models import User
+import os
+from django.conf import settings
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 # Initialize Supabase client
 def get_supabase_client():
@@ -70,46 +77,7 @@ def registration_success(request):
 		"name": name
 	})
 
-def login(request):
-	error = None
-	if request.method == "POST":
-		email = request.POST.get("email")
-		password = request.POST.get("password")
-		
-		try:
-			# Initialize Supabase client
-			supabase = get_supabase_client()
-			
-			# Authenticate with Supabase
-			response = supabase.auth.sign_in_with_password({
-				"email": email,
-				"password": password
-			})
-			
-			if response.user:
-				# Get user metadata
-				user_metadata = response.user.user_metadata or {}
-				user_role = user_metadata.get('role', 'student')  # default to student
-				
-				# Store user session
-				request.session['user_id'] = response.user.id
-				request.session['user_email'] = response.user.email
-				request.session['user_role'] = user_role  # Add role to session
-				request.session['access_token'] = response.session.access_token
-				request.session['refresh_token'] = response.session.refresh_token
-				
-				request.session['first_name'] = user_metadata.get('first_name', '') 
-				request.session['access_token'] = response.session.access_token
-				request.session['refresh_token'] = response.session.refresh_token
-				messages.success(request, "Login successful!")
-				return redirect("dashboard")
-			else:
-				error = "Invalid email or password."
-				
-		except Exception as e:
-			error = f"Login failed: {str(e)}"
-			
-	return render(request, "users/login.html", {"error": error})
+ 
 
 def signup(request):
 	error = None
@@ -212,22 +180,18 @@ def dashboard_client(request):
     return render(request, 'dashboard_client.html')
 
 def client_profile(request):
-    # Check if user is authenticated
+    # Check if Supabase session exists
     if not request.session.get('user_id'):
         messages.error(request, "Please log in to access your profile.")
         return redirect("login")
 
-    # Get the access token from session
     access_token = request.session.get('access_token')
     if not access_token:
         messages.error(request, "Session expired. Please log in again.")
         return redirect("login")
 
     try:
-        # Initialize Supabase client
         supabase = get_supabase_client()
-        
-        # Get user data from Supabase using the access token
         response = supabase.auth.get_user(access_token)
         user = response.user
         if not user:
@@ -238,17 +202,13 @@ def client_profile(request):
         first_name = user_metadata.get('first_name', '')
         last_name = user_metadata.get('last_name', '')
         user_email = user.email
-        display_name = f"{first_name} {last_name}".strip() if first_name or last_name else user_email
-
-        # Also, we can get other information from the user_metadata, such as role, profession, etc.
-        # But note: the profile page is for clients, so we might want to display client-specific data.
+        display_name = f"{first_name} {last_name}".strip() or user_email
 
         context = {
             "first_name": first_name,
             "last_name": last_name,
             "user_email": user_email,
             "display_name": display_name,
-            # Add other fields you want to display from user_metadata
             "role": user_metadata.get('role', ''),
             "profession": user_metadata.get('profession', ''),
             "company_name": user_metadata.get('company_name', ''),
@@ -265,3 +225,115 @@ def client_profile(request):
         messages.error(request, f"Error retrieving profile: {str(e)}")
         return redirect("dashboard")
 
+
+def upload_profile_picture(request):
+    if not request.session.get('user_id'):
+        return JsonResponse({
+            'success': False,
+            'message': 'You must be logged in to upload a profile picture.'
+        }, status=401)
+
+    if request.method == 'POST' and request.FILES.get('profile_picture'):
+        try:
+            user_id = request.session['user_id']  # Supabase UUID
+            image_file = request.FILES['profile_picture']
+
+            # Save the image with the UUID in its name
+            filename = f"profile_pictures/{user_id}.jpg"
+            path = default_storage.save(filename, ContentFile(image_file.read()))
+
+            image_url = default_storage.url(path)
+
+            # Optionally, store it in session or Supabase user metadata
+            request.session['profile_picture_url'] = image_url
+
+            return JsonResponse({
+                'success': True,
+                'message': 'Profile picture updated successfully!',
+                'profile_picture_url': image_url
+            })
+        except Exception as e:
+            return JsonResponse({
+                'success': False,
+                'message': f'Error updating profile picture: {str(e)}'
+            })
+
+    return JsonResponse({'success': False, 'message': 'Invalid request'})
+
+def get_profile_picture_url(request):
+    """Helper function to get profile picture URL"""
+    # Check session first
+    if request.session.get('profile_picture_url'):
+        return request.session.get('profile_picture_url')
+    
+    # If not in session, try to get from Supabase
+    try:
+        supabase = get_supabase_client()
+        access_token = request.session.get('access_token')
+        
+        if access_token:
+            response = supabase.auth.get_user(access_token)
+            user = response.user
+            if user and user.user_metadata:
+                profile_url = user.user_metadata.get('profile_picture_url')
+                if profile_url:
+                    # Store in session for future use
+                    request.session['profile_picture_url'] = profile_url
+                    return profile_url
+    except Exception:
+        pass
+    
+    return '/static/images/default_profile.png'
+
+
+def debug_auth(request):
+    return JsonResponse({
+        'is_authenticated': request.user.is_authenticated,
+        'username': request.user.username if request.user.is_authenticated else 'Anonymous',
+        'user_id': request.user.id if request.user.is_authenticated else None,
+        'session_keys': list(request.session.keys()) if hasattr(request, 'session') else 'No session',
+    })
+def supabase_login_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        if not request.session.get('user_id'):
+            messages.error(request, "Please log in to access this page.")
+            return redirect('login')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+def login(request):
+    error = None
+    if request.method == "POST":
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        try:
+            supabase = get_supabase_client()
+            response = supabase.auth.sign_in_with_password({
+                "email": email,
+                "password": password
+            })
+
+            if response.user:
+                user_metadata = response.user.user_metadata or {}
+                user_role = user_metadata.get('role', 'student')
+
+                # Store session info
+                request.session['user_id'] = response.user.id
+                request.session['user_email'] = response.user.email
+                request.session['user_role'] = user_role
+                request.session['access_token'] = response.session.access_token
+                request.session['refresh_token'] = response.session.refresh_token
+                request.session['first_name'] = user_metadata.get('first_name', '')
+                request.session['last_name'] = user_metadata.get('last_name', '')
+
+                messages.success(request, "Login successful!")
+                return redirect("dashboard")
+
+            else:
+                error = "Invalid email or password."
+
+        except Exception as e:
+            error = f"Login failed: {str(e)}"
+
+    return render(request, "users/login.html", {"error": error})

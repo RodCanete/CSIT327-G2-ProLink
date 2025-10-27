@@ -48,7 +48,7 @@
             </div>
             <div class="user-menu">
                 <div class="user-info">
-                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
+                    <img src="{{ request.user.get_profile_picture_url }}" alt="User" class="user-avatar" id="navbar-avatar">
                     <span class="user-name">{{ user_email }}</span>
                 </div>
                 <div class="user-dropdown">
@@ -89,12 +89,15 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image">
-                        <button class="edit-profile-btn">
+                        <img src="{{ request.user.get_profile_picture_url }}" alt="Profile Picture" class="profile-image" id="profile-picture">
+                        <input type="file" id="profile-picture-input" accept="image/*" style="display: none;">
+                        <button class="edit-profile-btn" id="edit-profile-picture-btn">
                             <i class="fas fa-edit"></i>
                             Edit Profile Picture
                         </button>
+                        <div id="upload-message" style="display: none; margin-top: 10px;"></div>
                     </div>
+
                     
                     <div class="profile-details">
                         <h2 class="profile-name">{{ first_name }} {{ last_name }}</h2>
@@ -273,5 +276,111 @@
     </main>
 
     <script src="/static/js/dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const profilePictureInput = document.getElementById('profile-picture-input');
+            const editProfilePictureBtn = document.getElementById('edit-profile-picture-btn');
+            const profilePicture = document.getElementById('profile-picture');
+            const navbarAvatar = document.getElementById('navbar-avatar');
+            const uploadMessage = document.getElementById('upload-message');
+            
+            // Open file dialog when button is clicked
+            editProfilePictureBtn.addEventListener('click', function() {
+                profilePictureInput.click();
+            });
+            
+            // Handle file selection
+            profilePictureInput.addEventListener('change', function(e) {
+                if (e.target.files && e.target.files[0]) {
+                    const file = e.target.files[0];
+                    
+                    // Validate file type
+                    if (!file.type.startsWith('image/')) {
+                        showMessage('Please select a valid image file.', 'error');
+                        return;
+                    }
+                    
+                    // Validate file size (max 5MB)
+                    if (file.size > 5 * 1024 * 1024) {
+                        showMessage('Image size should be less than 5MB.', 'error');
+                        return;
+                    }
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        profilePicture.src = e.target.result;
+                        navbarAvatar.src = e.target.result;
+                    };
+                    reader.readAsDataURL(file);
+                    
+                    // Upload file
+                    uploadProfilePicture(file);
+                }
+            });
+            
+            function uploadProfilePicture(file) {
+                const formData = new FormData();
+                formData.append('profile_picture', file);
+                
+                showMessage('Uploading profile picture...', 'info');
+                
+                fetch('/upload-profile-picture/', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                    },
+                })
+                .then(response => {
+                    if (response.status === 401) {
+                        showMessage('Please log in to update your profile picture.', 'error');
+                        return { success: false, message: 'Authentication required' };
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        showMessage(data.message, 'success');
+                        // Force browser to reload the image
+                        const timestamp = new Date().getTime();
+                        profilePicture.src = data.profile_picture_url + '?t=' + timestamp;
+                        navbarAvatar.src = data.profile_picture_url + '?t=' + timestamp;
+                    } else {
+                        showMessage(data.message, 'error');
+                    }
+                })
+                .catch(error => {
+                    showMessage('Error uploading profile picture. Please try again.', 'error');
+                    console.error('Error:', error);
+                });
+            }
+            
+            function showMessage(message, type) {
+                uploadMessage.textContent = message;
+                uploadMessage.style.display = 'block';
+                uploadMessage.className = `message message-${type}`;
+                
+                setTimeout(() => {
+                    uploadMessage.style.display = 'none';
+                }, 5000);
+            }
+            
+            function getCookie(name) {
+                let cookieValue = null;
+                if (document.cookie && document.cookie !== '') {
+                    const cookies = document.cookie.split(';');
+                    for (let i = 0; i < cookies.length; i++) {
+                        const cookie = cookies[i].trim();
+                        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                            break;
+                        }
+                    }
+                }
+                return cookieValue;
+            }
+        });
+        </script>
 </body>
 </html>

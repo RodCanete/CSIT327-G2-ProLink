@@ -12,4 +12,5 @@ urlpatterns = [
     path('privacy/', views.privacy, name="privacy"),
     path('dashboard/', views.dashboard_client, name='dashboard_client'),
     path('profile/', views.client_profile, name='client_profile'),
+    path('upload-profile-picture/', views.upload_profile_picture, name='upload_profile_picture'),
 ]
