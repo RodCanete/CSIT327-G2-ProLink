@@ -46,13 +46,24 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'\n❌ Missing columns: {", ".join(missing_columns)}'))
                 self.stdout.write(self.style.WARNING('\nAttempting to add missing columns...'))
                 
-                # Add missing columns
-                if 'date_of_birth' in missing_columns:
-                    cursor.execute('ALTER TABLE users_customuser ADD COLUMN date_of_birth DATE NULL;')
-                    self.stdout.write(self.style.SUCCESS('✓ Added date_of_birth column'))
+                # Add missing columns with proper data types
+                column_definitions = {
+                    'date_of_birth': 'DATE NULL',
+                    'school_name': 'VARCHAR(255) NULL',
+                    'major': 'VARCHAR(255) NULL',
+                    'year_level': 'VARCHAR(50) NULL',
+                    'graduation_year': 'INTEGER NULL',
+                    'company_name': 'VARCHAR(255) NULL',
+                    'job_title': 'VARCHAR(255) NULL',
+                }
                 
-                if 'profile_picture' in missing_columns or 'profile_picture' in column_names:
-                    # Check if it needs to be changed from ImageField to URLField
+                for col in missing_columns:
+                    if col in column_definitions:
+                        cursor.execute(f'ALTER TABLE users_customuser ADD COLUMN {col} {column_definitions[col]};')
+                        self.stdout.write(self.style.SUCCESS(f'✓ Added {col} column'))
+                
+                # Fix profile_picture if needed
+                if 'profile_picture' in column_names:
                     cursor.execute("""
                         SELECT data_type, character_maximum_length
                         FROM information_schema.columns 
@@ -62,6 +73,9 @@ class Command(BaseCommand):
                     if result and result[0] == 'character varying' and (result[1] or 0) < 500:
                         cursor.execute('ALTER TABLE users_customuser ALTER COLUMN profile_picture TYPE VARCHAR(500);')
                         self.stdout.write(self.style.SUCCESS('✓ Updated profile_picture column to VARCHAR(500)'))
+                
+                # IMPORTANT: Close and reopen connection to clear Django's cached table structure
+                connection.close()
                 
                 self.stdout.write(self.style.SUCCESS('\n✓ Database structure fixed!'))
             else:
