@@ -5,11 +5,20 @@ urlpatterns = [
     path("", views.landing, name="landing"),
     path("login/", views.login, name="login"),
     path("signup/", views.signup, name="signup"),
-    path("registration-success/", views.registration_success, name="registration_success"),
     path("dashboard/", views.dashboard, name="dashboard"),
     path("logout/", views.logout, name="logout"),
     path('terms/', views.terms, name="terms"),
     path('privacy/', views.privacy, name="privacy"),
-    path('dashboard/', views.dashboard_client, name='dashboard_client'),
-    path('profile/', views.client_profile, name='client_profile'),
+    
+    # User Profile & Settings
+    path('profile/', views.user_profile, name='profile'),
+    path('settings/', views.user_settings, name='settings'),
+    path('transactions/', views.transactions, name='transactions'),
+    
+    # Professional URLs
+    path('professionals/', views.find_professionals, name='find_professionals'),
+    path('professionals/<int:pk>/', views.professional_detail, name='professional_detail'),
+    path('professionals/<int:pk>/save/', views.save_professional, name='save_professional'),
+    path('professionals/<int:pk>/unsave/', views.unsave_professional, name='unsave_professional'),
+    path('saved/', views.saved_professionals_list, name='saved_professionals'),
 ]

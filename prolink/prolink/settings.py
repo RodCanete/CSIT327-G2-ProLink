@@ -75,6 +75,20 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'prolink.wsgi.application'
 
+# Custom User Model
+AUTH_USER_MODEL = 'users.CustomUser'
+
+# Authentication Backends
+AUTHENTICATION_BACKENDS = [
+    'users.backends.EmailBackend',  # Allow login with email
+    'django.contrib.auth.backends.ModelBackend',  # Fallback to username
+]
+
+# Login/Logout URLs
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/'
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

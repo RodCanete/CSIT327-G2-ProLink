@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login as auth_login
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 from django.http import JsonResponse
@@ -18,13 +18,9 @@ from .models import Request, RequestMessage
 def get_supabase_client():
     return create_client(settings.SUPABASE_URL, settings.SUPABASE_ANON_KEY)
 
+@login_required
 def requests_list(request):
-    # Check if user is authenticated
-    if not request.session.get('user_id'):
-        messages.error(request, "Please log in to view your requests.")
-        return redirect("login")
-    
-    user_email = request.session.get('user_email', '')
+    user_email = request.user.email
     
     # Get filter parameters
     status_filter = request.GET.get('status', 'all')
@@ -82,7 +78,7 @@ def requests_list(request):
         'current_status': status_filter,
         'search_query': search_query,
         'user_email': user_email,
-        'user_role': request.session.get('user_role', 'student'),
+        'user_role': request.user.user_role if hasattr(request.user, 'user_role') else 'client',
         'all_requests_count': all_requests_count,
         'pending_count': pending_count,
         'in_progress_count': in_progress_count,
@@ -92,13 +88,9 @@ def requests_list(request):
     
     return render(request, 'requests/requests.html', context)
 
+@login_required
 def request_detail(request, request_id):
-    # Check if user is authenticated
-    if not request.session.get('user_id'):
-        messages.error(request, "Please log in to view request details.")
-        return redirect("login")
-    
-    user_email = request.session.get('user_email', '')
+    user_email = request.user.email
     
     # Get the request
     try:
@@ -156,18 +148,14 @@ def request_detail(request, request_id):
     context = {
         'request': request_data,
         'user_email': user_email,
-        'user_role': request.session.get('user_role', 'student')
+        'user_role': request.user.user_role if hasattr(request.user, 'user_role') else 'client'
     }
     
     return render(request, 'requests/request_detail.html', context)
 
+@login_required
 def create_request(request):
-    # Check if user is authenticated
-    if not request.session.get('user_id'):
-        messages.error(request, "Please log in to create a request.")
-        return redirect("login")
-    
-    user_email = request.session.get('user_email', '')
+    user_email = request.user.email
     
     if request.method == 'POST':
         # Get form data

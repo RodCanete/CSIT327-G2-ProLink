@@ -1,68 +1,16 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProLink - Professional Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="navbar-brand">
-            <i class="fas fa-link"></i>
-            <span>ProLink</span>
-        </div>
-        
-        <div class="navbar-nav">
-            <a href="/dashboard/" class="nav-link active">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/services/" class="nav-link">
-                <i class="fas fa-briefcase"></i>
-                <span>My Services</span>
-            </a>
-            <a href="/requests/" class="nav-link">
-                <i class="fas fa-inbox"></i>
-                <span>Client Requests</span>
-            </a>
-            <a href="/earnings/" class="nav-link">
-                <i class="fas fa-dollar-sign"></i>
-                <span>Earnings</span>
-            </a>
-            <a href="/reviews/" class="nav-link">
-                <i class="fas fa-star"></i>
-                <span>Reviews</span>
-            </a>
-        </div>
-        
-        <div class="navbar-actions">
-            <div class="notifications">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">3</span>
-            </div>
-            <div class="user-menu">
-                <div class="user-info">
-                    <img src="https://via.placeholder.com/32x32/007bff/ffffff?text=P" alt="User" class="user-avatar">
-                    <span class="user-name">{{ user_email|default:"User" }}</span>
-                </div>
-                <div class="user-dropdown">
-                    <a href="/profile/">Profile</a>
-                    <a href="/settings/">Settings</a>
-                    <form method="post" action="{% url 'logout' %}" class="logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'components/navbar.html' %}
 
     <!-- Main Content Area -->
     <main class="main-content">

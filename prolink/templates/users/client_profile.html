@@ -11,60 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="navbar-brand">
-            <i class="fas fa-link"></i>
-            <span>ProLink</span>
-        </div>
-        
-        <div class="navbar-nav">
-            <a href="/dashboard/" class="nav-link">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/professionals/" class="nav-link">
-                <i class="fas fa-search"></i>
-                <span>Find Professionals</span>
-            </a>
-            <a href="/requests/" class="nav-link">
-                <i class="fas fa-clipboard-list"></i>
-                <span>My Requests</span>
-            </a>
-            <a href="/transactions/" class="nav-link">
-                <i class="fas fa-credit-card"></i>
-                <span>Transactions</span>
-            </a>
-            <a href="/saved/" class="nav-link">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Professionals</span>
-            </a>
-        </div>
-        
-        <div class="navbar-actions">
-            <div class="notifications">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">2</span>
-            </div>
-            <div class="user-menu">
-                <div class="user-info">
-                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
-                    <span class="user-name">{{ user_email }}</span>
-                </div>
-                <div class="user-dropdown">
-                    <a href="/profile/" class="active">Profile</a>
-                    <a href="/settings/">Settings</a>
-                    <form method="post" action="{% url 'logout' %}" class="logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'components/navbar.html' %}
 
     <!-- Main Content Area -->
     <main class="main-content">
@@ -119,15 +66,15 @@
                             <h3>Account Details</h3>
                             <div class="info-item">
                                 <span class="info-label">User ID:</span>
-                                <span class="info-value">{{ request.session.user_id|slice:":8" }}...</span>
+                                <span class="info-value">{{ user.id }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Member Since:</span>
-                                <span class="info-value">January 2023</span>
+                                <span class="info-value">{{ member_since }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Last Login:</span>
-                                <span class="info-value">Today, 10:30 AM</span>
+                                <span class="info-value">{{ last_login }}</span>
                             </div>
                         </div>
                         
@@ -198,24 +145,24 @@
                         <div class="panel-content">
                             <div class="stats-grid">
                                 <div class="stat-item">
-                                    <div class="stat-number">5</div>
+                                    <div class="stat-number">{{ active_requests }}</div>
                                     <div class="stat-label">Active Requests</div>
-                                    <div class="stat-trend positive">+2 this week</div>
+                                    <div class="stat-trend positive">Live data</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-number">12</div>
+                                    <div class="stat-number">{{ completed_projects }}</div>
                                     <div class="stat-label">Completed Projects</div>
-                                    <div class="stat-trend positive">+3 this month</div>
+                                    <div class="stat-trend positive">All time</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-number">8</div>
-                                    <div class="stat-label">Connections</div>
-                                    <div class="stat-trend positive">+1 new</div>
+                                    <div class="stat-number">{{ connections_count }}</div>
+                                    <div class="stat-label">Saved Professionals</div>
+                                    <div class="stat-trend positive">Connections</div>
                                 </div>
                                 <div class="stat-item">
-                                    <div class="stat-number">95%</div>
+                                    <div class="stat-number">{{ satisfaction_rate }}%</div>
                                     <div class="stat-label">Satisfaction Rate</div>
-                                    <div class="stat-trend positive">+5%</div>
+                                    <div class="stat-trend positive">Average</div>
                                 </div>
                             </div>
                         </div>

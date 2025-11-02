@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saved Professionals - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="{% static 'css/professionals.css' %}">
+    <style>
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i {
+            font-size: 80px;
+            color: #ddd;
+            margin-bottom: 20px;
+        }
+        .empty-state h2 {
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .empty-state p {
+            color: #999;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container">
+        <div class="content-wrapper">
+            <div class="page-header">
+                <h1>Saved Professionals</h1>
+                <p>Your saved professionals for quick access</p>
+            </div>
+
+            {% if saved_professionals %}
+                <div class="professionals-grid">
+                    {% for saved in saved_professionals %}
+                        <div class="professional-card">
+                            <div class="professional-header">
+                                <img src="{% if saved.professional.profile_picture %}{{ saved.professional.profile_picture }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
+                                     alt="{{ saved.professional.get_full_name }}" 
+                                     class="professional-avatar">
+                                <div class="professional-info">
+                                    <h3>{{ saved.professional.get_full_name }}</h3>
+                                    <p class="specialization">{{ saved.professional.specialization.name }}</p>
+                                    <div class="rating">
+                                        <span class="stars">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= saved.professional.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </span>
+                                        <span class="rating-count">({{ saved.professional.total_reviews }} reviews)</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="professional-body">
+                                <p class="bio">{{ saved.professional.bio|truncatewords:30 }}</p>
+                                
+                                <div class="professional-stats">
+                                    <div class="stat">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>{{ saved.professional.total_jobs_completed }} jobs</span>
+                                    </div>
+                                    <div class="stat">
+                                        <i class="fas fa-clock"></i>
+                                        <span>{{ saved.professional.years_of_experience }} years exp.</span>
+                                    </div>
+                                </div>
+
+                                <div class="professional-skills">
+                                    {% for skill in saved.professional.skills.all|slice:":3" %}
+                                        <span class="skill-tag">{{ skill.name }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+
+                            <div class="professional-footer">
+                                <a href="{% url 'professional_detail' saved.professional.id %}" class="btn btn-primary">
+                                    View Profile
+                                </a>
+                                <button class="btn btn-secondary unsave-btn" 
+                                        data-professional-id="{{ saved.professional.id }}"
+                                        onclick="unsaveProfessional({{ saved.professional.id }})">
+                                    <i class="fas fa-bookmark"></i> Unsave
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="far fa-bookmark"></i>
+                    <h2>No Saved Professionals Yet</h2>
+                    <p>Start saving professionals you're interested in for quick access later</p>
+                    <a href="{% url 'find_professionals' %}" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Browse Professionals
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        function unsaveProfessional(professionalId) {
+            fetch(`/professionals/${professionalId}/unsave/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Reload the page to update the list
+                    window.location.reload();
+                } else {
+                    alert('Failed to unsave professional');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred');
+            });
+        }
+    </script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>
