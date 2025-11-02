@@ -82,10 +82,10 @@
                     <p>Welcome back, <strong>{{ display_name|default:"User" }}</strong>! Find professionals to help you succeed.</p>
                 </div>
                 <div class="page-actions">
-                    <button class="btn btn-primary">
+                    <a href="{% url 'find_professionals' %}" class="btn btn-primary">
                         <i class="fas fa-search"></i>
                         Find Professional
-                    </button>
+                    </a>
                     <button class="btn btn-secondary" onclick="createNewRequest()">
                         <i class="fas fa-plus"></i>
                         New Request

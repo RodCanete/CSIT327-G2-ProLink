@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Find Professionals - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/professionals.css' %}?v=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link active">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+            <a href="/reviews/" class="nav-link">
+                <i class="fas fa-star"></i>
+                <span>Reviews</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="professionals-container">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Find Professionals</h1>
+                    <p>Connect with verified experts across various fields</p>
+                </div>
+            </div>
+
+            <!-- Search & Filter Section -->
+            <div class="search-filter-section">
+                <form method="get" action="{% url 'find_professionals' %}" class="search-filter-form">
+                    <!-- Search Bar -->
+                    <div class="search-bar-container">
+                        <div class="search-input-wrapper">
+                            <i class="fas fa-search"></i>
+                            <input type="text" name="q" class="search-input" placeholder="Search by name, specialization, or keywords..." value="{{ request.GET.q }}">
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                            Search
+                        </button>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="specialization">Specialization</label>
+                            <select name="specialization" id="specialization" class="filter-select">
+                                <option value="">All Specializations</option>
+                                {% for spec in specializations %}
+                                <option value="{{ spec.id }}" {% if request.GET.specialization == spec.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ spec.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="experience">Experience</label>
+                            <select name="experience" id="experience" class="filter-select">
+                                <option value="">All Levels</option>
+                                <option value="entry" {% if request.GET.experience == 'entry' %}selected{% endif %}>Entry Level</option>
+                                <option value="intermediate" {% if request.GET.experience == 'intermediate' %}selected{% endif %}>Intermediate</option>
+                                <option value="experienced" {% if request.GET.experience == 'experienced' %}selected{% endif %}>Experienced</option>
+                                <option value="expert" {% if request.GET.experience == 'expert' %}selected{% endif %}>Expert</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="min_rate">Min Rate ($/hr)</label>
+                            <input type="number" name="min_rate" id="min_rate" class="filter-input" placeholder="0" min="0" value="{{ request.GET.min_rate }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="max_rate">Max Rate ($/hr)</label>
+                            <input type="number" name="max_rate" id="max_rate" class="filter-input" placeholder="1000" min="0" value="{{ request.GET.max_rate }}">
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="min_rating">Min Rating</label>
+                            <select name="min_rating" id="min_rating" class="filter-select">
+                                <option value="">Any Rating</option>
+                                <option value="3" {% if request.GET.min_rating == '3' %}selected{% endif %}>3+ Stars</option>
+                                <option value="4" {% if request.GET.min_rating == '4' %}selected{% endif %}>4+ Stars</option>
+                                <option value="4.5" {% if request.GET.min_rating == '4.5' %}selected{% endif %}>4.5+ Stars</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="availability">Availability</label>
+                            <select name="availability" id="availability" class="filter-select">
+                                <option value="">All</option>
+                                <option value="available" {% if request.GET.availability == 'available' %}selected{% endif %}>Available Now</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="sort_by">Sort By</label>
+                            <select name="sort_by" id="sort_by" class="filter-select">
+                                <option value="rating" {% if request.GET.sort_by == 'rating' or not request.GET.sort_by %}selected{% endif %}>Highest Rated</option>
+                                <option value="reviews" {% if request.GET.sort_by == 'reviews' %}selected{% endif %}>Most Reviews</option>
+                                <option value="price_low" {% if request.GET.sort_by == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                                <option value="price_high" {% if request.GET.sort_by == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                                <option value="newest" {% if request.GET.sort_by == 'newest' %}selected{% endif %}>Newest</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-actions">
+                            <button type="submit" class="btn btn-secondary btn-sm">Apply Filters</button>
+                            <a href="{% url 'find_professionals' %}" class="btn btn-outline btn-sm">Clear All</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Summary -->
+            <div class="results-summary">
+                <p>Found <strong>{{ professionals.count }}</strong> professional{{ professionals.count|pluralize }}</p>
+            </div>
+
+            <!-- Professionals Grid -->
+            <div class="professionals-grid">
+                {% for professional in professionals %}
+                <div class="professional-card" data-professional-id="{{ professional.id }}">
+                    <div class="professional-header">
+                        <div class="professional-avatar-large">
+                            {% if professional.user.profile_picture %}
+                            <img src="{{ professional.user.profile_picture.url }}" alt="{{ professional.user.get_full_name }}">
+                            {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" alt="{{ professional.user.get_full_name }}">
+                            {% endif %}
+                            {% if professional.is_verified %}
+                            <span class="verified-badge" title="Verified Professional">
+                                <i class="fas fa-check-circle"></i>
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="professional-basic-info">
+                            <h3>{{ professional.user.get_full_name|default:professional.user.username }}</h3>
+                            <div class="professional-specializations">
+                                {% for spec in professional.specializations.all|slice:":3" %}
+                                <span class="specialization-tag">{{ spec.name }}</span>
+                                {% endfor %}
+                            </div>
+                            <div class="professional-rating">
+                                <div class="stars">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= professional.average_rating %}
+                                        <i class="fas fa-star"></i>
+                                        {% elif forloop.counter <= professional.average_rating|add:"0.5" %}
+                                        <i class="fas fa-star-half-alt"></i>
+                                        {% else %}
+                                        <i class="far fa-star"></i>
+                                        {% endif %}
+                                    {% endfor %}
+                                </div>
+                                <span class="rating-text">{{ professional.average_rating|floatformat:1 }} ({{ professional.total_reviews }} review{{ professional.total_reviews|pluralize }})</span>
+                            </div>
+                        </div>
+                        <button class="save-btn {% if professional.id in saved_professionals %}saved{% endif %}" 
+                                data-professional-id="{{ professional.id }}"
+                                title="{% if professional.id in saved_professionals %}Remove from saved{% else %}Save for later{% endif %}">
+                            <i class="{% if professional.id in saved_professionals %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="professional-body">
+                        <div class="professional-bio">
+                            <p>{{ professional.user.bio|truncatewords:30|default:"No bio available." }}</p>
+                        </div>
+
+                        <div class="professional-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-briefcase"></i>
+                                <span>{{ professional.get_experience_level_display }}</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span>{{ professional.years_of_experience }} years</span>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-check-double"></i>
+                                <span>{{ professional.completed_consultations }} completed</span>
+                            </div>
+                            {% if professional.is_available %}
+                            <div class="stat-item available">
+                                <i class="fas fa-circle"></i>
+                                <span>Available</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="professional-pricing">
+                            <div class="price-info">
+                                <span class="price-label">Hourly Rate:</span>
+                                <span class="price-value">${{ professional.hourly_rate|floatformat:0 }}/hr</span>
+                            </div>
+                            {% if professional.consultation_fee > 0 %}
+                            <div class="price-info">
+                                <span class="price-label">Consultation:</span>
+                                <span class="price-value">${{ professional.consultation_fee|floatformat:0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="professional-footer">
+                        <a href="{% url 'professional_detail' professional.id %}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-user"></i>
+                            View Profile
+                        </a>
+                        <a href="{% url 'create_request' %}?professional={{ professional.id }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-paper-plane"></i>
+                            Request Consultation
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="no-results">
+                    <i class="fas fa-search"></i>
+                    <h3>No professionals found</h3>
+                    <p>Try adjusting your filters or search terms</p>
+                    <a href="{% url 'find_professionals' %}" class="btn btn-primary">Clear Filters</a>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if professionals.has_other_pages %}
+            <div class="pagination">
+                {% if professionals.has_previous %}
+                <a href="?page={{ professionals.previous_page_number }}&{{ request.GET.urlencode }}" class="pagination-btn">
+                    <i class="fas fa-chevron-left"></i>
+                    Previous
+                </a>
+                {% endif %}
+
+                <div class="pagination-numbers">
+                    {% for num in professionals.paginator.page_range %}
+                        {% if professionals.number == num %}
+                        <span class="pagination-number active">{{ num }}</span>
+                        {% elif num > professionals.number|add:'-3' and num < professionals.number|add:'3' %}
+                        <a href="?page={{ num }}&{{ request.GET.urlencode }}" class="pagination-number">{{ num }}</a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if professionals.has_next %}
+                <a href="?page={{ professionals.next_page_number }}&{{ request.GET.urlencode }}" class="pagination-btn">
+                    Next
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <script src="{% static 'js/professionals.js' %}"></script>
+</body>
+</html>

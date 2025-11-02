@@ -12,11 +12,4 @@ urlpatterns = [
     path('privacy/', views.privacy, name="privacy"),
     path('dashboard/', views.dashboard_client, name='dashboard_client'),
     path('profile/', views.client_profile, name='client_profile'),
-    
-    # Professional URLs
-    path('professionals/', views.find_professionals, name='find_professionals'),
-    path('professionals/<int:pk>/', views.professional_detail, name='professional_detail'),
-    path('professionals/<int:pk>/save/', views.save_professional, name='save_professional'),
-    path('professionals/<int:pk>/unsave/', views.unsave_professional, name='unsave_professional'),
-    path('saved/', views.saved_professionals_list, name='saved_professionals'),
 ]

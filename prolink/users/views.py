@@ -284,3 +284,270 @@ def client_profile(request):
         messages.error(request, f"Error retrieving profile: {str(e)}")
         return redirect("dashboard")
 
+
+# ========== PROFESSIONALS VIEWS ==========
+
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import JsonResponse
+from .models import ProfessionalProfile, Specialization, SavedProfessional, CustomUser
+import json
+
+
+def find_professionals(request):
+    """
+    Main view for browsing and searching professionals
+    """
+    # Check if user is authenticated via Supabase session
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to browse professionals.")
+        return redirect("login")
+    
+    # Get all active specializations for filter
+    specializations = Specialization.objects.filter(is_active=True)
+    
+    # Start with all available professionals
+    professionals = ProfessionalProfile.objects.filter(
+        user__is_active=True
+    ).select_related('user').prefetch_related('specializations')
+    
+    # Search by query
+    query = request.GET.get('q', '').strip()
+    if query:
+        professionals = professionals.filter(
+            Q(user__first_name__icontains=query) |
+            Q(user__last_name__icontains=query) |
+            Q(user__username__icontains=query) |
+            Q(user__bio__icontains=query) |
+            Q(specializations__name__icontains=query) |
+            Q(certifications__icontains=query) |
+            Q(education__icontains=query)
+        ).distinct()
+    
+    # Filter by specialization
+    specialization_id = request.GET.get('specialization')
+    if specialization_id:
+        professionals = professionals.filter(specializations__id=specialization_id)
+    
+    # Filter by experience level
+    experience = request.GET.get('experience')
+    if experience:
+        professionals = professionals.filter(experience_level=experience)
+    
+    # Filter by price range
+    min_rate = request.GET.get('min_rate')
+    if min_rate:
+        try:
+            professionals = professionals.filter(hourly_rate__gte=float(min_rate))
+        except ValueError:
+            pass
+    
+    max_rate = request.GET.get('max_rate')
+    if max_rate:
+        try:
+            professionals = professionals.filter(hourly_rate__lte=float(max_rate))
+        except ValueError:
+            pass
+    
+    # Filter by minimum rating
+    min_rating = request.GET.get('min_rating')
+    if min_rating:
+        try:
+            professionals = professionals.filter(average_rating__gte=float(min_rating))
+        except ValueError:
+            pass
+    
+    # Filter by availability
+    availability = request.GET.get('availability')
+    if availability == 'available':
+        professionals = professionals.filter(is_available=True)
+    
+    # Sorting
+    sort_by = request.GET.get('sort_by', 'rating')
+    if sort_by == 'rating':
+        professionals = professionals.order_by('-average_rating', '-total_reviews')
+    elif sort_by == 'reviews':
+        professionals = professionals.order_by('-total_reviews', '-average_rating')
+    elif sort_by == 'price_low':
+        professionals = professionals.order_by('hourly_rate')
+    elif sort_by == 'price_high':
+        professionals = professionals.order_by('-hourly_rate')
+    elif sort_by == 'newest':
+        professionals = professionals.order_by('-created_at')
+    
+    # Get saved professionals for current user
+    saved_professionals = []
+    if request.user.is_authenticated:
+        saved_professionals = SavedProfessional.objects.filter(
+            user=request.user
+        ).values_list('professional_id', flat=True)
+    
+    # Pagination
+    paginator = Paginator(professionals, 12)  # 12 professionals per page
+    page_number = request.GET.get('page')
+    professionals_page = paginator.get_page(page_number)
+    
+    context = {
+        'professionals': professionals_page,
+        'specializations': specializations,
+        'saved_professionals': list(saved_professionals),
+        'total_count': professionals.count(),
+    }
+    
+    return render(request, 'professionals/professionals_list.html', context)
+
+
+def professional_detail(request, pk):
+    """
+    Detailed view of a single professional
+    """
+    # Check if user is authenticated via Supabase session
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to view professional details.")
+        return redirect("login")
+    
+    professional = get_object_or_404(
+        ProfessionalProfile.objects.select_related('user').prefetch_related('specializations'),
+        pk=pk
+    )
+    
+    # Increment profile views
+    professional.profile_views += 1
+    professional.save(update_fields=['profile_views'])
+    
+    # Get current user from session
+    user_email = request.session.get('user_email')
+    try:
+        current_user = CustomUser.objects.get(email=user_email)
+        # Check if user has saved this professional
+        is_saved = SavedProfessional.objects.filter(
+            user=current_user,
+            professional=professional
+        ).exists()
+    except CustomUser.DoesNotExist:
+        is_saved = False
+    
+    context = {
+        'professional': professional,
+        'is_saved': is_saved,
+    }
+    
+    return render(request, 'professionals/professional_detail.html', context)
+
+
+def save_professional(request, pk):
+    """
+    Save/bookmark a professional (AJAX endpoint)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    # Check if user is authenticated via Supabase session
+    if not request.session.get('user_id'):
+        return JsonResponse({'success': False, 'message': 'Please log in to save professionals'})
+    
+    try:
+        professional = ProfessionalProfile.objects.get(pk=pk)
+        
+        # Get current user from session
+        user_email = request.session.get('user_email')
+        current_user = CustomUser.objects.get(email=user_email)
+        
+        # Create saved professional entry
+        saved_prof, created = SavedProfessional.objects.get_or_create(
+            user=current_user,
+            professional=professional
+        )
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Professional saved successfully'
+        })
+    
+    except ProfessionalProfile.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Professional not found'
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'User not found'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+def unsave_professional(request, pk):
+    """
+    Unsave/remove bookmark from a professional (AJAX endpoint)
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'Invalid request method'})
+    
+    # Check if user is authenticated via Supabase session
+    if not request.session.get('user_id'):
+        return JsonResponse({'success': False, 'message': 'Please log in to unsave professionals'})
+    
+    try:
+        professional = ProfessionalProfile.objects.get(pk=pk)
+        
+        # Get current user from session
+        user_email = request.session.get('user_email')
+        current_user = CustomUser.objects.get(email=user_email)
+        
+        # Delete saved professional entry
+        SavedProfessional.objects.filter(
+            user=current_user,
+            professional=professional
+        ).delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Professional removed from saved list'
+        })
+    
+    except ProfessionalProfile.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'Professional not found'
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'User not found'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'message': str(e)
+        })
+
+
+def saved_professionals_list(request):
+    """
+    List of saved professionals for the current user
+    """
+    # Check if user is authenticated via Supabase session
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to view saved professionals.")
+        return redirect("login")
+    
+    # Get current user from session
+    user_email = request.session.get('user_email')
+    try:
+        current_user = CustomUser.objects.get(email=user_email)
+        saved = SavedProfessional.objects.filter(
+            user=current_user
+        ).select_related('professional__user').prefetch_related('professional__specializations').order_by('-saved_at')
+    except CustomUser.DoesNotExist:
+        saved = SavedProfessional.objects.none()
+    
+    context = {
+        'saved_professionals': saved,
+    }
+    
+    return render(request, 'professionals/saved_professionals.html', context)
