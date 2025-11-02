@@ -8,6 +8,36 @@ class Command(BaseCommand):
         self.stdout.write('=== Checking database structure ===')
         
         with connection.cursor() as cursor:
+            # Check if all required tables exist
+            required_tables = [
+                'users_customuser',
+                'users_specialization',
+                'users_professionalprofile',
+                'users_professionalprofile_specializations',
+                'users_savedprofessional'
+            ]
+            
+            missing_tables = []
+            for table_name in required_tables:
+                cursor.execute("""
+                    SELECT EXISTS (
+                        SELECT FROM information_schema.tables 
+                        WHERE table_name = %s
+                    );
+                """, [table_name])
+                
+                exists = cursor.fetchone()[0]
+                if not exists:
+                    missing_tables.append(table_name)
+                else:
+                    self.stdout.write(self.style.SUCCESS(f'✓ Table {table_name} exists'))
+            
+            if missing_tables:
+                self.stdout.write(self.style.ERROR(f'\n❌ Missing tables: {", ".join(missing_tables)}'))
+                self.stdout.write(self.style.WARNING('\nThese tables should be created by migrations.'))
+                self.stdout.write(self.style.WARNING('Run: python manage.py migrate --run-syncdb'))
+                return
+            
             # Check if users_customuser table exists
             cursor.execute("""
                 SELECT column_name, data_type 
