@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transactions - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <style>
+        .coming-soon {
+            text-align: center;
+            padding: 100px 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 50px auto;
+            max-width: 600px;
+        }
+        .coming-soon i {
+            font-size: 100px;
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        .coming-soon h1 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        .coming-soon p {
+            color: #666;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+        .feature-list {
+            text-align: left;
+            margin: 30px auto;
+            max-width: 400px;
+        }
+        .feature-list li {
+            padding: 10px 0;
+            color: #666;
+        }
+        .feature-list i {
+            color: #667eea;
+            margin-right: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <div class="container">
+        <div class="content-wrapper">
+            <div class="coming-soon">
+                <i class="fas fa-money-bill-wave"></i>
+                <h1>Transactions Coming Soon</h1>
+                <p>We're working hard to bring you a comprehensive transaction management system</p>
+                
+                <div class="feature-list">
+                    <ul>
+                        <li><i class="fas fa-check"></i> View payment history</li>
+                        <li><i class="fas fa-check"></i> Track invoices</li>
+                        <li><i class="fas fa-check"></i> Manage refunds</li>
+                        <li><i class="fas fa-check"></i> Download receipts</li>
+                        <li><i class="fas fa-check"></i> Financial reports</li>
+                    </ul>
+                </div>
+
+                <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</body>
+</html>

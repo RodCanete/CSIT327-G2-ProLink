@@ -10,66 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="navbar-brand">
-            <i class="fas fa-link"></i>
-            <span>ProLink</span>
-        </div>
-        
-        <div class="navbar-nav">
-            <a href="/dashboard/" class="nav-link active">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/professionals/" class="nav-link">
-                <i class="fas fa-search"></i>
-                <span>Find Professionals</span>
-            </a>
-            <a href="/requests/" class="nav-link">
-                <i class="fas fa-clipboard-list"></i>
-                <span>My Requests</span>
-            </a>
-            <a href="/transactions/" class="nav-link">
-                <i class="fas fa-credit-card"></i>
-                <span>Transactions</span>
-            </a>
-            <a href="/saved/" class="nav-link">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Professionals</span>
-            </a>
-            <a href="/reviews/" class="nav-link">
-                <i class="fas fa-star"></i>
-                <span>Reviews</span>
-            </a>
-        </div>
-        
-        <div class="navbar-actions">
-            <div class="notifications">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">2</span>
-            </div>
-            <div class="user-menu">
-                
-                <div class="user-info">
-                    <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
-                    <span class="user-name">{{ user_email|default:"User" }}</span>
-                </div>
-
-                <div class="user-dropdown">
-                    <a href="/profile/">Profile</a>
-                    <a href="/settings/">Settings</a>
-                    <form method="post" action="{% url 'logout' %}" class="logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'components/navbar.html' %}
 
     <!-- Main Content Area -->
     <main class="main-content">
