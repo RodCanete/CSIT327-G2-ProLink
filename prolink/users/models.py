@@ -17,7 +17,7 @@ class CustomUser(AbstractUser):
     
     user_role = models.CharField(max_length=20, choices=USER_ROLES, default='client')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    profile_picture = models.URLField(max_length=500, blank=True, null=True)  # Store URL to profile picture
     bio = models.TextField(blank=True, null=True)
     date_of_birth = models.DateField(blank=True, null=True)
     
