@@ -22,4 +22,7 @@ python prolink/manage.py migrate --run-syncdb --no-input
 echo "=== Final migration status ==="
 python prolink/manage.py showmigrations
 
+echo "=== Verifying database structure ==="
+python prolink/manage.py verify_db_structure
+
 echo "=== Deployment complete ==="
