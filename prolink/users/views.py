@@ -209,7 +209,26 @@ def privacy(request):
     return render(request, 'users/privacy.html')
 
 def dashboard_client(request):
-    return render(request, 'dashboard_client.html')
+    # Check if user is authenticated
+    if not request.session.get('user_id'):
+        messages.error(request, "Please log in to access the dashboard.")
+        return redirect("login")
+    
+    # Get user info from session
+    user_email = request.session.get('user_email', 'User')
+    user_role = request.session.get('user_role', 'student')
+    user_first_name = request.session.get('first_name', '')
+    
+    # Use the first name for display, falling back to email if name is empty
+    display_name = user_first_name.title() if user_first_name else user_email
+    
+    context = {
+        "display_name": display_name,
+        "user_email": user_email,
+        "user_role": user_role
+    }
+    
+    return render(request, 'dashboard_client.html', context)
 
 def client_profile(request):
     # Check if user is authenticated
