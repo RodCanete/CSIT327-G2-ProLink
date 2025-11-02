@@ -25,4 +25,7 @@ python prolink/manage.py showmigrations
 echo "=== Verifying database structure ==="
 python prolink/manage.py verify_db_structure
 
+echo "=== Checking for test user ==="
+python prolink/manage.py check_user samp@gmail.com
+
 echo "=== Deployment complete ==="
