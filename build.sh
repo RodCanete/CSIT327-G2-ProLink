@@ -2,11 +2,13 @@
 # Exit on any error
 set -e
 
-# Install dependencies
+echo "=== Installing dependencies ==="
 pip install -r requirements.txt
 
-# Collect static files
+echo "=== Collecting static files ==="
 python prolink/manage.py collectstatic --no-input
 
-# Run database migrations
-python prolink/manage.py migrate
+echo "=== Running database migrations ==="
+python prolink/manage.py migrate --run-syncdb --no-input
+
+echo "=== Deployment complete ==="
