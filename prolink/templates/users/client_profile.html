@@ -38,8 +38,8 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-image" id="profileImage">
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% else %}
                             <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% endif %}
