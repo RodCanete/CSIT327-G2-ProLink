@@ -86,6 +86,8 @@ def signup(request):
         first_name = request.POST.get("first_name")
         last_name = request.POST.get("last_name")
         email = request.POST.get("email")
+        phone_number = request.POST.get("phone_number", "")
+        date_of_birth = request.POST.get("date_of_birth", "")
         password1 = request.POST.get("password1")
         password2 = request.POST.get("password2")
         role = request.POST.get("role", "client")
@@ -125,7 +127,9 @@ def signup(request):
                     password=password1,
                     first_name=first_name,
                     last_name=last_name,
-                    user_role=role
+                    user_role=role,
+                    phone_number=phone_number if phone_number else None,
+                    date_of_birth=date_of_birth if date_of_birth else None
                 )
                 
                 # Build bio from role-specific data
@@ -137,17 +141,27 @@ def signup(request):
                     if experience:
                         bio_parts.append(f"{experience} level experience")
                 elif role == "student":
+                    # Save student-specific fields
                     if school_name:
+                        user.school_name = school_name
                         bio_parts.append(f"Student at {school_name}")
                     if major:
+                        user.major = major
                         bio_parts.append(f"Major: {major}")
                     if year_level:
+                        user.year_level = year_level
                         bio_parts.append(f"Year {year_level}")
+                    if graduation_year:
+                        user.graduation_year = int(graduation_year)
+                        bio_parts.append(f"Graduating {graduation_year}")
                 elif role == "worker":
-                    if job_title:
-                        bio_parts.append(f"{job_title}")
+                    # Save worker-specific fields
                     if company_name:
+                        user.company_name = company_name
                         bio_parts.append(f"at {company_name}")
+                    if job_title:
+                        user.job_title = job_title
+                        bio_parts.append(f"{job_title}")
                 
                 if bio_parts:
                     user.bio = " | ".join(bio_parts)
@@ -174,15 +188,22 @@ def signup(request):
                         except Specialization.DoesNotExist:
                             pass
                 
-                # Log the user in (specify backend to avoid ambiguity)
-                auth_login(request, user, backend='users.backends.EmailBackend')
+                # Redirect to registration success page with user info
                 messages.success(request, "Account created successfully! Welcome to ProLink.")
-                return redirect("dashboard")
+                return render(request, "users/registration_success.html", {
+                    "name": f"{first_name} {last_name}",
+                    "email": email
+                })
                     
             except Exception as e:
                 error = f"Registration failed: {str(e)}"
     
-    return render(request, "users/signup.html", {"error": error})
+    from datetime import date
+    context = {
+        "error": error,
+        "today": date.today().isoformat()
+    }
+    return render(request, "users/signup.html", context)
 
 def terms(request):
     return render(request, 'users/terms.html')
