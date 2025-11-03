@@ -69,8 +69,12 @@
         <!-- User Menu -->
         <div class="user-menu">
             <div class="user-info">
-                <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
-                <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                    {% else %}
+                        <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                    {% endif %}
+                    <span class="user-name">{{ user_email }}</span>
             </div>
             <div class="user-dropdown">
                 <a href="{% url 'profile' %}">
