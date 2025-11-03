@@ -7,45 +7,87 @@
     </div>
     
     <div class="navbar-nav">
+        <!-- Common: Dashboard (for all roles) -->
         <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
             <i class="fas fa-home"></i>
             <span>Dashboard</span>
         </a>
-        <a href="{% url 'find_professionals' %}" class="nav-link {% if '/professionals/' in request.path %}active{% endif %}">
-            <i class="fas fa-search"></i>
-            <span>Find Professionals</span>
-        </a>
-        <a href="{% url 'requests_list' %}" class="nav-link {% if '/requests/' in request.path %}active{% endif %}">
-            <i class="fas fa-clipboard-list"></i>
-            <span>My Requests</span>
-        </a>
-        <a href="/transactions/" class="nav-link {% if '/transactions/' in request.path %}active{% endif %}">
-            <i class="fas fa-credit-card"></i>
-            <span>Transactions</span>
-        </a>
-        <a href="{% url 'saved_professionals' %}" class="nav-link {% if '/saved/' in request.path %}active{% endif %}">
-            <i class="fas fa-bookmark"></i>
-            <span>Saved</span>
-        </a>
-        <a href="/reviews/" class="nav-link {% if '/reviews/' in request.path %}active{% endif %}">
-            <i class="fas fa-star"></i>
-            <span>Reviews</span>
+        
+        {% if user.user_role == 'professional' %}
+            <!-- Professional-specific navigation -->
+            <a href="/services/" class="nav-link {% if '/services/' in request.path %}active{% endif %}">
+                <i class="fas fa-briefcase"></i>
+                <span>My Services</span>
+            </a>
+            <a href="/client-requests/" class="nav-link {% if '/client-requests/' in request.path %}active{% endif %}">
+                <i class="fas fa-inbox"></i>
+                <span>Client Requests</span>
+            </a>
+            <a href="/my-clients/" class="nav-link {% if '/my-clients/' in request.path %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>My Clients</span>
+            </a>
+            <a href="/earnings/" class="nav-link {% if '/earnings/' in request.path %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Earnings</span>
+            </a>
+            <a href="/bookings/" class="nav-link {% if '/bookings/' in request.path %}active{% endif %}">
+                <i class="fas fa-calendar-check"></i>
+                <span>Bookings</span>
+            </a>
+        {% else %}
+            <!-- Client/Student/Worker navigation -->
+            <a href="{% url 'find_professionals' %}" class="nav-link {% if '/professionals/' in request.path %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="{% url 'requests_list' %}" class="nav-link {% if '/requests/' in request.path %}active{% endif %}">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="{% url 'saved_professionals' %}" class="nav-link {% if '/saved/' in request.path %}active{% endif %}">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved</span>
+            </a>
+        {% endif %}
+        
+        <!-- Common: Messages (for all roles) -->
+        <a href="/messages/" class="nav-link {% if '/messages/' in request.path %}active{% endif %}">
+            <i class="fas fa-envelope"></i>
+            <span>Messages</span>
+            <span class="nav-badge">3</span>
         </a>
     </div>
     
     <div class="navbar-actions">
+        <!-- Notifications -->
         <div class="notifications">
             <i class="fas fa-bell"></i>
             <span class="notification-badge">2</span>
         </div>
+        
+        <!-- User Menu -->
         <div class="user-menu">
             <div class="user-info">
                 <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar">
                 <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
             </div>
             <div class="user-dropdown">
-                <a href="/profile/">Profile</a>
-                <a href="/settings/">Settings</a>
+                <a href="{% url 'profile' %}">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+                <a href="/settings/">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                {% if user.user_role == 'professional' %}
+                <a href="/analytics/">
+                    <i class="fas fa-chart-bar"></i>
+                    Analytics
+                </a>
+                {% endif %}
+                <div class="dropdown-divider"></div>
                 <form method="post" action="{% url 'logout' %}" class="logout-form">
                     {% csrf_token %}
                     <button type="submit" class="logout-btn">

@@ -186,6 +186,21 @@ section {
     text-align: center;
 }
 
+/* Nav Badge (for unread messages, etc.) */
+.nav-badge {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    background: var(--danger-color);
+    color: var(--white);
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.125rem 0.375rem;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+}
+
 .user-menu {
     position: relative;
     display: flex;
@@ -239,15 +254,34 @@ section {
 }
 
 .user-dropdown a {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     padding: 0.75rem 1rem;
     color: var(--gray-700);
     text-decoration: none;
     transition: var(--transition);
 }
 
+.user-dropdown a i {
+    width: 1.25rem;
+    font-size: 1rem;
+    color: var(--gray-500);
+}
+
 .user-dropdown a:hover {
     background: var(--gray-100);
+}
+
+.user-dropdown a:hover i {
+    color: var(--primary-color);
+}
+
+/* Dropdown Divider */
+.dropdown-divider {
+    height: 1px;
+    background: var(--gray-200);
+    margin: 0.5rem 0;
 }
 
 .logout-form {
@@ -264,6 +298,15 @@ section {
     cursor: pointer;
     transition: var(--transition);
     display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1rem;
+}
+
+.logout-btn i {
+    width: 1.25rem;
+    font-size: 1rem;
+}
     align-items: center;
     gap: 0.5rem;
 }
