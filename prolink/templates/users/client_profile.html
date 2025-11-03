@@ -13,64 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <!-- Top Navigation Bar -->
-    <nav class="top-navbar">
-        <div class="navbar-brand">
-            <i class="fas fa-link"></i>
-            <span>ProLink</span>
-        </div>
-        
-        <div class="navbar-nav">
-            <a href="/dashboard/" class="nav-link">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="/professionals/" class="nav-link">
-                <i class="fas fa-search"></i>
-                <span>Find Professionals</span>
-            </a>
-            <a href="/requests/" class="nav-link">
-                <i class="fas fa-clipboard-list"></i>
-                <span>My Requests</span>
-            </a>
-            <a href="/transactions/" class="nav-link">
-                <i class="fas fa-credit-card"></i>
-                <span>Transactions</span>
-            </a>
-            <a href="/saved/" class="nav-link">
-                <i class="fas fa-bookmark"></i>
-                <span>Saved Professionals</span>
-            </a>
-        </div>
-        
-        <div class="navbar-actions">
-            <div class="notifications">
-                <i class="fas fa-bell"></i>
-                <span class="notification-badge">2</span>
-            </div>
-            <div class="user-menu">
-                <div class="user-info">
-                    {% if user.profile.profile_picture %}
-                        <img src="{{ user.profile.profile_picture.url }}" alt="User" class="user-avatar" id="navbarUserAvatar">
-                    {% else %}
-                        <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar" id="navbarUserAvatar">
-                    {% endif %}
-                    <span class="user-name">{{ user_email }}</span>
-                </div>
-                <div class="user-dropdown">
-                    <a href="/profile/" class="active">Profile</a>
-                    <a href="/settings/">Settings</a>
-                    <form method="post" action="{% url 'logout' %}" class="logout-form">
-                        {% csrf_token %}
-                        <button type="submit" class="logout-btn">
-                            <i class="fas fa-sign-out-alt"></i>
-                            Logout
-                        </button>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </nav>
+    {% include 'components/navbar.html' %}
 
     <!-- Main Content Area -->
     <main class="main-content">
@@ -83,7 +26,7 @@
                     <p>Manage your personal information and account settings</p>
                 </div>
                 <div class="page-actions">
-                    <a href="/dashboard/" class="btn btn-secondary">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back to Dashboard
                     </a>
@@ -95,9 +38,8 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        <!-- FIX: Use user.profile instead of just profile -->
-                        {% if user.profile.profile_picture %}
-                            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-image" id="profileImage">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% else %}
                             <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% endif %}
