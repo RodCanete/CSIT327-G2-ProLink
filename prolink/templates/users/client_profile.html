@@ -5,13 +5,72 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProLink - Client Profile</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <!-- Load client_profile.css FIRST -->
     <link rel="stylesheet" href="{% static 'css/client_profile.css' %}">
+    <!-- Then load dashboard.css -->
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    {% include 'components/navbar.html' %}
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="/dashboard/" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/professionals/" class="nav-link">
+                <i class="fas fa-search"></i>
+                <span>Find Professionals</span>
+            </a>
+            <a href="/requests/" class="nav-link">
+                <i class="fas fa-clipboard-list"></i>
+                <span>My Requests</span>
+            </a>
+            <a href="/transactions/" class="nav-link">
+                <i class="fas fa-credit-card"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="/saved/" class="nav-link">
+                <i class="fas fa-bookmark"></i>
+                <span>Saved Professionals</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            <div class="user-menu">
+                <div class="user-info">
+                    {% if user.profile.profile_picture %}
+                        <img src="{{ user.profile.profile_picture.url }}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                    {% else %}
+                        <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                    {% endif %}
+                    <span class="user-name">{{ user_email }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="/profile/" class="active">Profile</a>
+                    <a href="/settings/">Settings</a>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
 
     <!-- Main Content Area -->
     <main class="main-content">
@@ -36,25 +95,101 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image">
-                        <button class="edit-profile-btn">
-                            <i class="fas fa-edit"></i>
-                            Edit Profile Picture
-                        </button>
+                        <!-- FIX: Use user.profile instead of just profile -->
+                        {% if user.profile.profile_picture %}
+                            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-image" id="profileImage">
+                        {% else %}
+                            <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
+                        {% endif %}
+
+                        <form id="profilePictureForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_profile_picture' %}">
+                            {% csrf_token %}
+                            <input type="file" name="profile_picture" id="profilePictureInput" accept="image/*" style="display: none;">
+                            
+                            <button type="button" class="edit-profile-btn" onclick="document.getElementById('profilePictureInput').click()">
+                                <i class="fas fa-edit"></i> Edit Profile Picture
+                            </button>
+                        </form>
                     </div>
-                    
+
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function() {
+                        const profilePictureInput = document.getElementById('profilePictureInput');
+                        const profilePictureForm = document.getElementById('profilePictureForm');
+                        const profileImage = document.getElementById('profileImage');
+                        const navbarUserAvatar = document.getElementById('navbarUserAvatar');
+
+                        if (profilePictureInput && profilePictureForm) {
+                            profilePictureInput.addEventListener('change', function() {
+                                if (!this.files || !this.files[0]) return;
+                                
+                                console.log('File selected, starting upload...');
+                                
+                                // Show loading state
+                                const originalProfileSrc = profileImage.src;
+                                const originalNavbarSrc = navbarUserAvatar ? navbarUserAvatar.src : null;
+                                
+                                const formData = new FormData(profilePictureForm);
+
+                                fetch(profilePictureForm.action, {
+                                    method: 'POST',
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'X-CSRFToken': '{{ csrf_token }}'
+                                    },
+                                    body: formData
+                                })
+                                .then(response => {
+                                    console.log('Response received:', response);
+                                    return response.json();
+                                })
+                                .then(data => {
+                                    console.log('Data received:', data);
+                                    if (data.success && data.image_url) {
+                                        // Update both images with cache busting
+                                        const timestamp = '?t=' + new Date().getTime();
+                                        profileImage.src = data.image_url + timestamp;
+                                        
+                                        if (navbarUserAvatar) {
+                                            navbarUserAvatar.src = data.image_url + timestamp;
+                                        }
+                                        
+                                        alert('Profile picture updated successfully!');
+                                    } else if (data.error) {
+                                        alert('Error: ' + data.error);
+                                        profileImage.src = originalProfileSrc;
+                                        if (navbarUserAvatar && originalNavbarSrc) {
+                                            navbarUserAvatar.src = originalNavbarSrc;
+                                        }
+                                    }
+                                })
+                                .catch(error => {
+                                    console.error('Upload failed:', error);
+                                    alert('Upload failed. Please try again.');
+                                    profileImage.src = originalProfileSrc;
+                                    if (navbarUserAvatar && originalNavbarSrc) {
+                                        navbarUserAvatar.src = originalNavbarSrc;
+                                    }
+                                });
+                            });
+                        } else {
+                            console.error('Form elements not found');
+                        }
+                    });
+                    </script>
+
                     <div class="profile-details">
-                        <h2 class="profile-name">{{ first_name }} {{ last_name }}</h2>
+                        <h2 class="profile-name">{{ user.first_name }} {{ user.last_name }}</h2>
                         
                         <div class="profile-info-section">
                             <h3>Contact Information</h3>
                             <div class="info-item">
                                 <span class="info-label">Email:</span>
-                                <span class="info-value">{{ user_email }}</span>
+                                <span class="info-value">{{ user.email }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Full Name:</span>
-                                <span class="info-value">{{ first_name }} {{ last_name }}</span>
+                                <span class="info-value">{{ user.first_name }} {{ user.last_name }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Account Status:</span>
@@ -70,11 +205,17 @@
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Member Since:</span>
-                                <span class="info-value">{{ member_since }}</span>
+                                <span class="info-value">{{ user.date_joined|date:"F Y" }}</span>
                             </div>
                             <div class="info-item">
                                 <span class="info-label">Last Login:</span>
-                                <span class="info-value">{{ last_login }}</span>
+                                <span class="info-value">
+                                    {% if user.last_login %}
+                                        {{ user.last_login|date:"F d, Y g:i A" }}
+                                    {% else %}
+                                        Never
+                                    {% endif %}
+                                </span>
                             </div>
                         </div>
                         
@@ -115,9 +256,9 @@
                                     <div class="info-content">
                                         <h4>Basic Information</h4>
                                         <div class="info-details">
-                                            <p><strong>First Name:</strong> {{ first_name }}</p>
-                                            <p><strong>Last Name:</strong> {{ last_name }}</p>
-                                            <p><strong>Display Name:</strong> {{ display_name }}</p>
+                                            <p><strong>First Name:</strong> {{ user.first_name }}</p>
+                                            <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+                                            <p><strong>Display Name:</strong> {{ user.get_full_name }}</p>
                                         </div>
                                     </div>
                                 </div>
@@ -128,7 +269,7 @@
                                     <div class="info-content">
                                         <h4>Contact Details</h4>
                                         <div class="info-details">
-                                            <p><strong>Email:</strong> {{ user_email }}</p>
+                                            <p><strong>Email:</strong> {{ user.email }}</p>
                                             <p><strong>Email Verified:</strong> <span class="status-verified">Verified</span></p>
                                             <p><strong>Notification Preference:</strong> Email & In-App</p>
                                         </div>
@@ -147,22 +288,22 @@
                                 <div class="stat-item">
                                     <div class="stat-number">{{ active_requests }}</div>
                                     <div class="stat-label">Active Requests</div>
-                                    <div class="stat-trend positive">Live data</div>
+                                    <div class="stat-trend positive">+2 this week</div>
                                 </div>
                                 <div class="stat-item">
                                     <div class="stat-number">{{ completed_projects }}</div>
                                     <div class="stat-label">Completed Projects</div>
-                                    <div class="stat-trend positive">All time</div>
+                                    <div class="stat-trend positive">+3 this month</div>
                                 </div>
                                 <div class="stat-item">
                                     <div class="stat-number">{{ connections_count }}</div>
-                                    <div class="stat-label">Saved Professionals</div>
-                                    <div class="stat-trend positive">Connections</div>
+                                    <div class="stat-label">Connections</div>
+                                    <div class="stat-trend positive">+1 new</div>
                                 </div>
                                 <div class="stat-item">
                                     <div class="stat-number">{{ satisfaction_rate }}%</div>
                                     <div class="stat-label">Satisfaction Rate</div>
-                                    <div class="stat-trend positive">Average</div>
+                                    <div class="stat-trend positive">+5%</div>
                                 </div>
                             </div>
                         </div>

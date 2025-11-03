@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.conf import settings
 
 # Custom User Model
 class CustomUser(AbstractUser):
@@ -144,3 +145,10 @@ class SavedProfessional(models.Model):
         ordering = ['-saved_at']
         verbose_name = 'Saved Professional'
         verbose_name_plural = 'Saved Professionals'
+
+class Profile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)  # Change to CustomUser
+    profile_picture = models.ImageField(upload_to='profile_pictures/', default='profile_pictures/default_profile.png')
+
+    def __str__(self):
+        return self.user.username
