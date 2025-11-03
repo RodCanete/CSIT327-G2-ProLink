@@ -1,91 +1,97 @@
 from django.core.management.base import BaseCommand
 from django.db import connection
+from django.apps import apps
 
 class Command(BaseCommand):
-    help = 'Create missing tables that should exist based on migrations'
+    help = 'Automatically detect and create any missing database tables from Django models'
 
     def handle(self, *args, **kwargs):
-        self.stdout.write('=== Creating missing tables ===')
+        self.stdout.write('=== Checking for missing tables ===')
         
         with connection.cursor() as cursor:
-            # Create users_specialization table
-            self.stdout.write('Creating users_specialization table...')
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users_specialization (
-                    id BIGSERIAL PRIMARY KEY,
-                    name VARCHAR(100) UNIQUE NOT NULL,
-                    description TEXT,
-                    icon VARCHAR(50),
-                    is_active BOOLEAN DEFAULT TRUE,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-            """)
-            self.stdout.write(self.style.SUCCESS('✓ users_specialization table created'))
+            # Get all existing tables in the database (works for both SQLite and PostgreSQL)
+            if connection.vendor == 'postgresql':
+                cursor.execute("""
+                    SELECT tablename 
+                    FROM pg_tables 
+                    WHERE schemaname = 'public'
+                """)
+                existing_tables = {row[0] for row in cursor.fetchall()}
+            else:
+                # SQLite
+                cursor.execute("""
+                    SELECT name 
+                    FROM sqlite_master 
+                    WHERE type='table'
+                """)
+                existing_tables = {row[0] for row in cursor.fetchall()}
             
-            # Create users_professionalprofile table
-            self.stdout.write('Creating users_professionalprofile table...')
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users_professionalprofile (
-                    id BIGSERIAL PRIMARY KEY,
-                    user_id BIGINT UNIQUE NOT NULL REFERENCES users_customuser(id) ON DELETE CASCADE,
-                    experience_level VARCHAR(20) DEFAULT 'entry',
-                    years_of_experience INTEGER DEFAULT 0,
-                    certifications TEXT,
-                    education TEXT,
-                    languages VARCHAR(200),
-                    hourly_rate NUMERIC(10, 2) DEFAULT 0,
-                    consultation_fee NUMERIC(10, 2) DEFAULT 0,
-                    is_available BOOLEAN DEFAULT TRUE,
-                    timezone VARCHAR(50),
-                    total_consultations INTEGER DEFAULT 0,
-                    completed_consultations INTEGER DEFAULT 0,
-                    average_rating NUMERIC(3, 2) DEFAULT 0.0,
-                    total_reviews INTEGER DEFAULT 0,
-                    portfolio_url VARCHAR(200),
-                    linkedin_url VARCHAR(200),
-                    website_url VARCHAR(200),
-                    is_verified BOOLEAN DEFAULT FALSE,
-                    is_featured BOOLEAN DEFAULT FALSE,
-                    profile_views INTEGER DEFAULT 0,
-                    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-                );
-            """)
-            self.stdout.write(self.style.SUCCESS('✓ users_professionalprofile table created'))
+            self.stdout.write(f'Found {len(existing_tables)} existing tables in database ({connection.vendor})')
             
-            # Create users_professionalprofile_specializations (many-to-many table)
-            self.stdout.write('Creating users_professionalprofile_specializations table...')
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users_professionalprofile_specializations (
-                    id BIGSERIAL PRIMARY KEY,
-                    professionalprofile_id BIGINT NOT NULL REFERENCES users_professionalprofile(id) ON DELETE CASCADE,
-                    specialization_id BIGINT NOT NULL REFERENCES users_specialization(id) ON DELETE CASCADE,
-                    UNIQUE(professionalprofile_id, specialization_id)
-                );
-            """)
-            self.stdout.write(self.style.SUCCESS('✓ users_professionalprofile_specializations table created'))
+            # Get all models and their expected table names
+            required_tables = {}
+            for model in apps.get_models():
+                table_name = model._meta.db_table
+                required_tables[table_name] = model
             
-            # Create users_savedprofessional table
-            self.stdout.write('Creating users_savedprofessional table...')
-            cursor.execute("""
-                CREATE TABLE IF NOT EXISTS users_savedprofessional (
-                    id BIGSERIAL PRIMARY KEY,
-                    user_id BIGINT NOT NULL REFERENCES users_customuser(id) ON DELETE CASCADE,
-                    professional_id BIGINT NOT NULL REFERENCES users_professionalprofile(id) ON DELETE CASCADE,
-                    notes TEXT,
-                    saved_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                    UNIQUE(user_id, professional_id)
-                );
-            """)
-            self.stdout.write(self.style.SUCCESS('✓ users_savedprofessional table created'))
+            self.stdout.write(f'Found {len(required_tables)} models in Django')
             
-            # Create indexes for better performance
-            self.stdout.write('Creating indexes...')
-            cursor.execute("""
-                CREATE INDEX IF NOT EXISTS idx_professional_user ON users_professionalprofile(user_id);
-                CREATE INDEX IF NOT EXISTS idx_saved_user ON users_savedprofessional(user_id);
-                CREATE INDEX IF NOT EXISTS idx_saved_professional ON users_savedprofessional(professional_id);
-            """)
-            self.stdout.write(self.style.SUCCESS('✓ Indexes created'))
+            # Find missing tables
+            missing_tables = [
+                table for table in required_tables.keys() 
+                if table not in existing_tables
+            ]
             
-            self.stdout.write(self.style.SUCCESS('\n✓ All missing tables created successfully!'))
+            if not missing_tables:
+                self.stdout.write(self.style.SUCCESS('✓ All tables exist! No action needed.'))
+                return
+            
+            self.stdout.write(self.style.WARNING(f'\n❌ Missing {len(missing_tables)} table(s):'))
+            for table in missing_tables:
+                self.stdout.write(f'   - {table}')
+            
+            # Create missing tables using Django's schema editor
+            self.stdout.write(self.style.WARNING('\n🔧 Creating missing tables...'))
+            
+            from django.db import connection as db_connection
+            from django.db.backends.base.schema import BaseDatabaseSchemaEditor
+            
+            with db_connection.schema_editor() as schema_editor:
+                for table_name in missing_tables:
+                    model = required_tables[table_name]
+                    try:
+                        self.stdout.write(f'Creating table: {table_name}')
+                        schema_editor.create_model(model)
+                        self.stdout.write(self.style.SUCCESS(f'✓ Created {table_name}'))
+                    except Exception as e:
+                        self.stdout.write(self.style.ERROR(f'✗ Failed to create {table_name}: {str(e)}'))
+            
+            # Verify tables were created
+            if connection.vendor == 'postgresql':
+                cursor.execute("""
+                    SELECT tablename 
+                    FROM pg_tables 
+                    WHERE schemaname = 'public'
+                """)
+                new_existing_tables = {row[0] for row in cursor.fetchall()}
+            else:
+                # SQLite
+                cursor.execute("""
+                    SELECT name 
+                    FROM sqlite_master 
+                    WHERE type='table'
+                """)
+                new_existing_tables = {row[0] for row in cursor.fetchall()}
+            
+            still_missing = [
+                table for table in missing_tables 
+                if table not in new_existing_tables
+            ]
+            
+            if still_missing:
+                self.stdout.write(self.style.ERROR(f'\n⚠️  Still missing {len(still_missing)} table(s):'))
+                for table in still_missing:
+                    self.stdout.write(f'   - {table}')
+            else:
+                self.stdout.write(self.style.SUCCESS('\n✅ All missing tables created successfully!'))
+                self.stdout.write(f'Total tables in database: {len(new_existing_tables)}')
