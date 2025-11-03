@@ -12,6 +12,13 @@ from django.http import JsonResponse
 from .models import Profile
 from .forms import ProfilePictureForm
 
+from analytics.utils import (
+    get_client_dashboard_metrics,
+    get_recent_activities,
+    get_active_requests_tracking,
+    get_recommended_professionals,
+    format_activity_for_display
+)
 
 def landing(request):
 	return render(request, "landing.html")
@@ -27,7 +34,7 @@ def dashboard(request):
     # Use first name for display, falling back to username
     display_name = user.get_full_name() or user.username
     
-    # Define the context dictionary
+    # Define the base context dictionary
     context = {
         "display_name": display_name, 
         "user_email": user.email,
@@ -39,6 +46,27 @@ def dashboard(request):
     if user_role == 'professional':
         return render(request, "dashboard_professional.html", context)
     else:  # student, worker, or client
+        # Get dashboard metrics
+        metrics = get_client_dashboard_metrics(user)
+        
+        # Get recent activities
+        activities = get_recent_activities(user, limit=4)
+        formatted_activities = [format_activity_for_display(activity) for activity in activities]
+        
+        # Get active requests tracking
+        active_requests_data = get_active_requests_tracking(user, limit=3)
+        
+        # Get recommended professionals
+        recommended_professionals = get_recommended_professionals(user, limit=3)
+        
+        # Add to context
+        context.update({
+            'metrics': metrics,
+            'recent_activities': formatted_activities,
+            'active_requests_tracking': active_requests_data,
+            'recommended_professionals': recommended_professionals,
+        })
+        
         return render(request, "dashboard_client.html", context)
 
 def logout(request):

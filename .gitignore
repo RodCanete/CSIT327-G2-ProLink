@@ -22,6 +22,9 @@ static_root/
 *.env
 # Supabase configuration (contains secrets)
 supabase_config.py
+# MCP configuration (contains tokens and credentials)
+mcp.json
+.mcp/
 # IDE settings
 .vscode/
 .idea/

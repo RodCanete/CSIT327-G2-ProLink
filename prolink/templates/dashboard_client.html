@@ -42,15 +42,15 @@
                             <div class="metric-icon">
                                 <i class="fas fa-clipboard-list"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if metrics.trends.active_requests > 0 %}positive{% else %}neutral{% endif %}">
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+3</span>
+                                <span>+{{ metrics.trends.active_requests }}</span>
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="5">0</h3>
+                            <h3 class="metric-number" data-target="{{ metrics.active_requests }}">{{ metrics.active_requests }}</h3>
                             <p class="metric-label">Active Requests</p>
-                            <span class="metric-subtitle">2 in progress</span>
+                            <span class="metric-subtitle">{{ metrics.in_progress_requests }} in progress</span>
                         </div>
                     </div>
                     <div class="metric-card">
@@ -58,47 +58,15 @@
                             <div class="metric-icon">
                                 <i class="fas fa-check-circle"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if metrics.trends.completed_this_month > 0 %}positive{% else %}neutral{% endif %}">
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+8%</span>
+                                <span>+{{ metrics.trends.completed_this_month|default:"0" }}%</span>
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="12">0</h3>
+                            <h3 class="metric-number" data-target="{{ metrics.completed_validations }}">{{ metrics.completed_validations }}</h3>
                             <p class="metric-label">Completed Validations</p>
-                            <span class="metric-subtitle">3 this month</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <div class="metric-icon">
-                                <i class="fas fa-users"></i>
-                            </div>
-                            <div class="metric-trend positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span>+2</span>
-                            </div>
-                        </div>
-                        <div class="metric-content">
-                            <h3 class="metric-number" data-target="8">0</h3>
-                            <p class="metric-label">Professionals Connected</p>
-                            <span class="metric-subtitle">1 new connection</span>
-                        </div>
-                    </div>
-                    <div class="metric-card">
-                        <div class="metric-header">
-                            <div class="metric-icon">
-                                <i class="fas fa-credit-card"></i>
-                            </div>
-                            <div class="metric-trend neutral">
-                                <i class="fas fa-minus"></i>
-                                <span>0%</span>
-                            </div>
-                        </div>
-                        <div class="metric-content">
-                            <h3 class="metric-number" data-target="1240">0</h3>
-                            <p class="metric-label">Total Spent</p>
-                            <span class="metric-subtitle">$320 this month</span>
+                            <span class="metric-subtitle">{{ metrics.trends.completed_this_month }} this month</span>
                         </div>
                     </div>
                     <div class="metric-card">
@@ -106,15 +74,15 @@
                             <div class="metric-icon">
                                 <i class="fas fa-star"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if metrics.trends.reviews_this_month > 0 %}positive{% else %}neutral{% endif %}">
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+2</span>
+                                <span>+{{ metrics.trends.reviews_this_month }}</span>
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="15">0</h3>
+                            <h3 class="metric-number" data-target="{{ metrics.reviews_given }}">{{ metrics.reviews_given }}</h3>
                             <p class="metric-label">Reviews Given</p>
-                            <span class="metric-subtitle">4.8 avg rating given</span>
+                            <span class="metric-subtitle">{{ metrics.avg_rating_given }} avg rating given</span>
                         </div>
                     </div>
                 </div>
@@ -130,7 +98,7 @@
                     </div>
                     <div class="panel-content">
                         <div class="action-grid">
-                            <a href="/professionals/browse/" class="action-item">
+                            <a href="{% url 'find_professionals' %}" class="action-item">
                                 <div class="action-icon">
                                     <i class="fas fa-search"></i>
                                 </div>
@@ -140,7 +108,7 @@
                                 </div>
                                 <i class="fas fa-arrow-right action-arrow"></i>
                             </a>
-                            <a href="/requests/create/" class="action-item">
+                            <a href="{% url 'create_request' %}" class="action-item">
                                 <div class="action-icon">
                                     <i class="fas fa-clipboard-check"></i>
                                 </div>
@@ -150,23 +118,13 @@
                                 </div>
                                 <i class="fas fa-arrow-right action-arrow"></i>
                             </a>
-                            <a href="/requests/" class="action-item">
+                            <a href="{% url 'requests_list' %}" class="action-item">
                                 <div class="action-icon">
                                     <i class="fas fa-list-alt"></i>
                                 </div>
                                 <div class="action-content">
                                     <h4>View My Requests</h4>
                                     <p>Track your active requests</p>
-                                </div>
-                                <i class="fas fa-arrow-right action-arrow"></i>
-                            </a>
-                            <a href="/transactions/" class="action-item">
-                                <div class="action-icon">
-                                    <i class="fas fa-receipt"></i>
-                                </div>
-                                <div class="action-content">
-                                    <h4>Transaction History</h4>
-                                    <p>View payment history</p>
                                 </div>
                                 <i class="fas fa-arrow-right action-arrow"></i>
                             </a>
@@ -178,46 +136,31 @@
                 <div class="panel activity-panel">
                     <div class="panel-header">
                         <h3>Recent Activity</h3>
-                        <a href="/activity/" class="panel-link">View All</a>
+                        <a href="{% url 'requests_list' %}" class="panel-link">View All</a>
                     </div>
                     <div class="panel-content">
                         <div class="activity-list">
+                            {% for activity in recent_activities %}
                             <div class="activity-item">
-                                <div class="activity-icon success">
-                                    <i class="fas fa-check-circle"></i>
+                                <div class="activity-icon {{ activity.color }}">
+                                    <i class="{{ activity.icon }}"></i>
                                 </div>
                                 <div class="activity-content">
-                                    <p><strong>Validation completed</strong> for "Research Paper" by Dr. Sarah Chen</p>
-                                    <span class="activity-time">3 hours ago</span>
+                                    <p>{{ activity.description|safe }}</p>
+                                    <span class="activity-time">{{ activity.time_ago }}</span>
                                 </div>
                             </div>
+                            {% empty %}
                             <div class="activity-item">
                                 <div class="activity-icon info">
-                                    <i class="fas fa-user-plus"></i>
+                                    <i class="fas fa-info-circle"></i>
                                 </div>
                                 <div class="activity-content">
-                                    <p><strong>New professional match</strong> - Alex Rodriguez (Design)</p>
-                                    <span class="activity-time">1 day ago</span>
+                                    <p>No recent activity. Start by creating a request!</p>
+                                    <span class="activity-time">Now</span>
                                 </div>
                             </div>
-                            <div class="activity-item">
-                                <div class="activity-icon warning">
-                                    <i class="fas fa-clock"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <p><strong>Request in progress</strong> - "Logo Design" by Maria Garcia</p>
-                                    <span class="activity-time">2 days ago</span>
-                                </div>
-                            </div>
-                            <div class="activity-item">
-                                <div class="activity-icon success">
-                                    <i class="fas fa-star"></i>
-                                </div>
-                                <div class="activity-content">
-                                    <p><strong>Left 5-star review</strong> for Mike Johnson's work</p>
-                                    <span class="activity-time">3 days ago</span>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -226,70 +169,44 @@
                 <div class="panel recommendations-panel">
                     <div class="panel-header">
                         <h3>Recommended Professionals</h3>
-                        <a href="/professionals/" class="panel-link">View All</a>
+                        <a href="{% url 'find_professionals' %}" class="panel-link">View All</a>
                     </div>
                     <div class="panel-content">
                         <div class="professionals-list">
+                            {% for professional in recommended_professionals %}
                             <div class="professional-item">
                                 <div class="professional-avatar">
-                                    <img src="https://via.placeholder.com/48x48/007bff/ffffff?text=AR" alt="Alex Rodriguez">
+                                    {% if professional.user.profile_picture %}
+                                    <img src="{{ professional.user.profile_picture }}" alt="{{ professional.user.get_full_name }}">
+                                    {% else %}
+                                    <img src="https://via.placeholder.com/48x48/007bff/ffffff?text={{ professional.user.first_name.0|default:'P' }}{{ professional.user.last_name.0|default:'R' }}" alt="{{ professional.user.get_full_name }}">
+                                    {% endif %}
                                 </div>
                                 <div class="professional-info">
-                                    <h4>Alex Rodriguez</h4>
-                                    <p>Graphic Designer</p>
+                                    <h4>{{ professional.user.get_full_name|default:professional.user.username }}</h4>
+                                    <p>{{ professional.specializations.first.name|default:"Professional" }}</p>
                                     <div class="professional-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <span>4.9 (23 reviews)</span>
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= professional.average_rating %}
+                                            <i class="fas fa-star"></i>
+                                            {% elif forloop.counter <= professional.average_rating|add:"0.5" %}
+                                            <i class="fas fa-star-half-alt"></i>
+                                            {% else %}
+                                            <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                        <span>{{ professional.average_rating|floatformat:1 }} ({{ professional.total_reviews }} review{{ professional.total_reviews|pluralize }})</span>
                                     </div>
                                 </div>
                                 <div class="professional-actions">
-                                    <button class="btn btn-sm btn-primary">Connect</button>
+                                    <a href="{% url 'professional_detail' professional.id %}" class="btn btn-sm btn-primary">Connect</a>
                                 </div>
                             </div>
-                            <div class="professional-item">
-                                <div class="professional-avatar">
-                                    <img src="https://via.placeholder.com/48x48/28a745/ffffff?text=SC" alt="Sarah Chen">
-                                </div>
-                                <div class="professional-info">
-                                    <h4>Sarah Chen</h4>
-                                    <p>Academic Consultant</p>
-                                    <div class="professional-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <span>5.0 (18 reviews)</span>
-                                    </div>
-                                </div>
-                                <div class="professional-actions">
-                                    <button class="btn btn-sm btn-primary">Connect</button>
-                                </div>
+                            {% empty %}
+                            <div class="no-professionals">
+                                <p>No professionals available at this time. Check back soon!</p>
                             </div>
-                            <div class="professional-item">
-                                <div class="professional-avatar">
-                                    <img src="https://via.placeholder.com/48x48/ffc107/ffffff?text=MG" alt="Maria Garcia">
-                                </div>
-                                <div class="professional-info">
-                                    <h4>Maria Garcia</h4>
-                                    <p>Web Developer</p>
-                                    <div class="professional-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <span>4.8 (31 reviews)</span>
-                                    </div>
-                                </div>
-                                <div class="professional-actions">
-                                    <button class="btn btn-sm btn-primary">Connect</button>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
@@ -298,55 +215,31 @@
                 <div class="panel requests-tracking-panel">
                     <div class="panel-header">
                         <h3>Active Requests</h3>
-                        <a href="/requests/" class="panel-link">View All</a>
+                        <a href="{% url 'requests_list' %}" class="panel-link">View All</a>
                     </div>
                     <div class="panel-content">
                         <div class="requests-tracking">
+                            {% for item in active_requests_tracking %}
                             <div class="tracking-item">
                                 <div class="tracking-info">
-                                    <h4>Logo Design Project</h4>
-                                    <p>Professional: Alex Rodriguez</p>
+                                    <h4>{{ item.request.title }}</h4>
+                                    <p>Professional: {{ item.professional_name }}</p>
                                     <div class="tracking-progress">
                                         <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 75%"></div>
+                                            <div class="progress-fill" style="width: {{ item.progress }}%"></div>
                                         </div>
-                                        <span>75% Complete</span>
+                                        <span>{{ item.progress }}% Complete</span>
                                     </div>
                                 </div>
                                 <div class="tracking-status">
-                                    <span class="status-badge in-progress">In Progress</span>
+                                    <span class="status-badge {{ item.request.status }}">{{ item.status_display }}</span>
                                 </div>
                             </div>
-                            <div class="tracking-item">
-                                <div class="tracking-info">
-                                    <h4>Research Paper Review</h4>
-                                    <p>Professional: Sarah Chen</p>
-                                    <div class="tracking-progress">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 100%"></div>
-                                        </div>
-                                        <span>Completed</span>
-                                    </div>
-                                </div>
-                                <div class="tracking-status">
-                                    <span class="status-badge completed">Completed</span>
-                                </div>
+                            {% empty %}
+                            <div class="no-requests">
+                                <p>No active requests. <a href="{% url 'create_request' %}">Create one now</a></p>
                             </div>
-                            <div class="tracking-item">
-                                <div class="tracking-info">
-                                    <h4>Website Consultation</h4>
-                                    <p>Professional: Maria Garcia</p>
-                                    <div class="tracking-progress">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: 25%"></div>
-                                        </div>
-                                        <span>25% Complete</span>
-                                    </div>
-                                </div>
-                                <div class="tracking-status">
-                                    <span class="status-badge pending">Pending</span>
-                                </div>
-                            </div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
