@@ -1,7 +1,3 @@
 from django import forms
-from .models import Profile  # We'll create Profile next
-
-class ProfilePictureForm(forms.ModelForm):
-    class Meta:
-        model = Profile
-        fields = ['profile_picture']
+# Note: Profile model removed - using CustomUser.profile_picture (URLField) directly
+# Profile picture uploads handled via AJAX in edit_profile_picture view
