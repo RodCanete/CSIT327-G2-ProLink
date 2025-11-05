@@ -6,12 +6,6 @@ from django.contrib import messages
 from django.conf import settings
 import json
 from requests.models import Request as ServiceRequest
-from django.contrib.auth.models import User
-from supabase import create_client, Client
-from django.http import JsonResponse
-from .models import Profile
-from .forms import ProfilePictureForm
-
 from analytics.utils import (
     get_client_dashboard_metrics,
     get_recent_activities,
@@ -515,98 +509,77 @@ def transactions(request):
     """
     return render(request, 'transactions.html')
 
-
-@login_required
-def client_profile(request):
-    """
-    Display user profile page with actual database data
-    """
-    user = request.user
-    
-    # Get or create profile
-    profile, created = Profile.objects.get_or_create(user=user)
-    
-    # Get user statistics
-    active_requests = ServiceRequest.objects.filter(client=user.email, status__in=['pending', 'in_progress']).count()
-    completed_projects = ServiceRequest.objects.filter(client=user.email, status='completed').count()
-    
-    # Get connections count (saved professionals)
-    connections_count = SavedProfessional.objects.filter(user=user).count()
-    
-    # Calculate satisfaction rate
-    satisfaction_rate = 95  # You can calculate this based on actual reviews
-    
-    context = {
-        'user': user,
-        'first_name': user.first_name or 'User',
-        'last_name': user.last_name or '',
-        'display_name': user.get_full_name() or user.username,
-        'user_email': user.email,
-        'profile': profile,  # Make sure profile is passed to context
-        'active_requests': active_requests,
-        'completed_projects': completed_projects,
-        'connections_count': connections_count,
-        'satisfaction_rate': satisfaction_rate,
-        'member_since': user.date_joined.strftime('%B %Y'),
-        'last_login': user.last_login.strftime('%B %d, %Y %I:%M %p') if user.last_login else 'Never',
-    }
-    
-    return render(request, 'users/client_profile.html', context)
-
 @login_required
 def edit_profile_picture(request):
-    if request.method == 'POST' and request.FILES.get('profile_picture'):
-        try:
-            # Get the current user's profile
-            profile = Profile.objects.get(user=request.user)
-            
-            # Validate file type and size
-            profile_picture = request.FILES['profile_picture']
-            if not profile_picture.content_type.startswith('image/'):
-                raise ValueError('Please upload a valid image file.')
-            
-            if profile_picture.size > 5 * 1024 * 1024:  # 5MB limit
-                raise ValueError('Image size must be less than 5MB.')
-            
-            # Delete old profile picture if it exists and is not default
-            if profile.profile_picture and profile.profile_picture.name != 'profile_pictures/default_profile.png':
-                profile.profile_picture.delete(save=False)
-            
-            # Save the uploaded file
-            profile.profile_picture = profile_picture
-            profile.save()
-            
-            # If AJAX request, return JSON
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'image_url': profile.profile_picture.url,
-                    'message': 'Profile picture updated successfully!'
-                })
-            
-            messages.success(request, "Profile picture updated successfully!")
-            return redirect('client_profile')
-            
-        except Profile.DoesNotExist:
-            # Create profile if it doesn't exist
-            profile = Profile.objects.create(user=request.user, profile_picture=request.FILES['profile_picture'])
-            
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({
-                    'success': True,
-                    'image_url': profile.profile_picture.url,
-                    'message': 'Profile picture updated successfully!'
-                })
-            
-            messages.success(request, "Profile picture updated successfully!")
-            return redirect('client_profile')
-            
-        except Exception as e:
-            error_message = f"Error updating profile picture: {str(e)}"
-            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                return JsonResponse({'error': error_message}, status=500)
-            messages.error(request, error_message)
-            return redirect('client_profile')
+    from django.http import JsonResponse
+    from django.conf import settings
+    from supabase import create_client
+    import uuid
+    from datetime import datetime
     
-    # If not POST or no file, redirect back
-    return redirect('client_profile')
+    print("🔵 NEW SUPABASE VERSION RUNNING!")
+    
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
+    if 'profile_picture' not in request.FILES:
+        return JsonResponse({'error': 'No file uploaded'}, status=400)
+    
+    try:
+        file = request.FILES['profile_picture']
+        print(f"📁 File received: {file.name}")
+        
+        # Validate file type
+        allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+        if file.content_type not in allowed_types:
+            return JsonResponse({'error': 'Invalid file type. Only images allowed.'}, status=400)
+        
+        # Validate file size (max 5MB)
+        if file.size > 5 * 1024 * 1024:
+            return JsonResponse({'error': 'File too large. Maximum size is 5MB.'}, status=400)
+        
+        print("☁️ Attempting Supabase upload...")
+        
+        # Initialize Supabase client with SERVICE_ROLE_KEY to bypass RLS
+        supabase = create_client(settings.SUPABASE_URL, settings.SUPABASE_SERVICE_ROLE_KEY)
+        
+        # Generate unique filename
+        file_extension = file.name.split('.')[-1] if '.' in file.name else 'jpg'
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        unique_filename = f"{request.user.id}_{timestamp}_{uuid.uuid4().hex[:8]}.{file_extension}"
+        file_path = f"profile_pictures/{unique_filename}"
+        
+        # Read file content
+        file_content = file.read()
+        
+        print(f"📤 Uploading to Supabase: {file_path}")
+        
+        # Upload to Supabase Storage
+        storage_response = supabase.storage.from_('avatars').upload(
+            file_path,
+            file_content,
+            file_options={"content-type": file.content_type}
+        )
+        
+        # Get public URL
+        public_url = supabase.storage.from_('avatars').get_public_url(file_path)
+        
+        print(f"✅ Supabase URL: {public_url}")
+        
+        # Update user's profile_picture field
+        request.user.profile_picture = public_url
+        request.user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'image_url': public_url,
+            'message': 'Profile picture updated successfully!'
+        })
+        
+    except Exception as e:
+        print(f"❌ Error: {str(e)}")
+        import traceback
+        traceback.print_exc()  # More detailed error logging
+        return JsonResponse({
+            'error': f'Upload failed: {str(e)}'
+        }, status=500)

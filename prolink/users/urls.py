@@ -14,8 +14,6 @@ urlpatterns = [
     path('profile/', views.user_profile, name='profile'),
     path('settings/', views.user_settings, name='settings'),
     path('transactions/', views.transactions, name='transactions'),
-
-    path('profile/', views.client_profile, name='client_profile'),
     path('edit-profile-picture/', views.edit_profile_picture, name='edit_profile_picture'),
     
     
