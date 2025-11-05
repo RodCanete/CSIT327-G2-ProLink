@@ -24,7 +24,9 @@ def dashboard(request):
     """
     # Refresh user from database to get latest profile_picture
     user = request.user
+    print(f"🏠 Dashboard - Before refresh: User {user.id}, profile_picture: {user.profile_picture}")
     user.refresh_from_db()
+    print(f"🏠 Dashboard - After refresh: User {user.id}, profile_picture: {user.profile_picture}")
     
     user_role = user.user_role if hasattr(user, 'user_role') else 'client'
     
@@ -459,7 +461,9 @@ def user_profile(request):
     """
     # Refresh user from database to get latest profile_picture
     user = request.user
+    print(f"👤 Profile - Before refresh: User {user.id}, profile_picture: {user.profile_picture}")
     user.refresh_from_db()
+    print(f"👤 Profile - After refresh: User {user.id}, profile_picture: {user.profile_picture}")
     
     # Get user statistics - using email since Request model uses email for client field
     active_requests = ServiceRequest.objects.filter(client=user.email, status__in=['pending', 'in_progress']).count()
@@ -600,13 +604,18 @@ def edit_profile_picture(request):
         print(f"🔍 URL type: {type(public_url)}")
         
         # Update user's profile_picture field
+        print(f"🔍 Before save - User ID: {request.user.id}, Current URL: {request.user.profile_picture}")
         request.user.profile_picture = public_url
         request.user.save(update_fields=['profile_picture'])
         
         # Verify it was saved
         request.user.refresh_from_db()
-        print(f"🔍 Verified saved URL in DB: {request.user.profile_picture}")
-        print(f"🔍 User ID: {request.user.id}")
+        print(f"🔍 After save - Verified URL in DB: {request.user.profile_picture}")
+        
+        # Double check by querying the database directly
+        from .models import CustomUser
+        db_user = CustomUser.objects.get(id=request.user.id)
+        print(f"🔍 Direct DB query - User {db_user.id} profile_picture: {db_user.profile_picture}")
         
         return JsonResponse({
             'success': True,
