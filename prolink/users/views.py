@@ -608,7 +608,7 @@ def edit_profile_picture(request):
         request.user.profile_picture = public_url
         request.user.save(update_fields=['profile_picture'])
         
-        # Verify it was saved
+        # Verify it was saved  
         request.user.refresh_from_db()
         print(f"🔍 After save - Verified URL in DB: {request.user.profile_picture}")
         
@@ -616,6 +616,13 @@ def edit_profile_picture(request):
         from .models import CustomUser
         db_user = CustomUser.objects.get(id=request.user.id)
         print(f"🔍 Direct DB query - User {db_user.id} profile_picture: {db_user.profile_picture}")
+        
+        # CRITICAL: Update the session to force Django to reload user on next request
+        # This ensures the cached user in the session is invalidated
+        from django.contrib.auth import update_session_auth_hash
+        request.session.modified = True
+        request.session.save()
+        print(f"🔍 Session updated - cache invalidated")
         
         return JsonResponse({
             'success': True,
