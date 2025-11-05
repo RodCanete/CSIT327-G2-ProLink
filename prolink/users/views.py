@@ -22,7 +22,10 @@ def dashboard(request):
     """
     Dashboard view - routes to appropriate dashboard based on user role
     """
+    # Refresh user from database to get latest profile_picture
     user = request.user
+    user.refresh_from_db()
+    
     user_role = user.user_role if hasattr(user, 'user_role') else 'client'
     
     # Use first name for display, falling back to username
@@ -454,7 +457,9 @@ def user_profile(request):
     """
     Display user profile page with actual database data
     """
+    # Refresh user from database to get latest profile_picture
     user = request.user
+    user.refresh_from_db()
     
     # Get user statistics - using email since Request model uses email for client field
     active_requests = ServiceRequest.objects.filter(client=user.email, status__in=['pending', 'in_progress']).count()
