@@ -69,8 +69,10 @@
         <!-- User Menu -->
         <div class="user-menu">
             <div class="user-info">
-                {% if user.profile.profile_picture %}
-                    <img src="{{ user.profile.profile_picture.url }}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                <!-- Debug: Show what we have -->
+                <!-- User ID: {{ user.id }}, Profile Picture: {{ user.profile_picture }} -->
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="User" class="user-avatar" id="navbarUserAvatar">
                 {% else %}
                     <img src="{% static 'images/default_profile.png' %}" alt="User" class="user-avatar" id="navbarUserAvatar">
                 {% endif %}

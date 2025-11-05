@@ -39,7 +39,7 @@
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
                         {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-image" id="profileImage">
+                            <img src="{{ user.profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% else %}
                             <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% endif %}
