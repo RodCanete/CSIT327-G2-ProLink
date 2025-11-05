@@ -38,8 +38,8 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        {% if user.profile.profile_picture %}
-                            <img src="{{ user.profile.profile_picture.url }}" alt="Profile Picture" class="profile-image" id="profileImage">
+                        {% if user.profile_picture %}
+                            <img src="{{ user.profile_picture }}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% else %}
                             <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
                         {% endif %}
@@ -88,15 +88,11 @@
                                 .then(data => {
                                     console.log('Data received:', data);
                                     if (data.success && data.image_url) {
-                                        // Update both images with cache busting
-                                        const timestamp = '?t=' + new Date().getTime();
-                                        profileImage.src = data.image_url + timestamp;
-                                        
-                                        if (navbarUserAvatar) {
-                                            navbarUserAvatar.src = data.image_url + timestamp;
-                                        }
-                                        
+                                        // Show success message
                                         alert('Profile picture updated successfully!');
+                                        
+                                        // Reload the page to get fresh data from database
+                                        window.location.reload();
                                     } else if (data.error) {
                                         alert('Error: ' + data.error);
                                         profileImage.src = originalProfileSrc;
