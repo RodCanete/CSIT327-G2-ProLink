@@ -509,6 +509,22 @@ def transactions(request):
     """
     return render(request, 'transactions.html')
 
+
+@login_required
+def check_profile_picture(request):
+    """
+    Diagnostic endpoint to check profile picture in database
+    """
+    user = request.user
+    
+    return JsonResponse({
+        'user_id': user.id,
+        'username': user.username,
+        'profile_picture_in_db': user.profile_picture,
+        'profile_picture_type': str(type(user.profile_picture)),
+        'is_empty': not bool(user.profile_picture),
+    })
+
 @login_required
 def edit_profile_picture(request):
     from django.http import JsonResponse
@@ -561,10 +577,22 @@ def edit_profile_picture(request):
             file_options={"content-type": file.content_type}
         )
         
-        # Get public URL
-        public_url = supabase.storage.from_('avatars').get_public_url(file_path)
+        print(f"📥 Upload response: {storage_response}")
+        
+        # Get public URL - extract the actual URL string
+        public_url_response = supabase.storage.from_('avatars').get_public_url(file_path)
+        
+        # Handle both string and object responses
+        if isinstance(public_url_response, str):
+            public_url = public_url_response
+        elif isinstance(public_url_response, dict) and 'publicUrl' in public_url_response:
+            public_url = public_url_response['publicUrl']
+        else:
+            # Fallback: construct URL manually
+            public_url = f"{settings.SUPABASE_URL}/storage/v1/object/public/avatars/{file_path}"
         
         print(f"✅ Supabase URL: {public_url}")
+        print(f"🔍 URL type: {type(public_url)}")
         
         # Update user's profile_picture field
         request.user.profile_picture = public_url
@@ -572,7 +600,8 @@ def edit_profile_picture(request):
         
         # Verify it was saved
         request.user.refresh_from_db()
-        print(f"🔍 Verified saved URL: {request.user.profile_picture}")
+        print(f"🔍 Verified saved URL in DB: {request.user.profile_picture}")
+        print(f"🔍 User ID: {request.user.id}")
         
         return JsonResponse({
             'success': True,

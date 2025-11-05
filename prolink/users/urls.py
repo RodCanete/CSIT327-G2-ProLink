@@ -15,6 +15,7 @@ urlpatterns = [
     path('settings/', views.user_settings, name='settings'),
     path('transactions/', views.transactions, name='transactions'),
     path('edit-profile-picture/', views.edit_profile_picture, name='edit_profile_picture'),
+    path('check-profile-picture/', views.check_profile_picture, name='check_profile_picture'),  # Diagnostic
     
     
     # Professional URLs
