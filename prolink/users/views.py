@@ -568,7 +568,11 @@ def edit_profile_picture(request):
         
         # Update user's profile_picture field
         request.user.profile_picture = public_url
-        request.user.save()
+        request.user.save(update_fields=['profile_picture'])
+        
+        # Verify it was saved
+        request.user.refresh_from_db()
+        print(f"🔍 Verified saved URL: {request.user.profile_picture}")
         
         return JsonResponse({
             'success': True,
