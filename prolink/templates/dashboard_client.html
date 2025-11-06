@@ -176,11 +176,7 @@
                             {% for professional in recommended_professionals %}
                             <div class="professional-item">
                                 <div class="professional-avatar">
-                                    {% if professional.user.profile_picture %}
-                                    <img src="{{ professional.user.profile_picture }}" alt="{{ professional.user.get_full_name }}">
-                                    {% else %}
-                                    <img src="https://via.placeholder.com/48x48/007bff/ffffff?text={{ professional.user.first_name.0|default:'P' }}{{ professional.user.last_name.0|default:'R' }}" alt="{{ professional.user.get_full_name }}">
-                                    {% endif %}
+                                    <img src="{{ professional.user.get_profile_picture }}" alt="{{ professional.user.get_full_name }}">
                                 </div>
                                 <div class="professional-info">
                                     <h4>{{ professional.user.get_full_name|default:professional.user.username }}</h4>

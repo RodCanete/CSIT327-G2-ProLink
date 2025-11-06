@@ -122,11 +122,7 @@
                 <div class="professional-card" data-professional-id="{{ professional.id }}">
                     <div class="professional-header">
                         <div class="professional-avatar-large">
-                            {% if professional.user.profile_picture %}
-                            <img src="{{ professional.user.profile_picture }}" alt="{{ professional.user.get_full_name }}">
-                            {% else %}
-                            <img src="{% static 'images/default_profile.png' %}" alt="{{ professional.user.get_full_name }}">
-                            {% endif %}
+                            <img src="{{ professional.user.get_profile_picture }}" alt="{{ professional.user.get_full_name }}">
                             {% if professional.is_verified %}
                             <span class="verified-badge" title="Verified Professional">
                                 <i class="fas fa-check-circle"></i>

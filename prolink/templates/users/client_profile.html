@@ -38,11 +38,7 @@
                 <!-- Left Profile Section -->
                 <div class="profile-sidebar">
                     <div class="profile-image-container">
-                        {% if user.profile_picture %}
-                            <img src="{{ user.profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="Profile Picture" class="profile-image" id="profileImage">
-                        {% else %}
-                            <img src="{% static 'images/default_profile.png' %}" alt="Profile Picture" class="profile-image" id="profileImage">
-                        {% endif %}
+                        <img src="{{ user.get_profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="Profile Picture" class="profile-image" id="profileImage">
 
                         <form id="profilePictureForm" method="POST" enctype="multipart/form-data" action="{% url 'edit_profile_picture' %}">
                             {% csrf_token %}

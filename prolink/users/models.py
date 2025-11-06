@@ -33,6 +33,16 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
+    def get_profile_picture(self):
+        """
+        Return profile picture URL or default if none set
+        """
+        if self.profile_picture:
+            return self.profile_picture
+        # Return a default profile picture URL (UI Avatars generates initials)
+        initials = f"{self.first_name[0] if self.first_name else 'U'}{self.last_name[0] if self.last_name else 'U'}"
+        return f"https://ui-avatars.com/api/?name={initials}&background=007bff&color=fff&size=200"
+    
     def __str__(self):
         return f"{self.username} ({self.get_user_role_display()})"
     
