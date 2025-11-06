@@ -176,7 +176,11 @@
                             {% for professional in recommended_professionals %}
                             <div class="professional-item">
                                 <div class="professional-avatar">
-                                    <img src="{{ professional.user.get_profile_picture }}" alt="{{ professional.user.get_full_name }}">
+                                    {% if professional.user.profile_picture %}
+                                        <img src="{{ professional.user.profile_picture }}" alt="{{ professional.user.get_full_name }}">
+                                    {% else %}
+                                        <img src="https://ui-avatars.com/api/?name={{ professional.user.first_name|default:'U' }}+{{ professional.user.last_name|default:'U' }}&background=90EE90&color=000&size=48" alt="{{ professional.user.get_full_name }}">
+                                    {% endif %}
                                 </div>
                                 <div class="professional-info">
                                     <h4>{{ professional.user.get_full_name|default:professional.user.username }}</h4>
