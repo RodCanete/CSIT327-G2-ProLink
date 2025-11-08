@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Request - ProLink</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Edit Request</h1>
+                    <p>Update your request details.</p>
+                </div>
+                <div class="page-actions">
+                    <a href="/requests/" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Requests
+                    </a>
+                </div>
+            </div>
+
+            <!-- Form Container -->
+            <div class="form-container">
+                <form method="post" class="request-form">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-info-circle"></i>
+                            Basic Information
+                        </h3>
+                        
+                        <div class="form-group">
+                            <label for="title" class="form-label">
+                                Request Title <span class="required">*</span>
+                            </label>
+                            <input type="text" 
+                                   id="title" 
+                                   name="title" 
+                                   class="form-input" 
+                                   value="{{ request.title }}"
+                                   placeholder="Enter a descriptive title for your request"
+                                   maxlength="200"
+                                   required>
+                            <div class="form-help">
+                                <span id="title-count">0</span>/200 characters
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="description" class="form-label">
+                                Description <span class="required">*</span>
+                            </label>
+                            <textarea id="description" 
+                                      name="description" 
+                                      class="form-textarea" 
+                                      rows="6"
+                                      placeholder="Provide detailed information about what you need validated or reviewed."
+                                      maxlength="5000"
+                                      required>{{ request.description }}</textarea>
+                            <div class="form-help">
+                                <span id="description-count">0</span>/5000 characters
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Budget & Timeline Section -->
+                    <div class="form-section">
+                        <h3 class="form-section-title">
+                            <i class="fas fa-dollar-sign"></i>
+                            Budget & Timeline
+                        </h3>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="price" class="form-label">Budget</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" 
+                                           id="price" 
+                                           name="price" 
+                                           class="form-input" 
+                                           value="{{ request.price }}"
+                                           placeholder="0.00"
+                                           min="0"
+                                           step="0.01">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="timeline_days" class="form-label">
+                                    Timeline <span class="required">*</span>
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" 
+                                           id="timeline_days" 
+                                           name="timeline_days" 
+                                           class="form-input" 
+                                           value="{{ request.timeline_days }}"
+                                           placeholder="7"
+                                           min="1"
+                                           max="365"
+                                           required>
+                                    <span class="input-group-text">days</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" onclick="window.location.href='/requests/'">
+                            <i class="fas fa-times"></i>
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Character counters
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleInput = document.getElementById('title');
+            const descriptionInput = document.getElementById('description');
+            const titleCount = document.getElementById('title-count');
+            const descriptionCount = document.getElementById('description-count');
+
+            function updateCount(input, counter, max) {
+                const count = input.value.length;
+                counter.textContent = count;
+                if (count > max * 0.9) {
+                    counter.style.color = '#dc3545';
+                } else if (count > max * 0.8) {
+                    counter.style.color = '#ffc107';
+                } else {
+                    counter.style.color = '#6c757d';
+                }
+            }
+
+            titleInput.addEventListener('input', function() {
+                updateCount(this, titleCount, 200);
+            });
+
+            descriptionInput.addEventListener('input', function() {
+                updateCount(this, descriptionCount, 5000);
+            });
+
+            // Initialize counts
+            updateCount(titleInput, titleCount, 200);
+            updateCount(descriptionInput, descriptionCount, 5000);
+        });
+
+        // Form validation
+        document.querySelector('.request-form').addEventListener('submit', function(e) {
+            const title = document.getElementById('title').value.trim();
+            const description = document.getElementById('description').value.trim();
+            const timeline = document.getElementById('timeline_days').value;
+
+            if (title.length < 5) {
+                e.preventDefault();
+                alert('Title must be at least 5 characters long.');
+                return;
+            }
+
+            if (description.length < 20) {
+                e.preventDefault();
+                alert('Description must be at least 20 characters long.');
+                return;
+            }
+
+            if (!timeline || timeline < 1 || timeline > 365) {
+                e.preventDefault();
+                alert('Timeline must be between 1 and 365 days.');
+                return;
+            }
+        });
+    </script>
+</body>
+</html>

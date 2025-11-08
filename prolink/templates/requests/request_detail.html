@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Request Details - ProLink</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=6">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -26,6 +26,12 @@
                         <i class="fas fa-arrow-left"></i>
                         Back to Requests
                     </a>
+                    {% if request.status == 'pending' %}
+                    <a href="/requests/{{ request.id }}/edit/" class="btn btn-primary">
+                        <i class="fas fa-edit"></i>
+                        Edit Request
+                    </a>
+                    {% endif %}
                     {% if request.status != 'completed' and request.status != 'cancelled' %}
                     <button class="btn btn-danger" onclick="cancelRequest({{ request.id }})">
                         <i class="fas fa-times"></i>
@@ -119,16 +125,31 @@
                             <div class="detail-content">
                                 <div class="files-list">
                                     {% for file in request.attached_files %}
-                                    <div class="file-item">
-                                        <div class="file-icon">
-                                            <i class="fas fa-file"></i>
+                                    <div class="file-item-display">
+                                        <div class="file-icon-display">
+                                            {% if file.mime_type %}
+                                                {% if 'pdf' in file.mime_type %}
+                                                    <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
+                                                {% elif 'word' in file.mime_type or 'document' in file.mime_type %}
+                                                    <i class="fas fa-file-word" style="color: #2b579a;"></i>
+                                                {% elif 'image' in file.mime_type %}
+                                                    <i class="fas fa-file-image" style="color: #28a745;"></i>
+                                                {% elif 'zip' in file.mime_type or 'compressed' in file.mime_type %}
+                                                    <i class="fas fa-file-archive" style="color: #ffc107;"></i>
+                                                {% else %}
+                                                    <i class="fas fa-file" style="color: #6c757d;"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-file" style="color: #6c757d;"></i>
+                                            {% endif %}
                                         </div>
-                                        <div class="file-info">
-                                            <span class="file-name">{{ file.original_name }}</span>
-                                            <span class="file-size">({{ file.size|filesizeformat }})</span>
+                                        <div class="file-info-display">
+                                            <span class="file-name-display">{{ file.original_name }}</span>
+                                            <span class="file-size-display">({{ file.size|filesizeformat }})</span>
                                         </div>
-                                        <a href="/media/{{ file.saved_name }}" class="file-download" target="_blank">
+                                        <a href="{{ file.public_url }}" class="file-download-btn" target="_blank" download="{{ file.original_name }}">
                                             <i class="fas fa-download"></i>
+                                            Download
                                         </a>
                                     </div>
                                     {% endfor %}
@@ -247,6 +268,37 @@
         </div>
     </main>
 
+    <!-- Cancel Request Confirmation Modal -->
+    <div id="cancelConfirmModal" class="modal modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Cancel Request</h2>
+                <button class="modal-close" onclick="closeCancelModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="confirmation-text">
+                        <h3>Are you sure?</h3>
+                        <p>Do you want to cancel this request? This action cannot be undone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeCancelModal()">
+                    <i class="fas fa-times"></i>
+                    No, Keep It
+                </button>
+                <button class="btn btn-danger" onclick="confirmCancel()">
+                    <i class="fas fa-ban"></i>
+                    Yes, Cancel Request
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/dashboard.js"></script>
     <script>
         // Message form handling
@@ -282,9 +334,21 @@
             });
         }
 
+        let requestToCancel = null;
+
         function cancelRequest(requestId) {
-            if (confirm('Are you sure you want to cancel this request?')) {
-                fetch(`/requests/${requestId}/cancel/`, {
+            requestToCancel = requestId;
+            document.getElementById('cancelConfirmModal').style.display = 'block';
+        }
+
+        function closeCancelModal() {
+            document.getElementById('cancelConfirmModal').style.display = 'none';
+            requestToCancel = null;
+        }
+
+        function confirmCancel() {
+            if (requestToCancel) {
+                fetch(`/requests/${requestToCancel}/cancel/`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -303,6 +367,14 @@
                     console.error('Error:', error);
                     alert('Error cancelling request');
                 });
+            }
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('cancelConfirmModal');
+            if (event.target === modal) {
+                closeCancelModal();
             }
         }
 

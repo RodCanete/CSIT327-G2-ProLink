@@ -34,6 +34,18 @@
                 <form method="post" enctype="multipart/form-data" class="request-form">
                     {% csrf_token %}
                     
+                    <!-- Messages -->
+                    {% if messages %}
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <i class="fas {% if message.tags == 'error' %}fa-exclamation-triangle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
+                            <div class="alert-content">
+                                <p>{{ message }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% endif %}
+                    
                     <!-- Error Messages -->
                     {% if errors %}
                     <div class="alert alert-error">
@@ -166,14 +178,20 @@
                         </h3>
                         
                         <div class="form-group">
-                            <label for="professional" class="form-label">Preferred Professional (Optional)</label>
-                            <input type="text" 
-                                   id="professional" 
-                                   name="professional" 
-                                   class="form-input" 
-                                   value="{{ professional|default:'' }}"
-                                   placeholder="Enter professional email or leave empty for auto-assignment">
-                            <div class="form-help">Leave empty to have a professional assigned automatically</div>
+                            <label for="professional" class="form-label">Select Professional (Optional)</label>
+                            <select id="professional" name="professional" class="form-select">
+                                <option value="">-- Select a Professional (Optional) --</option>
+                                {% for prof in professionals %}
+                                <option value="{{ prof.email }}" {% if professional == prof.email %}selected{% endif %}>
+                                    {% if prof.first_name and prof.last_name %}
+                                        {{ prof.first_name }} {{ prof.last_name }} ({{ prof.email }})
+                                    {% else %}
+                                        {{ prof.email }}
+                                    {% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-help">Choose a professional to assign to this request, or leave empty to assign later</div>
                         </div>
                     </div>
 
@@ -214,7 +232,7 @@
                             <i class="fas fa-times"></i>
                             Cancel
                         </button>
-                        <button type="submit" class="btn btn-primary">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-paper-plane"></i>
                             Submit Request
                         </button>
@@ -224,7 +242,363 @@
         </div>
     </main>
 
+    <!-- Upload Progress Modal -->
+    <div id="uploadModal" class="upload-modal">
+        <div class="upload-modal-content">
+            <div class="upload-modal-header">
+                <h3><i class="fas fa-cloud-upload-alt"></i> Uploading Files</h3>
+            </div>
+            <div class="upload-modal-body">
+                <div class="upload-progress-container">
+                    <div class="upload-progress-bar">
+                        <div class="upload-progress-fill" id="uploadProgressFill"></div>
+                    </div>
+                    <div class="upload-progress-text" id="uploadProgressText">Preparing upload...</div>
+                </div>
+                <div class="upload-files-list" id="uploadFilesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="success-modal">
+        <div class="success-modal-content">
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Request Created Successfully!</h2>
+            <div class="success-details" id="successDetails">
+                <p><strong>Files uploaded:</strong> <span id="uploadedFileCount">0</span></p>
+                <div class="uploaded-files-list" id="uploadedFilesList"></div>
+            </div>
+            <div class="success-actions">
+                <button class="btn btn-primary" onclick="window.location.href='/requests/'">
+                    <i class="fas fa-list"></i>
+                    View All Requests
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/dashboard.js"></script>
+    
+    <style>
+        /* Alert Styles */
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .alert-error {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+        }
+        
+        .alert-success {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #2f855a;
+        }
+        
+        .alert-info {
+            background: #ebf8ff;
+            border: 1px solid #90cdf4;
+            color: #2c5282;
+        }
+
+        .alert i {
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .alert-content {
+            flex: 1;
+        }
+
+        .alert-content p {
+            margin: 0;
+        }
+        
+        .alert-content ul {
+            margin: 8px 0 0 20px;
+        }
+
+        /* Upload Progress Modal */
+        .upload-modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .upload-modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 0;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease;
+        }
+
+        .upload-modal-header {
+            padding: 24px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #2D5016, #4A7C59);
+            color: white;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .upload-modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .upload-modal-body {
+            padding: 24px;
+        }
+
+        .upload-progress-container {
+            margin-bottom: 24px;
+        }
+
+        .upload-progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .upload-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2D5016, #7FB069);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: pulse 1.5s infinite;
+        }
+
+        .upload-progress-text {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .upload-files-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .upload-file-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .upload-file-item i {
+            color: #2D5016;
+            font-size: 18px;
+        }
+
+        .upload-file-item.uploading i {
+            animation: spin 1s linear infinite;
+        }
+
+        .upload-file-item.success i {
+            color: #10b981;
+        }
+
+        .upload-file-item.error i {
+            color: #ef4444;
+        }
+
+        .upload-file-info {
+            flex: 1;
+        }
+
+        .upload-file-name {
+            font-weight: 500;
+            color: #111827;
+            font-size: 14px;
+        }
+
+        .upload-file-status {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* Success Modal */
+        .success-modal {
+            display: none;
+            position: fixed;
+            z-index: 10000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .success-modal-content {
+            background: white;
+            margin: 8% auto;
+            padding: 40px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: scaleIn 0.4s ease;
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 24px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: successPulse 0.6s ease;
+        }
+
+        .success-icon i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .success-modal-content h2 {
+            margin: 0 0 24px 0;
+            color: #111827;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .success-details {
+            background: #f9fafb;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+        }
+
+        .success-details p {
+            margin: 0 0 16px 0;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .uploaded-files-list {
+            max-height: 150px;
+            overflow-y: auto;
+            text-align: left;
+        }
+
+        .uploaded-file-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            margin-bottom: 4px;
+        }
+
+        .uploaded-file-item i {
+            color: #10b981;
+            font-size: 14px;
+        }
+
+        .uploaded-file-item span {
+            font-size: 13px;
+            color: #374151;
+        }
+
+        .success-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Submit button loading state */
+        .btn-primary.loading {
+            position: relative;
+            color: transparent;
+            pointer-events: none;
+        }
+
+        .btn-primary.loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            margin-left: -8px;
+            margin-top: -8px;
+            border: 2px solid white;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.6s linear infinite;
+        }
+    </style>
+    
     <script>
         // Character counters
         document.addEventListener('DOMContentLoaded', function() {
@@ -263,14 +637,23 @@
         const fileInput = document.getElementById('attached_files');
         const fileList = document.getElementById('file-list');
 
-        fileUploadArea.addEventListener('click', () => fileInput.click());
+        // Only trigger file input when clicking the area, not the input itself
+        fileUploadArea.addEventListener('click', (e) => {
+            // Prevent double-triggering if clicking the hidden input
+            if (e.target !== fileInput) {
+                fileInput.click();
+            }
+        });
+        
         fileUploadArea.addEventListener('dragover', (e) => {
             e.preventDefault();
             fileUploadArea.classList.add('drag-over');
         });
+        
         fileUploadArea.addEventListener('dragleave', () => {
             fileUploadArea.classList.remove('drag-over');
         });
+        
         fileUploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             fileUploadArea.classList.remove('drag-over');
@@ -278,19 +661,44 @@
             updateFileList();
         });
 
-        fileInput.addEventListener('change', updateFileList);
+        // Store selected files in an array to allow adding more
+        let selectedFiles = [];
+
+        // Listen for file selection
+        fileInput.addEventListener('change', (e) => {
+            // Add new files to existing selection
+            const newFiles = Array.from(e.target.files);
+            newFiles.forEach(file => {
+                // Check if file already exists (by name and size)
+                const exists = selectedFiles.some(f => f.name === file.name && f.size === file.size);
+                if (!exists && selectedFiles.length < 5) {
+                    selectedFiles.push(file);
+                }
+            });
+            
+            // Update the file input with all selected files
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
+            
+            updateFileList();
+            
+            // Show warning if trying to add more than 5 files
+            if (newFiles.length + selectedFiles.length > 5) {
+                alert('Maximum 5 files allowed. Some files were not added.');
+            }
+        });
 
         function updateFileList() {
             fileList.innerHTML = '';
-            const files = Array.from(fileInput.files);
             
-            if (files.length === 0) {
+            if (selectedFiles.length === 0) {
                 fileList.style.display = 'none';
                 return;
             }
 
             fileList.style.display = 'block';
-            files.forEach((file, index) => {
+            selectedFiles.forEach((file, index) => {
                 const fileItem = document.createElement('div');
                 fileItem.className = 'file-item';
                 fileItem.innerHTML = `
@@ -308,12 +716,12 @@
         }
 
         function removeFile(index) {
-            const files = Array.from(fileInput.files);
-            files.splice(index, 1);
+            selectedFiles.splice(index, 1);
             
-            const newFileList = new DataTransfer();
-            files.forEach(file => newFileList.items.add(file));
-            fileInput.files = newFileList.files;
+            // Update the file input
+            const dataTransfer = new DataTransfer();
+            selectedFiles.forEach(file => dataTransfer.items.add(file));
+            fileInput.files = dataTransfer.files;
             
             updateFileList();
         }
@@ -326,12 +734,24 @@
             return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        // Form validation
-        document.querySelector('.request-form').addEventListener('submit', function(e) {
+        // Form validation and upload handling
+        const requestForm = document.querySelector('.request-form');
+        const submitBtn = document.getElementById('submitBtn');
+        const uploadModal = document.getElementById('uploadModal');
+        const successModal = document.getElementById('successModal');
+        const uploadProgressFill = document.getElementById('uploadProgressFill');
+        const uploadProgressText = document.getElementById('uploadProgressText');
+        const uploadFilesList = document.getElementById('uploadFilesList');
+        const uploadedFileCount = document.getElementById('uploadedFileCount');
+        const uploadedFilesList = document.getElementById('uploadedFilesList');
+
+        requestForm.addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const timeline = document.getElementById('timeline_days').value;
+            const files = fileInput.files;
 
+            // Validation
             if (title.length < 5) {
                 e.preventDefault();
                 alert('Title must be at least 5 characters long.');
@@ -348,6 +768,140 @@
                 e.preventDefault();
                 alert('Timeline must be between 1 and 365 days.');
                 return;
+            }
+
+            // Show upload progress if files are selected
+            if (files.length > 0) {
+                e.preventDefault();
+                showUploadProgress(files);
+            }
+        });
+
+        function showUploadProgress(files) {
+            // Show modal
+            uploadModal.style.display = 'block';
+            submitBtn.classList.add('loading');
+            
+            // Reset progress
+            uploadProgressFill.style.width = '0%';
+            uploadProgressText.textContent = 'Preparing upload...';
+            uploadFilesList.innerHTML = '';
+
+            // Show files being uploaded
+            const fileItems = [];
+            Array.from(files).forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'upload-file-item uploading';
+                fileItem.innerHTML = `
+                    <i class="fas fa-spinner"></i>
+                    <div class="upload-file-info">
+                        <div class="upload-file-name">${file.name}</div>
+                        <div class="upload-file-status">Uploading...</div>
+                    </div>
+                `;
+                uploadFilesList.appendChild(fileItem);
+                fileItems.push(fileItem);
+            });
+
+            // Simulate upload progress
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += Math.random() * 15;
+                if (progress > 90) progress = 90;
+                
+                uploadProgressFill.style.width = progress + '%';
+                uploadProgressText.textContent = `Uploading ${files.length} file(s)... ${Math.round(progress)}%`;
+                
+                // Update file status based on progress
+                const filesPercentage = progress / files.length;
+                fileItems.forEach((item, index) => {
+                    const fileProgress = filesPercentage * (index + 1);
+                    if (fileProgress > 80 && !item.classList.contains('success')) {
+                        item.classList.remove('uploading');
+                        item.classList.add('success');
+                        item.querySelector('i').className = 'fas fa-check-circle';
+                        item.querySelector('.upload-file-status').textContent = 'Uploaded successfully';
+                    }
+                });
+            }, 200);
+
+            // Submit the form after a short delay
+            setTimeout(() => {
+                clearInterval(progressInterval);
+                uploadProgressFill.style.width = '100%';
+                uploadProgressText.textContent = 'Upload complete! Creating request...';
+                
+                // Mark all files as success
+                fileItems.forEach(item => {
+                    item.classList.remove('uploading');
+                    item.classList.add('success');
+                    item.querySelector('i').className = 'fas fa-check-circle';
+                    item.querySelector('.upload-file-status').textContent = 'Uploaded successfully';
+                });
+
+                // Submit the form for real
+                setTimeout(() => {
+                    // Create FormData and submit via AJAX to check for success
+                    const formData = new FormData(requestForm);
+                    
+                    fetch(requestForm.action || window.location.href, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => {
+                        if (response.redirected || response.ok) {
+                            // Success! Show success modal
+                            uploadModal.style.display = 'none';
+                            showSuccessModal(files);
+                        } else {
+                            // Error - just submit the form normally to show errors
+                            requestForm.submit();
+                        }
+                    })
+                    .catch(error => {
+                        // On error, submit form normally
+                        requestForm.submit();
+                    });
+                }, 500);
+            }, 2000 + (files.length * 300)); // Adjust time based on file count
+        }
+
+        function showSuccessModal(files) {
+            submitBtn.classList.remove('loading');
+            successModal.style.display = 'block';
+            
+            // Update file count
+            uploadedFileCount.textContent = files.length;
+            
+            // Show uploaded files
+            uploadedFilesList.innerHTML = '';
+            Array.from(files).forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'uploaded-file-item';
+                fileItem.innerHTML = `
+                    <i class="fas fa-check-circle"></i>
+                    <span>${file.name}</span>
+                `;
+                uploadedFilesList.appendChild(fileItem);
+            });
+            
+            // Auto redirect after 3 seconds
+            setTimeout(() => {
+                window.location.href = '/requests/';
+            }, 3000);
+        }
+
+        // Close modals when clicking outside
+        window.addEventListener('click', function(e) {
+            if (e.target === uploadModal) {
+                uploadModal.style.display = 'none';
+                submitBtn.classList.remove('loading');
+            }
+            if (e.target === successModal) {
+                window.location.href = '/requests/';
             }
         });
     </script>
