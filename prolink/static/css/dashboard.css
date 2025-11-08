@@ -385,6 +385,17 @@ section {
     border-color: var(--gray-400);
 }
 
+.btn-danger {
+    background: var(--danger-color);
+    color: var(--white);
+}
+
+.btn-danger:hover {
+    background: #a03d3a;
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-lg);
+}
+
 /* Metrics Section */
 .metrics-section {
     margin-bottom: 2rem;
@@ -965,6 +976,10 @@ a:focus {
     line-height: 1.5;
     margin-bottom: 16px;
     font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
 }
 
 .request-professional {
@@ -1068,6 +1083,82 @@ a:focus {
     margin-right: auto;
 }
 
+/* File Display Styles for Request Detail */
+.files-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.file-item-display {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    border: 1px solid var(--gray-200);
+    border-radius: 8px;
+    background: var(--gray-50);
+    transition: all 0.2s ease;
+}
+
+.file-item-display:hover {
+    background: white;
+    border-color: var(--primary-color);
+    box-shadow: var(--box-shadow);
+}
+
+.file-icon-display {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.file-info-display {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.file-name-display {
+    font-weight: 500;
+    color: var(--gray-900);
+    font-size: 14px;
+}
+
+.file-size-display {
+    font-size: 12px;
+    color: var(--gray-500);
+}
+
+.file-download-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 6px;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.file-download-btn:hover {
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: var(--box-shadow-lg);
+}
+
+.file-download-btn i {
+    font-size: 14px;
+}
+
 /* Modal Styles */
 .modal {
     display: none;
@@ -1140,6 +1231,59 @@ a:focus {
     padding: 24px;
     max-height: 60vh;
     overflow-y: auto;
+}
+
+/* Small Modal */
+.modal-sm .modal-content {
+    max-width: 450px;
+}
+
+/* Modal Footer */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+.modal-footer .btn {
+    min-width: 100px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    justify-content: center;
+}
+
+/* Confirmation Message */
+.confirmation-message {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 24px;
+}
+
+.confirmation-message i {
+    font-size: 24px;
+    color: var(--warning-color);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.confirmation-text h3 {
+    margin: 0 0 8px 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--gray-900);
+}
+
+.confirmation-text p {
+    color: var(--gray-600);
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0;
 }
 
 /* Message Thread */

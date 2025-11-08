@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>File Upload Test - ProLink</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-result {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #bee5eb; color: #0c5460; }
+        form {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 File Upload Diagnostic Test</h1>
+    
+    {% if request.method == 'POST' %}
+        <div class="test-result {% if uploaded_files %}success{% else %}error{% endif %}">
+            <h3>Upload Results:</h3>
+            {% if uploaded_files %}
+                <p><strong>✅ Successfully uploaded {{ uploaded_files|length }} file(s)!</strong></p>
+                <ul>
+                {% for file in uploaded_files %}
+                    <li>
+                        <strong>{{ file.original_name }}</strong><br>
+                        Size: {{ file.size|filesizeformat }}<br>
+                        URL: <a href="{{ file.public_url }}" target="_blank">{{ file.public_url }}</a>
+                    </li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            
+            {% if errors %}
+                <p><strong>❌ Errors encountered:</strong></p>
+                <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+                </ul>
+            {% endif %}
+            
+            {% if not uploaded_files and not errors %}
+                <p><strong>⚠️ No files were uploaded.</strong></p>
+                <p>Debug info:</p>
+                <ul>
+                    <li>FILES in request: {{ files_in_request }}</li>
+                    <li>POST keys: {{ post_keys }}</li>
+                </ul>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="test-result info">
+            <p>This page tests file uploads to Supabase Storage. Upload some files below to verify the system is working.</p>
+        </div>
+    {% endif %}
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h3>Upload Test Files:</h3>
+        <input type="file" name="test_files" multiple accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip,.txt">
+        <br><br>
+        <button type="submit">🚀 Test Upload</button>
+    </form>
+    
+    <hr>
+    <p><a href="/requests/create/">← Back to Create Request</a></p>
+</body>
+</html>

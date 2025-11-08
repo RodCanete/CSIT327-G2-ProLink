@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Requests - ProLink</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=6">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -125,20 +125,26 @@
                         </div>
                         
                         <div class="request-actions">
-                            <button class="btn btn-sm btn-outline" onclick="viewRequestDetails({{ request.id }})">
+                            <a href="/requests/{{ request.id }}/" class="btn btn-sm btn-outline">
                                 <i class="fas fa-eye"></i>
                                 View Details
+                            </a>
+                            {% if request.status == 'pending' %}
+                            <button class="btn btn-sm btn-primary" onclick="editRequest({{ request.id }})">
+                                <i class="fas fa-edit"></i>
+                                Edit
                             </button>
+                            {% endif %}
                             {% if request.professional and request.status != 'completed' and request.status != 'cancelled' %}
                             <button class="btn btn-sm btn-primary" onclick="openMessageModal({{ request.id }})">
                                 <i class="fas fa-message"></i>
                                 Message
                             </button>
                             {% endif %}
-                            {% if request.status == 'pending' or request.status == 'in_progress' %}
-                            <button class="btn btn-sm btn-danger" onclick="cancelRequest({{ request.id }})">
-                                <i class="fas fa-times"></i>
-                                Cancel
+                            {% if request.status == 'pending' %}
+                            <button class="btn btn-sm btn-danger" onclick="deleteRequest({{ request.id }})">
+                                <i class="fas fa-trash"></i>
+                                Delete
                             </button>
                             {% endif %}
                         </div>
@@ -198,6 +204,37 @@
                         Send
                     </button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteConfirmModal" class="modal">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Delete Request</h2>
+                <button class="modal-close" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="confirmation-message">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="confirmation-text">
+                        <h3>Are you sure?</h3>
+                        <p>Do you want to permanently delete this request? This action cannot be undone.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">
+                    <i class="fas fa-times"></i>
+                    Cancel
+                </button>
+                <button class="btn btn-danger" onclick="confirmDelete()">
+                    <i class="fas fa-trash"></i>
+                    Delete
+                </button>
             </div>
         </div>
     </div>
@@ -262,21 +299,97 @@
             }
         }
 
+        function editRequest(requestId) {
+            // Redirect to edit request page
+            window.location.href = `/requests/${requestId}/edit/`;
+        }
+
+        // Store the request ID to delete
+        let requestToDelete = null;
+
+        function deleteRequest(requestId) {
+            // Store the request ID and show the modal
+            requestToDelete = requestId;
+            document.getElementById('deleteConfirmModal').style.display = 'block';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteConfirmModal').style.display = 'none';
+            requestToDelete = null;
+        }
+
+        function confirmDelete() {
+            if (!requestToDelete) return;
+            
+            // Close the modal
+            closeDeleteModal();
+            
+            // Delete request via AJAX
+            fetch(`/requests/${requestToDelete}/delete/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Remove the card from the DOM
+                    const card = document.querySelector(`[data-request-id="${requestToDelete}"]`);
+                    if (card) {
+                        card.style.transition = 'opacity 0.3s ease';
+                        card.style.opacity = '0';
+                        setTimeout(() => {
+                            card.remove();
+                            // Reload page to update counts
+                            window.location.reload();
+                        }, 300);
+                    }
+                } else {
+                    alert('Failed to delete request. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while deleting the request.');
+            });
+        }
+
         function createNewRequest() {
             // Redirect to create request page
             window.location.href = '/requests/create/';
+        }
+
+        // Helper function to get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
         }
 
         // Close modals when clicking outside
         window.addEventListener('click', function(event) {
             const requestModal = document.getElementById('requestDetailModal');
             const messageModal = document.getElementById('messageModal');
+            const deleteModal = document.getElementById('deleteConfirmModal');
             
             if (event.target === requestModal) {
                 closeRequestModal();
             }
             if (event.target === messageModal) {
                 closeMessageModal();
+            }
+            if (event.target === deleteModal) {
+                closeDeleteModal();
             }
         });
     </script>
