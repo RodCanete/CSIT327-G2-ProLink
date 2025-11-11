@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Payment - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .payment-container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .payment-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .payment-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .payment-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 28px;
+        }
+        .payment-amount {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .payment-body {
+            padding: 40px;
+        }
+        .info-box {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        .info-box h3 {
+            margin: 0 0 15px 0;
+            color: #667eea;
+            font-size: 18px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        .info-value {
+            color: #333;
+            font-weight: 500;
+        }
+        .form-group {
+            margin-bottom: 25px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group small {
+            display: block;
+            margin-top: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        .submit-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 40px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .instructions {
+            background: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-radius: 4px;
+        }
+        .instructions h3 {
+            margin: 0 0 15px 0;
+            color: #f57c00;
+        }
+        .instructions ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .instructions li {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        .breakdown {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .breakdown-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 16px;
+        }
+        .breakdown-row.total {
+            border-top: 2px solid #ddd;
+            margin-top: 10px;
+            padding-top: 15px;
+            font-weight: bold;
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <div class="payment-container">
+        <div class="payment-card">
+            <div class="payment-header">
+                <h1>Submit Payment</h1>
+                <p>{{ service_request.title }}</p>
+                <div class="payment-amount">₱{{ transaction.amount|floatformat:2 }}</div>
+            </div>
+            
+            <div class="payment-body">
+                <!-- Payment Breakdown -->
+                <div class="breakdown">
+                    <div class="breakdown-row">
+                        <span>Service Fee:</span>
+                        <span>₱{{ transaction.amount|floatformat:2 }}</span>
+                    </div>
+                    <div class="breakdown-row">
+                        <span>Platform Fee (10%):</span>
+                        <span>₱{{ transaction.platform_fee|floatformat:2 }}</span>
+                    </div>
+                    <div class="breakdown-row total">
+                        <span>Total to Pay:</span>
+                        <span>₱{{ transaction.amount|floatformat:2 }}</span>
+                    </div>
+                    <small style="display: block; margin-top: 10px; color: #666;">
+                        Professional receives: ₱{{ transaction.professional_payout|floatformat:2 }} (after platform fee)
+                    </small>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="instructions">
+                    <h3><i class="fas fa-info-circle"></i> Payment Instructions</h3>
+                    <ol>
+                        <li>Open your GCash app</li>
+                        <li>Send <strong>₱{{ transaction.amount|floatformat:2 }}</strong> to the account below</li>
+                        <li>Take a screenshot of the successful transaction</li>
+                        <li>Fill out the form below and upload your screenshot</li>
+                    </ol>
+                </div>
+                
+                <!-- ProLink GCash Info -->
+                <div class="info-box">
+                    <h3><i class="fas fa-mobile-alt"></i> Send Payment To:</h3>
+                    <div class="info-row">
+                        <span class="info-label">GCash Number:</span>
+                        <span class="info-value">{{ prolink_gcash_number }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Account Name:</span>
+                        <span class="info-value">{{ prolink_gcash_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Amount:</span>
+                        <span class="info-value">₱{{ transaction.amount|floatformat:2 }}</span>
+                    </div>
+                </div>
+                
+                <!-- Payment Proof Form -->
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="form-group">
+                        <label for="gcash_number">
+                            <i class="fas fa-mobile-alt"></i> Your GCash Number
+                        </label>
+                        <input type="text" id="gcash_number" name="gcash_number" 
+                               placeholder="09XX-XXX-XXXX" required
+                               pattern="[0-9]{4}-?[0-9]{3}-?[0-9]{4}">
+                        <small>The number you used to send payment</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gcash_reference">
+                            <i class="fas fa-hashtag"></i> GCash Reference Number
+                        </label>
+                        <input type="text" id="gcash_reference" name="gcash_reference" 
+                               placeholder="e.g., 1234567890123" required>
+                        <small>Found on your transaction receipt</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="gcash_screenshot">
+                            <i class="fas fa-image"></i> Payment Screenshot
+                        </label>
+                        <input type="file" id="gcash_screenshot" name="gcash_screenshot" 
+                               accept="image/*" required>
+                        <small>Upload a clear screenshot of your GCash transaction</small>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <i class="fas fa-check-circle"></i> Submit Payment Proof
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

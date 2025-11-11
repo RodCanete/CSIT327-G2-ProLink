@@ -141,34 +141,4 @@ class ActivityLog(models.Model):
         )
 
 
-class Transaction(models.Model):
-    """
-    Payment transactions - placeholder for future implementation
-    """
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('failed', 'Failed'),
-        ('refunded', 'Refunded'),
-    )
-    
-    request = models.ForeignKey(Request, on_delete=models.CASCADE, related_name='transactions')
-    client = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='payments_made')
-    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='payments_received')
-    
-    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    
-    payment_method = models.CharField(max_length=50, blank=True)
-    transaction_id = models.CharField(max_length=100, unique=True, blank=True, null=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    completed_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Transaction'
-        verbose_name_plural = 'Transactions'
-    
-    def __str__(self):
-        return f"${self.amount} - {self.client.username} → {self.professional.username} - {self.get_status_display()}"
+# Transaction and Dispute models have been moved to the transactions app

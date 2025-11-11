@@ -23,6 +23,10 @@
                     <p>Welcome back, {{ user_email|default:"Professional" }}! Here's your professional dashboard.</p>
                 </div>
                 <div class="page-actions">
+                    <a href="{% url 'transactions:history' %}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i>
+                        Transaction History
+                    </a>
                     <button class="btn btn-primary">
                         <i class="fas fa-plus"></i>
                         Create Service
@@ -221,16 +225,45 @@
                                         <h4>{{ req.title }}</h4>
                                         <p>Client: {{ req.client }}</p>
                                         {% if req.price %}
-                                        <span class="request-budget">Budget: ${{ req.price|floatformat:0 }}</span>
+                                        <span class="request-budget" style="background: #e3f2fd; color: #1976d2; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                            <i class="fas fa-tag"></i> Client's Budget: ₱{{ req.price|floatformat:2 }}
+                                        </span>
                                         {% else %}
-                                        <span class="request-budget">Budget: Negotiable</span>
+                                        <span class="request-budget" style="background: #fff3e0; color: #f57c00; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                            <i class="fas fa-handshake"></i> Budget: Negotiable
+                                        </span>
                                         {% endif %}
                                         <span class="request-timeline">Timeline: {{ req.timeline_days }} days</span>
                                     </div>
                                     <div class="request-actions">
-                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display:inline;">
+                                        <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary" style="margin-right: 10px;">
+                                            <i class="fas fa-eye"></i> View Request
+                                        </a>
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display:inline-block; margin-right: 10px;" id="acceptForm{{ req.id }}">
                                             {% csrf_token %}
-                                            <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Accept this request and start conversation?')">Accept</button>
+                                            <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                                                <div style="display: flex; align-items: center; gap: 4px;">
+                                                    <span style="font-size: 14px; font-weight: 600;">Your Price:</span>
+                                                    <span style="font-size: 14px;">₱</span>
+                                                    <input type="number" name="price" step="0.01" min="1" 
+                                                           {% if req.price %}value="{{ req.price|floatformat:2 }}"{% endif %}
+                                                           placeholder="{% if req.price %}{{ req.price|floatformat:0 }}{% else %}Set price{% endif %}" 
+                                                           required 
+                                                           style="width: 120px; padding: 6px 8px; border: 2px solid #667eea; border-radius: 4px; font-size: 14px; font-weight: 600;"
+                                                           onchange="this.style.borderColor = (parseFloat(this.value) === {{ req.price|default:'0' }}) ? '#4caf50' : '#667eea';">
+                                                </div>
+                                                {% if req.price %}
+                                                <button type="button" class="btn btn-sm" 
+                                                        style="background: #4caf50; color: white; padding: 6px 12px; font-size: 13px;"
+                                                        onclick="document.querySelector('#acceptForm{{ req.id }} input[name=price]').value = '{{ req.price|floatformat:2 }}'; document.querySelector('#acceptForm{{ req.id }} input[name=price]').style.borderColor = '#4caf50';">
+                                                    <i class="fas fa-check"></i> Accept Budget
+                                                </button>
+                                                {% endif %}
+                                                <button type="submit" class="btn btn-sm btn-primary" 
+                                                        onclick="return confirm('Accept this request with ₱' + document.querySelector('#acceptForm{{ req.id }} input[name=price]').value + '?')">
+                                                    <i class="fas fa-handshake"></i> Accept & Confirm
+                                                </button>
+                                            </div>
                                         </form>
                                         <form method="post" action="{% url 'decline_request' req.id %}" style="display:inline;">
                                             {% csrf_token %}
@@ -248,6 +281,66 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Active Work - Ready to Submit -->
+                {% if active_work %}
+                <div class="panel" style="margin-bottom: 30px;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-tasks"></i> Active Work</h3>
+                        <span class="panel-subtitle">Payment escrowed - ready to submit</span>
+                    </div>
+                    <div class="panel-content">
+                        {% for work in active_work %}
+                        <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                            <div class="request-info">
+                                <h4>{{ work.title }}</h4>
+                                <p>Client: {{ work.client }}</p>
+                                <span style="background: #4caf50; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    <i class="fas fa-shield-alt"></i> ₱{{ work.price|floatformat:2 }} Escrowed
+                                </span>
+                                <span class="request-timeline">Due: {{ work.timeline_days }} days</span>
+                            </div>
+                            <div class="request-actions">
+                                <a href="{% url 'transactions:submit_work' work.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-paper-plane"></i> Submit Work
+                                </a>
+                                <a href="{% url 'messaging:inbox' %}" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-comments"></i> Message Client
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Pending Client Review -->
+                {% if pending_review %}
+                <div class="panel" style="margin-bottom: 30px;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-hourglass-half"></i> Awaiting Client Review</h3>
+                        <span class="panel-subtitle">Work submitted, waiting for approval</span>
+                    </div>
+                    <div class="panel-content">
+                        {% for work in pending_review %}
+                        <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #ff9800;">
+                            <div class="request-info">
+                                <h4>{{ work.title }}</h4>
+                                <p>Client: {{ work.client }}</p>
+                                <span style="background: #ff9800; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    <i class="fas fa-clock"></i> Submitted {{ work.submitted_at|timesince }} ago
+                                </span>
+                            </div>
+                            <div class="request-actions">
+                                <span style="color: #666; font-size: 14px;">
+                                    <i class="fas fa-info-circle"></i> Payment will be released once approved
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
 
                 <!-- Earnings Summary -->
                 <div class="panel earnings-panel">

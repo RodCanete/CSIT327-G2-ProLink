@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .history-container {
+            max-width: 1200px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .history-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+        .history-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .stat-box {
+            background: rgba(255,255,255,0.2);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+        }
+        .stat-label {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+        .transactions-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .transaction-item {
+            padding: 25px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: background 0.2s;
+        }
+        .transaction-item:hover {
+            background: #f8f9ff;
+        }
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        .transaction-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        .transaction-icon.completed {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+        }
+        .transaction-icon.pending {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+        }
+        .transaction-icon.escrowed {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+        }
+        .transaction-info {
+            flex: 1;
+        }
+        .transaction-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .transaction-meta {
+            color: #666;
+            font-size: 14px;
+        }
+        .transaction-amount {
+            text-align: right;
+        }
+        .amount-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+        .amount-label {
+            font-size: 14px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .status-badge.completed {
+            background: #e8f5e9;
+            color: #4caf50;
+        }
+        .status-badge.pending {
+            background: #fff3e0;
+            color: #ff9800;
+        }
+        .status-badge.escrowed {
+            background: #e3f2fd;
+            color: #2196f3;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+        .empty-state i {
+            font-size: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        .view-btn {
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+        .view-btn:hover {
+            background: #5568d3;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <div class="history-container">
+        <div class="history-header">
+            <h1><i class="fas fa-history"></i> Transaction History</h1>
+            <p>View all your payment transactions</p>
+            
+            <div class="stats-row">
+                <div class="stat-box">
+                    <div class="stat-value">{{ transactions|length }}</div>
+                    <div class="stat-label">Total Transactions</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">
+                        ₱{% widthratio transactions|length 1 0 %}
+                    </div>
+                    <div class="stat-label">Total Volume</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">
+                        {{ transactions|length }}
+                    </div>
+                    <div class="stat-label">This Month</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="transactions-list">
+            {% if transactions %}
+                {% for transaction in transactions %}
+                <div class="transaction-item">
+                    <div class="transaction-icon {% if transaction.status == 'completed' %}completed{% elif transaction.status == 'escrowed' %}escrowed{% else %}pending{% endif %}">
+                        {% if transaction.status == 'completed' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif transaction.status == 'escrowed' %}
+                            <i class="fas fa-shield-alt"></i>
+                        {% else %}
+                            <i class="fas fa-clock"></i>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="transaction-info">
+                        <div class="transaction-title">{{ transaction.request.title }}</div>
+                        <div class="transaction-meta">
+                            {% if user.user_role == 'professional' %}
+                                Client: {{ transaction.client.get_full_name|default:transaction.client.username }}
+                            {% else %}
+                                Professional: {{ transaction.professional.get_full_name|default:transaction.professional.username }}
+                            {% endif %}
+                            • {{ transaction.created_at|date:"M d, Y" }}
+                        </div>
+                        <span class="status-badge {{ transaction.status }}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                    </div>
+                    
+                    <div class="transaction-amount">
+                        <div class="amount-value">
+                            {% if user.user_role == 'professional' %}
+                                +₱{{ transaction.professional_payout|floatformat:2 }}
+                            {% else %}
+                                ₱{{ transaction.amount|floatformat:2 }}
+                            {% endif %}
+                        </div>
+                        <div class="amount-label">
+                            {% if user.user_role == 'professional' %}
+                                Your Payout
+                            {% else %}
+                                Total Paid
+                            {% endif %}
+                        </div>
+                        <a href="{% url 'transactions:detail' transaction.id %}" class="view-btn" style="margin-top: 10px; display: inline-block;">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-receipt"></i>
+                    <h3>No Transactions Yet</h3>
+                    <p>Your transaction history will appear here</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

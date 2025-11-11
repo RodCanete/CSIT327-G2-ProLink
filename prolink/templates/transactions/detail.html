@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction #{{ transaction.id }} - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .detail-container {
+            max-width: 1000px;
+            margin: 50px auto;
+            padding: 0 20px;
+        }
+        .back-link {
+            color: #667eea;
+            text-decoration: none;
+            margin-bottom: 20px;
+            display: inline-block;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        .detail-header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .status-banner {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .status-banner.completed {
+            background: linear-gradient(135deg, #4caf50, #45a049);
+            color: white;
+        }
+        .status-banner.pending {
+            background: linear-gradient(135deg, #ff9800, #f57c00);
+            color: white;
+        }
+        .status-banner.escrowed {
+            background: linear-gradient(135deg, #2196f3, #1976d2);
+            color: white;
+        }
+        .status-banner i {
+            font-size: 32px;
+        }
+        .status-text h2 {
+            margin: 0 0 5px 0;
+        }
+        .status-text p {
+            margin: 0;
+            opacity: 0.9;
+        }
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title i {
+            color: #667eea;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-size: 14px;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+            text-align: right;
+        }
+        .amount-large {
+            font-size: 32px;
+            color: #4caf50;
+        }
+        .timeline {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+        }
+        .timeline-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px 0;
+            border-left: 2px solid #e0e0e0;
+            padding-left: 30px;
+            position: relative;
+        }
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 25px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #667eea;
+        }
+        .timeline-item.completed::before {
+            background: #4caf50;
+        }
+        .timeline-content {
+            flex: 1;
+        }
+        .timeline-title {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .timeline-date {
+            color: #999;
+            font-size: 13px;
+        }
+        .payment-proof {
+            max-width: 300px;
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        .deliverable-link {
+            display: block;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 6px;
+            margin-top: 10px;
+            text-decoration: none;
+            color: #667eea;
+        }
+        .deliverable-link:hover {
+            background: #e8e8e8;
+        }
+        .notes-box {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <div class="detail-container">
+        <a href="{% url 'transactions:history' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i> Back to History
+        </a>
+        
+        <div class="status-banner {% if transaction.status == 'completed' %}completed{% elif transaction.status == 'escrowed' %}escrowed{% else %}pending{% endif %}">
+            <i class="fas {% if transaction.status == 'completed' %}fa-check-circle{% elif transaction.status == 'escrowed' %}fa-shield-alt{% else %}fa-clock{% endif %}"></i>
+            <div class="status-text">
+                <h2>{{ transaction.get_status_display }}</h2>
+                <p>Transaction ID: #{{ transaction.id }}</p>
+            </div>
+        </div>
+        
+        <div class="detail-header">
+            <h1>{{ transaction.request.title }}</h1>
+            <p style="color: #666;">{{ transaction.request.description }}</p>
+        </div>
+        
+        <div class="detail-grid">
+            <!-- Payment Details -->
+            <div class="detail-card">
+                <div class="card-title">
+                    <i class="fas fa-money-bill-wave"></i>
+                    Payment Breakdown
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Project Amount</span>
+                    <span class="info-value">₱{{ transaction.amount|floatformat:2 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Platform Fee (10%)</span>
+                    <span class="info-value">₱{{ transaction.platform_fee|floatformat:2 }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Professional Payout</span>
+                    <span class="info-value amount-large">₱{{ transaction.professional_payout|floatformat:2 }}</span>
+                </div>
+                {% if transaction.gcash_reference %}
+                <div class="info-row">
+                    <span class="info-label">GCash Reference</span>
+                    <span class="info-value">{{ transaction.gcash_reference }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Parties Involved -->
+            <div class="detail-card">
+                <div class="card-title">
+                    <i class="fas fa-users"></i>
+                    Parties Involved
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Client</span>
+                    <span class="info-value">
+                        {{ transaction.client.get_full_name|default:transaction.client.username }}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Professional</span>
+                    <span class="info-value">
+                        {{ transaction.professional.get_full_name|default:transaction.professional.username }}
+                    </span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Service Type</span>
+                    <span class="info-value">{{ transaction.request.service_type }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Category</span>
+                    <span class="info-value">{{ transaction.request.category }}</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="timeline">
+            <div class="card-title">
+                <i class="fas fa-clock"></i>
+                Transaction Timeline
+            </div>
+            
+            <div class="timeline-item completed">
+                <div class="timeline-content">
+                    <div class="timeline-title">Transaction Created</div>
+                    <div class="timeline-date">{{ transaction.created_at|date:"M d, Y g:i A" }}</div>
+                    <p style="color: #666; margin-top: 5px;">Professional accepted the request</p>
+                </div>
+            </div>
+            
+            {% if transaction.paid_at %}
+            <div class="timeline-item completed">
+                <div class="timeline-content">
+                    <div class="timeline-title">Payment Received</div>
+                    <div class="timeline-date">{{ transaction.paid_at|date:"M d, Y g:i A" }}</div>
+                    <p style="color: #666; margin-top: 5px;">Payment verified and held in escrow</p>
+                    {% if transaction.gcash_screenshot %}
+                    <img src="{{ transaction.gcash_screenshot }}" alt="Payment Proof" class="payment-proof">
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if transaction.request.submitted_at %}
+            <div class="timeline-item completed">
+                <div class="timeline-content">
+                    <div class="timeline-title">Work Submitted</div>
+                    <div class="timeline-date">{{ transaction.request.submitted_at|date:"M d, Y g:i A" }}</div>
+                    {% if transaction.request.deliverable_notes %}
+                    <div class="notes-box">
+                        <strong>Notes from Professional:</strong>
+                        <p>{{ transaction.request.deliverable_notes }}</p>
+                    </div>
+                    {% endif %}
+                    {% if transaction.request.deliverable_files %}
+                    <div style="margin-top: 10px;">
+                        <strong>Deliverables:</strong>
+                        {% for file_url in transaction.request.deliverable_files %}
+                        <a href="{{ file_url }}" target="_blank" class="deliverable-link">
+                            <i class="fas fa-file"></i> View File {{ forloop.counter }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if transaction.request.status == 'revision_requested' %}
+            <div class="timeline-item">
+                <div class="timeline-content">
+                    <div class="timeline-title">Revision Requested</div>
+                    <div class="timeline-date">Just now</div>
+                    {% if transaction.request.revision_notes %}
+                    <div class="notes-box">
+                        <strong>Client's Feedback:</strong>
+                        <p>{{ transaction.request.revision_notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if transaction.released_at %}
+            <div class="timeline-item completed">
+                <div class="timeline-content">
+                    <div class="timeline-title">Payment Released</div>
+                    <div class="timeline-date">{{ transaction.released_at|date:"M d, Y g:i A" }}</div>
+                    <p style="color: #666; margin-top: 5px;">Client approved work and payment was released</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

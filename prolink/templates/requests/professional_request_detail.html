@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Details - ProLink</title>
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=6">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Request Details</h1>
+                    <p>View client request information</p>
+                </div>
+                <div class="page-actions">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Dashboard
+                    </a>
+                    <a href="{% url 'messaging:inbox' %}" class="btn btn-primary">
+                        <i class="fas fa-comments"></i>
+                        Message Client
+                    </a>
+                </div>
+            </div>
+
+            <!-- Request Details -->
+            <div class="request-detail-container">
+                <!-- Request Header -->
+                <div class="request-detail-header">
+                    <div class="request-title-section">
+                        <h2>{{ request.title }}</h2>
+                        <span class="request-id">#{{ request.id }}</span>
+                    </div>
+                    <div class="request-status-section">
+                        <span class="status-badge status-{{ request.status }}">
+                            {% if request.status == 'in_progress' %}In Progress
+                            {% elif request.status == 'pending' %}Pending
+                            {% elif request.status == 'completed' %}Completed
+                            {% elif request.status == 'under_review' %}Under Review
+                            {% elif request.status == 'revision_requested' %}Revision Requested
+                            {% elif request.status == 'cancelled' %}Cancelled
+                            {% else %}{{ request.status|title }}
+                            {% endif %}
+                        </span>
+                        {% if request.status == 'in_progress' or request.status == 'under_review' %}
+                        <div class="progress-section">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ progress }}%"></div>
+                            </div>
+                            <span class="progress-text">{{ progress }}% Complete</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Main Content Grid -->
+                <div class="request-detail-grid">
+                    <!-- Main Content -->
+                    <div class="request-detail-main">
+                        <!-- Description Section -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-align-left"></i>
+                                Project Description
+                            </h3>
+                            <div class="detail-content">
+                                {{ request.description|linebreaks }}
+                            </div>
+                        </div>
+
+                        <!-- Client Information -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-user"></i>
+                                Client Information
+                            </h3>
+                            <div class="detail-content">
+                                {% if client %}
+                                <div class="professional-info">
+                                    <div class="professional-avatar">
+                                        <img src="{{ client.get_profile_picture }}" alt="{{ client.get_full_name }}" style="width: 60px; height: 60px; border-radius: 50%; object-fit: cover;">
+                                    </div>
+                                    <div class="professional-details">
+                                        <h4>{{ client.get_full_name|default:client.email }}</h4>
+                                        <p>{{ client.email }}</p>
+                                        {% if client.phone_number %}
+                                        <p><i class="fas fa-phone"></i> {{ client.phone_number }}</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                {% else %}
+                                <p>Client information not available</p>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Attached Files Section -->
+                        {% if attached_files %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-paperclip"></i>
+                                Attached Files from Client
+                            </h3>
+                            <div class="detail-content">
+                                <div class="files-list">
+                                    {% for file in attached_files %}
+                                    <div class="file-item-display">
+                                        <div class="file-icon-display">
+                                            {% if file.mime_type %}
+                                                {% if 'pdf' in file.mime_type %}
+                                                    <i class="fas fa-file-pdf" style="color: #dc3545;"></i>
+                                                {% elif 'word' in file.mime_type or 'document' in file.mime_type %}
+                                                    <i class="fas fa-file-word" style="color: #2b579a;"></i>
+                                                {% elif 'image' in file.mime_type %}
+                                                    <i class="fas fa-file-image" style="color: #28a745;"></i>
+                                                {% elif 'zip' in file.mime_type or 'compressed' in file.mime_type %}
+                                                    <i class="fas fa-file-archive" style="color: #ffc107;"></i>
+                                                {% else %}
+                                                    <i class="fas fa-file" style="color: #6c757d;"></i>
+                                                {% endif %}
+                                            {% else %}
+                                                <i class="fas fa-file" style="color: #6c757d;"></i>
+                                            {% endif %}
+                                        </div>
+                                        <div class="file-info-display">
+                                            <span class="file-name-display">{{ file.original_name }}</span>
+                                            <span class="file-size-display">({{ file.size|filesizeformat }})</span>
+                                        </div>
+                                        <a href="{{ file.public_url }}" class="file-download-btn" target="_blank" download="{{ file.original_name }}">
+                                            <i class="fas fa-download"></i>
+                                            Download
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Deliverables Section (if submitted) -->
+                        {% if request.deliverable_files %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-check-circle"></i>
+                                Your Submitted Deliverables
+                            </h3>
+                            <div class="detail-content">
+                                {% if request.deliverable_notes %}
+                                <div style="background: #f0f0f0; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                                    <strong>Your Notes:</strong>
+                                    <p>{{ request.deliverable_notes }}</p>
+                                </div>
+                                {% endif %}
+                                <div class="files-list">
+                                    {% for file_url in request.deliverable_files %}
+                                    <a href="{{ file_url }}" target="_blank" class="file-item-display" style="text-decoration: none;">
+                                        <div class="file-icon-display">
+                                            <i class="fas fa-file" style="color: #667eea;"></i>
+                                        </div>
+                                        <div class="file-info-display">
+                                            <span class="file-name-display">Deliverable {{ forloop.counter }}</span>
+                                        </div>
+                                        <span class="file-download-btn">
+                                            <i class="fas fa-external-link-alt"></i>
+                                            View
+                                        </span>
+                                    </a>
+                                    {% endfor %}
+                                </div>
+                                <p style="margin-top: 15px; color: #666;"><i class="fas fa-clock"></i> Submitted {{ request.submitted_at|timesince }} ago</p>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Revision Request -->
+                        {% if request.status == 'revision_requested' and request.revision_notes %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title" style="color: #ff9800;">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Revision Requested
+                            </h3>
+                            <div class="detail-content">
+                                <div style="background: #fff3e0; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
+                                    <strong>Client's Feedback:</strong>
+                                    <p>{{ request.revision_notes }}</p>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="request-detail-sidebar">
+                        <!-- Payment Info -->
+                        {% if transaction %}
+                        <div class="detail-card">
+                            <h4>Payment Information</h4>
+                            <div class="info-item">
+                                <span class="info-label">Project Amount</span>
+                                <span class="info-value">₱{{ transaction.amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Platform Fee (10%)</span>
+                                <span class="info-value">₱{{ transaction.platform_fee|floatformat:2 }}</span>
+                            </div>
+                            <div class="info-item" style="border-top: 2px solid #4caf50; padding-top: 10px; margin-top: 10px;">
+                                <span class="info-label"><strong>Your Payout</strong></span>
+                                <span class="info-value" style="color: #4caf50; font-size: 18px; font-weight: bold;">₱{{ transaction.professional_payout|floatformat:2 }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Payment Status</span>
+                                <span class="info-value">
+                                    {% if transaction.status == 'completed' %}
+                                        <span style="color: #4caf50;">✓ Released</span>
+                                    {% elif transaction.status == 'escrowed' %}
+                                        <span style="color: #2196f3;">🔒 Escrowed</span>
+                                    {% else %}
+                                        <span style="color: #ff9800;">⏳ Pending</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Request Info -->
+                        <div class="detail-card">
+                            <h4>Request Information</h4>
+                            <div class="info-item">
+                                <span class="info-label">Created</span>
+                                <span class="info-value">{{ request.created_at|date:"M d, Y" }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Timeline</span>
+                                <span class="info-value">{{ request.timeline_days }} days</span>
+                            </div>
+                            {% if request.completed_at %}
+                            <div class="info-item">
+                                <span class="info-label">Completed</span>
+                                <span class="info-value">{{ request.completed_at|date:"M d, Y" }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="detail-card">
+                            <h4>Quick Actions</h4>
+                            <div class="action-buttons">
+                                {% if request.status == 'in_progress' %}
+                                <a href="{% url 'transactions:submit_work' request.id %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Submit Work
+                                </a>
+                                {% elif request.status == 'revision_requested' %}
+                                <a href="{% url 'transactions:submit_work' request.id %}" class="btn btn-primary btn-block">
+                                    <i class="fas fa-redo"></i>
+                                    Resubmit Work
+                                </a>
+                                {% elif request.status == 'under_review' %}
+                                <button class="btn btn-secondary btn-block" disabled>
+                                    <i class="fas fa-hourglass-half"></i>
+                                    Awaiting Client Review
+                                </button>
+                                {% elif request.status == 'completed' %}
+                                <div style="text-align: center; padding: 15px; background: #e8f5e9; border-radius: 8px;">
+                                    <i class="fas fa-check-circle" style="color: #4caf50; font-size: 32px;"></i>
+                                    <p style="margin: 10px 0 0 0; color: #4caf50; font-weight: 600;">Project Completed</p>
+                                </div>
+                                {% endif %}
+                                
+                                <a href="{% url 'messaging:inbox' %}" class="btn btn-secondary btn-block">
+                                    <i class="fas fa-comments"></i>
+                                    Message Client
+                                </a>
+                                
+                                {% if transaction %}
+                                <a href="{% url 'transactions:detail' transaction.id %}" class="btn btn-secondary btn-block">
+                                    <i class="fas fa-receipt"></i>
+                                    View Transaction
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

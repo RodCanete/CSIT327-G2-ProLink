@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Work Submitted - PROLINK</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .success-container {
+            max-width: 700px;
+            margin: 80px auto;
+            padding: 0 20px;
+        }
+        .success-card {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            text-align: center;
+        }
+        .success-header {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 50px 30px;
+        }
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scaleIn 0.5s ease-out;
+        }
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        .success-icon i {
+            font-size: 50px;
+        }
+        .success-header h1 {
+            margin: 0 0 10px 0;
+            font-size: 32px;
+        }
+        .success-header p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.95;
+        }
+        .success-body {
+            padding: 40px 30px;
+        }
+        .info-box {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            text-align: left;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .info-label {
+            color: #666;
+            font-weight: 500;
+        }
+        .info-value {
+            font-weight: 600;
+            color: #333;
+        }
+        .payout-highlight {
+            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 30px 0;
+        }
+        .payout-highlight h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .payout-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .next-steps {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 30px 0;
+            text-align: left;
+        }
+        .next-steps h4 {
+            margin: 0 0 15px 0;
+            color: #ff9800;
+        }
+        .next-steps ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .next-steps li {
+            margin: 8px 0;
+            color: #666;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <div class="success-container">
+        <div class="success-card">
+            <div class="success-header">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h1>Work Submitted Successfully!</h1>
+                <p>Your deliverables have been sent to the client</p>
+            </div>
+            
+            <div class="success-body">
+                <!-- Project Info -->
+                <div class="info-box">
+                    <h3 style="margin: 0 0 15px 0; color: #667eea;">
+                        <i class="fas fa-briefcase"></i> Project Details
+                    </h3>
+                    <div class="info-row">
+                        <span class="info-label">Project:</span>
+                        <span class="info-value">{{ service_request.title }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Client:</span>
+                        <span class="info-value">{{ service_request.client }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Submitted:</span>
+                        <span class="info-value">{{ service_request.submitted_at|date:"M d, Y - g:i A" }}</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Status:</span>
+                        <span class="info-value" style="color: #ff9800;">
+                            <i class="fas fa-hourglass-half"></i> Under Review
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Payout Info -->
+                <div class="payout-highlight">
+                    <h3>Your Expected Payout</h3>
+                    <p class="payout-amount">₱{{ transaction.professional_payout|floatformat:2 }}</p>
+                    <p style="margin: 10px 0 0 0; font-size: 14px; opacity: 0.9;">
+                        Will be released once client approves your work
+                    </p>
+                </div>
+                
+                <!-- Next Steps -->
+                <div class="next-steps">
+                    <h4><i class="fas fa-info-circle"></i> What Happens Next?</h4>
+                    <ul>
+                        <li>The client will be notified about your submission</li>
+                        <li>They will review your deliverables</li>
+                        <li>If approved, payment will be released to you immediately</li>
+                        <li>If revisions are needed, you'll be notified with feedback</li>
+                        <li>You can track the status from your dashboard</li>
+                    </ul>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-home"></i>
+                        Back to Dashboard
+                    </a>
+                    <a href="{% url 'messaging:inbox' %}" class="btn btn-primary">
+                        <i class="fas fa-comments"></i>
+                        Message Client
+                    </a>
+                </div>
+                
+                <p style="margin-top: 30px; color: #999; font-size: 14px;">
+                    <i class="fas fa-receipt"></i>
+                    <a href="{% url 'transactions:detail' transaction.id %}" style="color: #667eea; text-decoration: none;">
+                        View Transaction Details
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

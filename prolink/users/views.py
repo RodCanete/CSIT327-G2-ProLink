@@ -43,13 +43,31 @@ def dashboard(request):
     
     # Route to appropriate dashboard based on role
     if user_role == 'professional':
+        from transactions.models import Transaction
+        
         # Get pending requests for this professional
         pending_requests = ServiceRequest.objects.filter(
             professional=user.email,
             status='pending'
         ).order_by('-created_at')[:10]
         
-        context['pending_requests'] = pending_requests
+        # Get active work (in progress with escrowed payment - ready to submit)
+        active_work = ServiceRequest.objects.filter(
+            professional=user.email,
+            status='in_progress'
+        ).select_related('transaction').order_by('-created_at')[:10]
+        
+        # Get work awaiting client review
+        pending_review = ServiceRequest.objects.filter(
+            professional=user.email,
+            status='under_review'
+        ).select_related('transaction').order_by('-submitted_at')[:10]
+        
+        context.update({
+            'pending_requests': pending_requests,
+            'active_work': active_work,
+            'pending_review': pending_review,
+        })
         return render(request, "dashboard_professional.html", context)
     else:  # student, worker, or client
         # Get dashboard metrics
@@ -65,12 +83,27 @@ def dashboard(request):
         # Get recommended professionals
         recommended_professionals = get_recommended_professionals(user, limit=3)
         
+        # Get requests with pending payment
+        from transactions.models import Transaction
+        pending_payments = Transaction.objects.filter(
+            client=user,
+            status='pending_payment'
+        ).select_related('request')[:5]
+        
+        # Get work awaiting review
+        pending_reviews = ServiceRequest.objects.filter(
+            client=user.email,
+            status='under_review'
+        ).select_related('transaction').order_by('-submitted_at')[:5]
+        
         # Add to context
         context.update({
             'metrics': metrics,
             'recent_activities': formatted_activities,
             'active_requests_tracking': active_requests_data,
             'recommended_professionals': recommended_professionals,
+            'pending_payments': pending_payments,
+            'pending_reviews': pending_reviews,
         })
         
         return render(request, "dashboard_client.html", context)
@@ -675,7 +708,7 @@ def edit_profile_picture(request):
 @login_required
 def accept_request(request, request_id):
     """
-    Accept a service request and create a conversation
+    Accept a service request, set price, and create transaction
     """
     if request.method != 'POST':
         return redirect('dashboard')
@@ -693,22 +726,52 @@ def accept_request(request, request_id):
         messages.warning(request, "This request has already been processed.")
         return redirect('dashboard')
     
+    # Get price from form
     try:
-        # Update request status
-        service_request.status = 'in_progress'
+        price = request.POST.get('price')
+        if not price:
+            messages.error(request, "Please provide a price for this service.")
+            return redirect('dashboard')
+        
+        price = float(price)
+        if price <= 0:
+            messages.error(request, "Price must be greater than 0.")
+            return redirect('dashboard')
+    except (ValueError, TypeError):
+        messages.error(request, "Invalid price format.")
+        return redirect('dashboard')
+    
+    try:
+        from messaging.models import Conversation
+        from transactions.models import Transaction
+        from decimal import Decimal
+        
+        # Update request with price (keep status as pending until payment)
+        service_request.price = Decimal(str(price))
+        service_request.status = 'pending'  # Stays pending until client pays
         service_request.save()
         
-        # Create conversation
-        from messaging.models import Conversation
+        # Get client user
         client_user = get_object_or_404(CustomUser, email=service_request.client)
         
+        # Create conversation
         conversation = Conversation.objects.create(
             request=service_request,
             client=client_user,
             professional=request.user
         )
         
-        messages.success(request, f"Request '{service_request.title}' accepted! You can now message the client.")
+        # Create transaction
+        transaction = Transaction.objects.create(
+            request=service_request,
+            client=client_user,
+            professional=request.user,
+            amount=Decimal(str(price)),
+            status='pending_payment',
+            payment_method='gcash'
+        )
+        
+        messages.success(request, f"Request accepted! Price set to ₱{price:,.2f}. Client will be notified to make payment.")
         return redirect('messaging:conversation', conversation_id=conversation.id)
         
     except Exception as e:
