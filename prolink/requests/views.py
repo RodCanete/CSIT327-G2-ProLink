@@ -210,14 +210,16 @@ def create_request(request):
     user_email = request.user.email
     
     # Get all professionals for the dropdown
-    professionals = CustomUser.objects.filter(user_role='professional').values('id', 'email', 'first_name', 'last_name')
+    professionals = CustomUser.objects.filter(user_role='professional')
     
     # Check if a professional is pre-selected via URL parameter
     preselected_professional_id = request.GET.get('professional')
     preselected_professional = None
+    preselected_professional_email = None
     if preselected_professional_id:
         try:
             preselected_professional = CustomUser.objects.get(id=preselected_professional_id, user_role='professional')
+            preselected_professional_email = preselected_professional.email
         except CustomUser.DoesNotExist:
             pass
     
@@ -351,7 +353,8 @@ def create_request(request):
         'user_email': user_email,
         'user_role': request.session.get('user_role', 'student'),
         'professionals': professionals,
-        'preselected_professional': preselected_professional
+        'preselected_professional': preselected_professional,
+        'preselected_professional_email': preselected_professional_email
     }
     return render(request, 'requests/create_request.html', context)
 
