@@ -214,39 +214,37 @@
                     </div>
                     <div class="panel-content">
                         <div class="requests-list">
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <h4>Logo Design for Startup</h4>
-                                    <p>Client: Alex Rodriguez</p>
-                                    <span class="request-budget">Budget: $300</span>
+                            {% if pending_requests %}
+                                {% for req in pending_requests %}
+                                <div class="request-item">
+                                    <div class="request-info">
+                                        <h4>{{ req.title }}</h4>
+                                        <p>Client: {{ req.client }}</p>
+                                        {% if req.price %}
+                                        <span class="request-budget">Budget: ${{ req.price|floatformat:0 }}</span>
+                                        {% else %}
+                                        <span class="request-budget">Budget: Negotiable</span>
+                                        {% endif %}
+                                        <span class="request-timeline">Timeline: {{ req.timeline_days }} days</span>
+                                    </div>
+                                    <div class="request-actions">
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-primary" onclick="return confirm('Accept this request and start conversation?')">Accept</button>
+                                        </form>
+                                        <form method="post" action="{% url 'decline_request' req.id %}" style="display:inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-secondary" onclick="return confirm('Are you sure you want to decline this request?')">Decline</button>
+                                        </form>
+                                    </div>
                                 </div>
-                                <div class="request-actions">
-                                    <button class="btn btn-sm btn-primary">Accept</button>
-                                    <button class="btn btn-sm btn-secondary">Decline</button>
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-requests">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No pending requests at the moment</p>
                                 </div>
-                            </div>
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <h4>Website Redesign</h4>
-                                    <p>Client: Maria Garcia</p>
-                                    <span class="request-budget">Budget: $800</span>
-                                </div>
-                                <div class="request-actions">
-                                    <button class="btn btn-sm btn-primary">Accept</button>
-                                    <button class="btn btn-sm btn-secondary">Decline</button>
-                                </div>
-                            </div>
-                            <div class="request-item">
-                                <div class="request-info">
-                                    <h4>Brand Consultation</h4>
-                                    <p>Client: David Kim</p>
-                                    <span class="request-budget">Budget: $150</span>
-                                </div>
-                                <div class="request-actions">
-                                    <button class="btn btn-sm btn-primary">Accept</button>
-                                    <button class="btn btn-sm btn-secondary">Decline</button>
-                                </div>
-                            </div>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
@@ -285,5 +283,44 @@
     </main>
 
     <script src="/static/js/dashboard.js"></script>
+    
+    <style>
+        .no-requests {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7280;
+        }
+        
+        .no-requests i {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+        
+        .no-requests p {
+            font-size: 16px;
+            margin: 0;
+        }
+        
+        .request-timeline {
+            display: inline-block;
+            margin-left: 12px;
+            padding: 4px 8px;
+            background: #f3f4f6;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #6b7280;
+        }
+        
+        .request-info h4 {
+            margin-bottom: 8px;
+            color: #111827;
+        }
+        
+        .request-info p {
+            margin: 4px 0;
+            color: #6b7280;
+        }
+    </style>
 </body>
 </html>

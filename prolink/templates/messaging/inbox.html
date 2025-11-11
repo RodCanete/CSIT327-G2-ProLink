@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="dashboard-content">
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-comments"></i> Messages</h1>
+                    <p>Your conversations with clients and professionals</p>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container">
+                {% if conversations %}
+                    <div class="conversations-list">
+                        {% for conv in conversations %}
+                        <a href="{% url 'messaging:conversation' conv.id %}" class="conversation-card {% if conv.unread_count > 0 %}has-unread{% endif %}">
+                            <div class="conversation-avatar">
+                                <img src="{{ conv.other_party.get_profile_picture }}" alt="{{ conv.other_party.get_full_name }}">
+                                {% if conv.unread_count > 0 %}
+                                <span class="unread-badge">{{ conv.unread_count }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="conversation-content">
+                                <div class="conversation-header">
+                                    <h3 class="conversation-name">{{ conv.other_party.get_full_name|default:conv.other_party.email }}</h3>
+                                    <span class="conversation-time">{{ conv.updated_at|timesince }} ago</span>
+                                </div>
+                                <p class="conversation-request">{{ conv.request_title }}</p>
+                                {% if conv.last_message %}
+                                <p class="conversation-preview">
+                                    {% if conv.last_message.sender == user %}
+                                        <span class="you-label">You:</span>
+                                    {% endif %}
+                                    {{ conv.last_message.content|truncatewords:15 }}
+                                </p>
+                                {% else %}
+                                <p class="conversation-preview empty">No messages yet. Start the conversation!</p>
+                                {% endif %}
+                            </div>
+                            <div class="conversation-indicator">
+                                <i class="fas fa-chevron-right"></i>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="no-conversations">
+                        <div class="empty-state">
+                            <i class="fas fa-comments"></i>
+                            <h2>No Messages Yet</h2>
+                            <p>When you accept a request or have ongoing projects, your conversations will appear here.</p>
+                            {% if user.user_role == 'professional' %}
+                            <a href="{% url 'dashboard' %}" class="btn btn-primary">
+                                <i class="fas fa-inbox"></i>
+                                Check Pending Requests
+                            </a>
+                            {% else %}
+                            <a href="{% url 'find_professionals' %}" class="btn btn-primary">
+                                <i class="fas fa-search"></i>
+                                Find Professionals
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .messages-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .conversations-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .conversation-card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 20px;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+        }
+
+        .conversation-card:hover {
+            border-color: #2D5016;
+            box-shadow: 0 4px 12px rgba(45, 80, 22, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .conversation-card.has-unread {
+            background: #f0fdf4;
+            border-color: #7FB069;
+        }
+
+        .conversation-avatar {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .conversation-avatar img {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #e5e7eb;
+        }
+
+        .unread-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #ef4444;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 10px;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .conversation-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .conversation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+
+        .conversation-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111827;
+            margin: 0;
+        }
+
+        .conversation-time {
+            font-size: 12px;
+            color: #9ca3af;
+            white-space: nowrap;
+        }
+
+        .conversation-request {
+            font-size: 13px;
+            color: #2D5016;
+            font-weight: 500;
+            margin: 0 0 6px 0;
+        }
+
+        .conversation-preview {
+            font-size: 14px;
+            color: #6b7280;
+            margin: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .conversation-preview.empty {
+            font-style: italic;
+            color: #9ca3af;
+        }
+
+        .you-label {
+            font-weight: 600;
+            color: #111827;
+            margin-right: 4px;
+        }
+
+        .conversation-indicator {
+            color: #d1d5db;
+            font-size: 18px;
+        }
+
+        .conversation-card:hover .conversation-indicator {
+            color: #2D5016;
+        }
+
+        /* Empty State */
+        .no-conversations {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 400px;
+            padding: 40px;
+        }
+
+        .empty-state {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        .empty-state i {
+            font-size: 80px;
+            color: #d1d5db;
+            margin-bottom: 24px;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 12px 0;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: #6b7280;
+            margin: 0 0 24px 0;
+            line-height: 1.6;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .conversation-card {
+                padding: 16px;
+            }
+
+            .conversation-avatar img {
+                width: 50px;
+                height: 50px;
+            }
+
+            .conversation-name {
+                font-size: 15px;
+            }
+
+            .conversation-preview {
+                font-size: 13px;
+            }
+        }
+    </style>
+</body>
+</html>

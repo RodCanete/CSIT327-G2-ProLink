@@ -9,6 +9,7 @@ class Request(models.Model):
         ('in_progress', 'In Progress'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
+        ('declined', 'Declined'),
     ]
     
     title = models.CharField(max_length=200)
