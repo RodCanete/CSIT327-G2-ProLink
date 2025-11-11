@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'requests',
     'analytics',
     'messaging',
+    'transactions',
 ]
 
 MIDDLEWARE = [
@@ -186,3 +187,8 @@ if not DEBUG:
     X_FRAME_OPTIONS = 'DENY'
     CSRF_COOKIE_SECURE = True
     SESSION_COOKIE_SECURE = True
+
+# Payment Settings
+PROLINK_GCASH_NUMBER = os.getenv('PROLINK_GCASH_NUMBER', '09XX-XXX-XXXX')  # Configure in production
+PROLINK_GCASH_NAME = os.getenv('PROLINK_GCASH_NAME', 'ProLink Services')
+PLATFORM_FEE_PERCENTAGE = 0.10  # 10% platform fee

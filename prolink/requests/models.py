@@ -7,6 +7,8 @@ class Request(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('in_progress', 'In Progress'),
+        ('under_review', 'Under Review'),  # Professional submitted work, awaiting client approval
+        ('revision_requested', 'Revision Requested'),  # Client requested changes
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
         ('declined', 'Declined'),
@@ -22,9 +24,13 @@ class Request(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True, help_text="When professional submitted work")
     
     # File attachments (stored as JSON string for simplicity)
-    attached_files = models.TextField(blank=True)  # JSON string of file URLs
+    attached_files = models.TextField(blank=True, help_text="Client's initial request files (JSON)")
+    deliverable_files = models.TextField(blank=True, help_text="Professional's deliverable files (JSON)")
+    deliverable_notes = models.TextField(blank=True, help_text="Professional's notes on deliverables")
+    revision_notes = models.TextField(blank=True, help_text="Client's revision requests")
     
     class Meta:
         ordering = ['-created_at']

@@ -23,6 +23,10 @@
                     <p>Welcome back, <strong>{{ display_name|default:"User" }}</strong>! Find professionals to help you succeed.</p>
                 </div>
                 <div class="page-actions">
+                    <a href="{% url 'transactions:history' %}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i>
+                        Transaction History
+                    </a>
                     <a href="{% url 'find_professionals' %}" class="btn btn-primary">
                         <i class="fas fa-search"></i>
                         Find Professional
@@ -33,6 +37,109 @@
                     </button>
                 </div>
             </div>
+
+            <!-- Pending Payments Alert -->
+            {% if pending_payments %}
+            <div style="margin-bottom: 30px;">
+                {% for payment in pending_payments %}
+                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
+                                <h3 style="margin: 0; font-size: 20px;">Payment Required</h3>
+                            </div>
+                            <p style="margin: 0; font-size: 16px; opacity: 0.95;">
+                                {{ payment.request.title }} - ₱{{ payment.amount|floatformat:2 }}
+                            </p>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
+                                Professional is waiting for payment to begin work
+                            </p>
+                        </div>
+                        <a href="{% url 'transactions:create_payment' payment.request.id %}" 
+                           style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap;">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Work Awaiting Review -->
+            {% if pending_reviews %}
+            <div style="margin-bottom: 30px;">
+                {% for review in pending_reviews %}
+                <div style="background: linear-gradient(135deg, #4caf50 0%, #45a049 100%); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="fas fa-check-circle" style="font-size: 24px;"></i>
+                                <h3 style="margin: 0; font-size: 20px;">Work Submitted - Review Required</h3>
+                            </div>
+                            <p style="margin: 0; font-size: 16px; opacity: 0.95; font-weight: 600;">
+                                {{ review.title }}
+                            </p>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
+                                <i class="fas fa-clock"></i> Submitted {{ review.submitted_at|timesince }} ago • ₱{{ review.price|floatformat:2 }} in escrow
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <form method="post" action="{% url 'transactions:approve_work' review.id %}" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        style="background: white; color: #4caf50; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;"
+                                        onclick="return confirm('Approve this work and release payment of ₱{{ review.transaction.professional_payout|floatformat:2 }} to professional?')">
+                                    <i class="fas fa-thumbs-up"></i> Approve & Release Payment
+                                </button>
+                            </form>
+                            <button type="button" 
+                                    onclick="document.getElementById('revisionForm{{ review.id }}').style.display='block'; this.style.display='none';"
+                                    style="background: rgba(255,255,255,0.2); color: white; padding: 12px 25px; border: 2px solid white; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;">
+                                <i class="fas fa-redo"></i> Request Revision
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Revision Form (Hidden by default) -->
+                    <form method="post" action="{% url 'transactions:request_revision' review.id %}" 
+                          id="revisionForm{{ review.id }}" 
+                          style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        {% csrf_token %}
+                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-comment-alt"></i> What needs to be revised?
+                        </label>
+                        <textarea name="revision_notes" required
+                                  style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; min-height: 80px; font-family: inherit;"
+                                  placeholder="Explain what changes you'd like the professional to make..."></textarea>
+                        <div style="display: flex; gap: 10px; margin-top: 10px;">
+                            <button type="submit" 
+                                    style="background: white; color: #4caf50; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                <i class="fas fa-paper-plane"></i> Send Revision Request
+                            </button>
+                            <button type="button" 
+                                    onclick="this.closest('form').style.display='none'; this.closest('.flex').querySelector('button[onclick*=revisionForm]').style.display='inline-block';"
+                                    style="background: transparent; color: white; padding: 10px 20px; border: 2px solid white; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                                Cancel
+                            </button>
+                        </div>
+                    </form>
+                    
+                    <!-- Deliverable Info -->
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">
+                            <strong>Professional's Notes:</strong><br>
+                            {{ review.deliverable_notes }}
+                        </p>
+                        <a href="{% url 'messaging:inbox' %}" 
+                           style="color: white; text-decoration: underline; font-size: 14px;">
+                            <i class="fas fa-download"></i> View & Download Deliverables
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
 
             <!-- Key Metrics -->
             <div class="metrics-section">
@@ -233,6 +340,9 @@
                                 </div>
                                 <div class="tracking-status">
                                     <span class="status-badge {{ item.request.status }}">{{ item.status_display }}</span>
+                                    <a href="{% url 'request_detail' item.request.id %}" class="btn btn-sm btn-primary" style="margin-top: 10px;">
+                                        <i class="fas fa-eye"></i> View Request
+                                    </a>
                                 </div>
                             </div>
                             {% empty %}

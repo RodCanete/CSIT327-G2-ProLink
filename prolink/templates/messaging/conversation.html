@@ -28,10 +28,17 @@
                         <p class="request-title"><i class="fas fa-file-alt"></i> {{ conversation.request.title }}</p>
                     </div>
                 </div>
+                {% if user.user_role == 'professional' %}
+                <a href="{% url 'professional_request_detail' conversation.request.id %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-info-circle"></i>
+                    View Request
+                </a>
+                {% else %}
                 <a href="{% url 'request_detail' conversation.request.id %}" class="btn btn-secondary btn-sm">
                     <i class="fas fa-info-circle"></i>
                     View Request
                 </a>
+                {% endif %}
             </div>
 
             <!-- Messages Area -->

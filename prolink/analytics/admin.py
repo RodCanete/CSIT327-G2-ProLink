@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Review, ActivityLog, Transaction
+from .models import Review, ActivityLog
 
 
 @admin.register(Review)
@@ -33,23 +33,5 @@ class ActivityLogAdmin(admin.ModelAdmin):
     description_short.short_description = 'Description'
 
 
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('transaction_id', 'client', 'professional', 'amount', 'status', 'created_at')
-    list_filter = ('status', 'created_at')
-    search_fields = ('transaction_id', 'client__username', 'professional__username')
-    readonly_fields = ('created_at', 'completed_at')
-    date_hierarchy = 'created_at'
-    
-    fieldsets = (
-        ('Transaction Details', {
-            'fields': ('request', 'client', 'professional', 'amount', 'status')
-        }),
-        ('Payment Info', {
-            'fields': ('payment_method', 'transaction_id')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'completed_at')
-        }),
-    )
+# Transaction and Dispute admin moved to transactions app
 
