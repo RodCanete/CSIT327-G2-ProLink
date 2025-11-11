@@ -182,7 +182,8 @@
                             <select id="professional" name="professional" class="form-select">
                                 <option value="">-- Select a Professional (Optional) --</option>
                                 {% for prof in professionals %}
-                                <option value="{{ prof.email }}" {% if professional == prof.email %}selected{% endif %}>
+                                <option value="{{ prof.email }}" 
+                                    {% if preselected_professional_email and prof.email == preselected_professional_email %}selected{% elif professional == prof.email %}selected{% endif %}>
                                     {% if prof.first_name and prof.last_name %}
                                         {{ prof.first_name }} {{ prof.last_name }} ({{ prof.email }})
                                     {% else %}
@@ -191,7 +192,13 @@
                                 </option>
                                 {% endfor %}
                             </select>
-                            <div class="form-help">Choose a professional to assign to this request, or leave empty to assign later</div>
+                            <div class="form-help">
+                                {% if preselected_professional %}
+                                    <i class="fas fa-info-circle"></i> Professional pre-selected: <strong>{{ preselected_professional.get_full_name }} ({{ preselected_professional.email }})</strong>
+                                {% else %}
+                                    Choose a professional to assign to this request, or leave empty to assign later
+                                {% endif %}
+                            </div>
                         </div>
                     </div>
 

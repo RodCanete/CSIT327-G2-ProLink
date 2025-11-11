@@ -366,15 +366,26 @@ def professional_detail(request, pk):
     professional.profile_views += 1
     professional.save(update_fields=['profile_views'])
     
-    # Check if user has saved this professional
-    is_saved = SavedProfessional.objects.filter(
-        user=request.user,
-        professional=professional
-    ).exists()
+    # Check if user has saved this professional (only if authenticated)
+    is_saved = False
+    if request.user.is_authenticated:
+        is_saved = SavedProfessional.objects.filter(
+            user=request.user,
+            professional=professional
+        ).exists()
+    
+    # Get similar professionals (same specializations, exclude current)
+    specialization_ids = professional.specializations.values_list('id', flat=True)
+    similar_professionals = ProfessionalProfile.objects.filter(
+        specializations__id__in=specialization_ids
+    ).exclude(
+        id=professional.id
+    ).select_related('user').prefetch_related('specializations').distinct()[:3]
     
     context = {
         'professional': professional,
         'is_saved': is_saved,
+        'similar_professionals': similar_professionals,
     }
     
     return render(request, 'professionals/professional_detail.html', context)
@@ -383,7 +394,7 @@ def professional_detail(request, pk):
 @login_required
 def save_professional(request, pk):
     """
-    Save/bookmark a professional (AJAX endpoint)
+    Save/unsave (toggle bookmark) a professional (AJAX endpoint)
     """
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'Invalid request method'})
@@ -391,16 +402,31 @@ def save_professional(request, pk):
     try:
         professional = ProfessionalProfile.objects.get(pk=pk)
         
-        # Create saved professional entry
-        SavedProfessional.objects.get_or_create(
+        # Check if already saved
+        saved_entry = SavedProfessional.objects.filter(
             user=request.user,
             professional=professional
-        )
+        ).first()
         
-        return JsonResponse({
-            'success': True,
-            'message': 'Professional saved successfully'
-        })
+        if saved_entry:
+            # Already saved, so unsave it
+            saved_entry.delete()
+            return JsonResponse({
+                'success': True,
+                'saved': False,
+                'message': 'Professional removed from saved list'
+            })
+        else:
+            # Not saved yet, so save it
+            SavedProfessional.objects.create(
+                user=request.user,
+                professional=professional
+            )
+            return JsonResponse({
+                'success': True,
+                'saved': True,
+                'message': 'Professional saved successfully'
+            })
     
     except ProfessionalProfile.DoesNotExist:
         return JsonResponse({

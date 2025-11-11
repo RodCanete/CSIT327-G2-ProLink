@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ professional.user.get_full_name }} - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/professionals.css' %}?v=2">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .professional-detail-container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .profile-header {
+            background: linear-gradient(135deg, #2D5016 0%, #7FB069 100%);
+            border-radius: 16px;
+            padding: 3rem;
+            color: white;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 24px rgba(45, 80, 22, 0.15);
+        }
+
+        .profile-header-content {
+            display: flex;
+            gap: 2rem;
+            align-items: flex-start;
+        }
+
+        .profile-avatar-xl {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .profile-avatar-xl img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .verified-badge-xl {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background: #7FB069;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid white;
+        }
+
+        .verified-badge-xl i {
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .profile-info {
+            flex: 1;
+        }
+
+        .profile-name {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .profile-specializations {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .spec-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .profile-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-box {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .profile-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .btn-xl {
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary-xl {
+            background: white;
+            color: #2D5016;
+        }
+
+        .btn-primary-xl:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        }
+
+        .btn-secondary-xl {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-secondary-xl:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-save {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            padding: 1rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-save.saved {
+            background: #FFD700;
+            border-color: #FFD700;
+            color: #2D5016;
+        }
+
+        .btn-save:hover {
+            transform: scale(1.1);
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .sidebar-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2D5016;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-title i {
+            color: #7FB069;
+        }
+
+        .review-item {
+            padding: 1.5rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+        }
+
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .reviewer-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .reviewer-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .reviewer-name {
+            font-weight: 600;
+            color: #2D5016;
+        }
+
+        .review-date {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .review-rating {
+            display: flex;
+            gap: 0.2rem;
+        }
+
+        .review-rating i {
+            color: #FFD700;
+        }
+
+        .review-text {
+            color: #444;
+            line-height: 1.6;
+        }
+
+        .info-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-icon {
+            width: 40px;
+            height: 40px;
+            background: #f0f8f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #7FB069;
+        }
+
+        .info-content {
+            flex: 1;
+        }
+
+        .info-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-bottom: 0.2rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: #2D5016;
+        }
+
+        .price-card {
+            background: linear-gradient(135deg, #7FB069 0%, #2D5016 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .price-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-value {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-unit {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .availability-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+
+        .availability-status.available {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .availability-status.unavailable {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .similar-professionals {
+            display: grid;
+            gap: 1rem;
+        }
+
+        .similar-prof-card {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .similar-prof-card:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .similar-prof-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            overflow: hidden;
+        }
+
+        .similar-prof-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .similar-prof-info {
+            flex: 1;
+        }
+
+        .similar-prof-name {
+            font-weight: 600;
+            color: #2D5016;
+            margin-bottom: 0.3rem;
+        }
+
+        .similar-prof-spec {
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .similar-prof-rating {
+            display: flex;
+            gap: 0.2rem;
+            margin-top: 0.3rem;
+        }
+
+        .similar-prof-rating i {
+            font-size: 0.8rem;
+            color: #FFD700;
+        }
+
+        @media (max-width: 768px) {
+            .content-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .profile-name {
+                justify-content: center;
+                font-size: 2rem;
+            }
+
+            .profile-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <main class="main-content">
+        <div class="professional-detail-container">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div class="profile-header-content">
+                    <div class="profile-avatar-xl">
+                        <img src="{{ professional.user.get_profile_picture }}" alt="{{ professional.user.get_full_name }}">
+                        {% if professional.is_verified %}
+                        <div class="verified-badge-xl">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="profile-info">
+                        <h1 class="profile-name">
+                            {{ professional.user.get_full_name|default:professional.user.username }}
+                            {% if professional.is_featured %}
+                            <i class="fas fa-star" title="Featured Professional" style="color: #FFD700;"></i>
+                            {% endif %}
+                        </h1>
+
+                        <div class="profile-specializations">
+                            {% for spec in professional.specializations.all %}
+                            <span class="spec-badge">{{ spec.name }}</span>
+                            {% endfor %}
+                        </div>
+
+                        <div class="profile-rating">
+                            <div class="stars">
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= professional.average_rating %}
+                                    <i class="fas fa-star"></i>
+                                    {% elif forloop.counter <= professional.average_rating|add:"0.5" %}
+                                    <i class="fas fa-star-half-alt"></i>
+                                    {% else %}
+                                    <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                            <span>{{ professional.average_rating|floatformat:1 }} ({{ professional.total_reviews }} reviews)</span>
+                        </div>
+
+                        <div class="profile-stats">
+                            <div class="stat-box">
+                                <span class="stat-value">{{ professional.completed_consultations }}</span>
+                                <span class="stat-label">Completed Projects</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-value">{{ professional.response_rate }}%</span>
+                                <span class="stat-label">Response Rate</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-value">{{ professional.profile_views }}</span>
+                                <span class="stat-label">Profile Views</span>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-value">{{ professional.years_of_experience }}</span>
+                                <span class="stat-label">Years Experience</span>
+                            </div>
+                        </div>
+
+                        <div class="profile-actions">
+                            <a href="{% url 'create_request' %}?professional={{ professional.id }}" class="btn-xl btn-primary-xl">
+                                <i class="fas fa-paper-plane"></i>
+                                Request Consultation
+                            </a>
+                            <button class="btn-xl btn-secondary-xl" onclick="alert('Messaging feature coming soon!')">
+                                <i class="fas fa-comment"></i>
+                                Send Message
+                            </button>
+                            <button class="btn-save {% if is_saved %}saved{% endif %}" 
+                                    data-professional-id="{{ professional.id }}"
+                                    onclick="toggleSave({{ professional.id }})">
+                                <i class="{% if is_saved %}fas{% else %}far{% endif %} fa-bookmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Grid -->
+            <div class="content-grid">
+                <!-- Main Content -->
+                <div class="main-content">
+                    <!-- About Section -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-user"></i>
+                            About
+                        </h2>
+                        <p style="line-height: 1.8; color: #444;">
+                            {{ professional.user.bio|default:"No bio available yet." }}
+                        </p>
+                    </div>
+
+                    <!-- Education & Certifications -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-graduation-cap"></i>
+                            Education & Certifications
+                        </h2>
+                        {% if professional.education %}
+                        <h3 style="font-size: 1.1rem; color: #2D5016; margin-bottom: 1rem;">Education</h3>
+                        <div style="white-space: pre-line; color: #444; margin-bottom: 2rem;">{{ professional.education }}</div>
+                        {% endif %}
+                        
+                        {% if professional.certifications %}
+                        <h3 style="font-size: 1.1rem; color: #2D5016; margin-bottom: 1rem;">Certifications</h3>
+                        <div style="white-space: pre-line; color: #444;">{{ professional.certifications }}</div>
+                        {% endif %}
+
+                        {% if not professional.education and not professional.certifications %}
+                        <p style="color: #666;">No education or certification information provided yet.</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Reviews Section -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-star"></i>
+                            Reviews & Ratings
+                        </h2>
+                        
+                        {% if professional.total_reviews > 0 %}
+                            <p style="color: #666; margin-bottom: 1.5rem;">
+                                Based on {{ professional.total_reviews }} review{{ professional.total_reviews|pluralize }}
+                            </p>
+                            
+                            <!-- Sample reviews - replace with real data -->
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">
+                                            <img src="https://ui-avatars.com/api/?name=Sample+User&background=7FB069&color=fff" alt="Reviewer">
+                                        </div>
+                                        <div>
+                                            <div class="reviewer-name">Sample Client</div>
+                                            <div class="review-date">2 weeks ago</div>
+                                        </div>
+                                    </div>
+                                    <div class="review-rating">
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                </div>
+                                <p class="review-text">
+                                    Excellent professional! Very knowledgeable and delivered quality work on time. 
+                                    Highly recommended for anyone looking for expert consultation.
+                                </p>
+                            </div>
+                        {% else %}
+                            <p style="color: #666;">No reviews yet. Be the first to work with this professional!</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Portfolio/Past Work -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-briefcase"></i>
+                            Portfolio & Past Work
+                        </h2>
+                        {% if professional.portfolio_url %}
+                            <p style="margin-bottom: 1rem;">View my complete portfolio:</p>
+                            <a href="{{ professional.portfolio_url }}" target="_blank" class="btn btn-outline">
+                                <i class="fas fa-external-link-alt"></i>
+                                Visit Portfolio
+                            </a>
+                        {% else %}
+                            <p style="color: #666;">Portfolio coming soon!</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Sidebar Content -->
+                <div class="sidebar-content">
+                    <!-- Pricing Card -->
+                    <div class="price-card">
+                        <div class="price-label">Starting From</div>
+                        <div class="price-value">${{ professional.hourly_rate|floatformat:0 }}</div>
+                        <div class="price-unit">per hour</div>
+                        {% if professional.consultation_fee > 0 %}
+                        <hr style="margin: 1.5rem 0; border-color: rgba(255,255,255,0.3);">
+                        <div class="price-label">Consultation Fee</div>
+                        <div style="font-size: 1.5rem; font-weight: 700;">${{ professional.consultation_fee|floatformat:0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-calendar"></i>
+                            Availability
+                        </h2>
+                        <div style="text-align: center; padding: 1rem 0;">
+                            {% if professional.is_available %}
+                            <div class="availability-status available">
+                                <i class="fas fa-circle"></i>
+                                Available Now
+                            </div>
+                            <p style="margin-top: 1rem; color: #666;">
+                                Ready to accept new consultations
+                            </p>
+                            {% else %}
+                            <div class="availability-status unavailable">
+                                <i class="fas fa-circle"></i>
+                                Currently Unavailable
+                            </div>
+                            <p style="margin-top: 1rem; color: #666;">
+                                Not accepting new projects at the moment
+                            </p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Professional Info -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-info-circle"></i>
+                            Professional Info
+                        </h2>
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Experience Level</div>
+                                <div class="info-value">{{ professional.get_experience_level_display }}</div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="fas fa-language"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Languages</div>
+                                <div class="info-value">{{ professional.languages|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Timezone</div>
+                                <div class="info-value">{{ professional.timezone|default:"Not specified" }}</div>
+                            </div>
+                        </div>
+                        {% if professional.linkedin_url or professional.website_url %}
+                        <div class="info-row">
+                            <div class="info-icon">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <div class="info-content">
+                                <div class="info-label">Links</div>
+                                <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                                    {% if professional.linkedin_url %}
+                                    <a href="{{ professional.linkedin_url }}" target="_blank" style="color: #0077b5;">
+                                        <i class="fab fa-linkedin"></i>
+                                    </a>
+                                    {% endif %}
+                                    {% if professional.website_url %}
+                                    <a href="{{ professional.website_url }}" target="_blank" style="color: #7FB069;">
+                                        <i class="fas fa-globe"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Similar Professionals -->
+                    <div class="content-card">
+                        <h2 class="card-title">
+                            <i class="fas fa-users"></i>
+                            Similar Professionals
+                        </h2>
+                        <div class="similar-professionals">
+                            {% if similar_professionals %}
+                                {% for similar in similar_professionals %}
+                                <a href="{% url 'professional_detail' similar.id %}" class="similar-prof-card">
+                                    <div class="similar-prof-avatar">
+                                        <img src="{{ similar.user.get_profile_picture }}" alt="{{ similar.user.get_full_name }}">
+                                    </div>
+                                    <div class="similar-prof-info">
+                                        <div class="similar-prof-name">{{ similar.user.get_full_name }}</div>
+                                        <div class="similar-prof-spec">
+                                            {{ similar.specializations.first.name|default:"Professional" }}
+                                        </div>
+                                        <div class="similar-prof-rating">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= similar.average_rating %}
+                                                <i class="fas fa-star"></i>
+                                                {% else %}
+                                                <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </a>
+                                {% endfor %}
+                            {% else %}
+                                <p style="color: #666;">No similar professionals found.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function toggleSave(professionalId) {
+            fetch(`/professionals/${professionalId}/save/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const btn = document.querySelector('.btn-save');
+                    const icon = btn.querySelector('i');
+                    
+                    if (data.saved) {
+                        btn.classList.add('saved');
+                        icon.classList.remove('far');
+                        icon.classList.add('fas');
+                    } else {
+                        btn.classList.remove('saved');
+                        icon.classList.remove('fas');
+                        icon.classList.add('far');
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
