@@ -210,16 +210,14 @@ def create_request(request):
     user_email = request.user.email
     
     # Get all professionals for the dropdown
-    professionals = CustomUser.objects.filter(user_role='professional')
+    professionals = CustomUser.objects.filter(user_role='professional').values('id', 'email', 'first_name', 'last_name')
     
     # Check if a professional is pre-selected via URL parameter
     preselected_professional_id = request.GET.get('professional')
     preselected_professional = None
-    preselected_professional_email = None
     if preselected_professional_id:
         try:
             preselected_professional = CustomUser.objects.get(id=preselected_professional_id, user_role='professional')
-            preselected_professional_email = preselected_professional.email
         except CustomUser.DoesNotExist:
             pass
     
@@ -353,8 +351,7 @@ def create_request(request):
         'user_email': user_email,
         'user_role': request.session.get('user_role', 'student'),
         'professionals': professionals,
-        'preselected_professional': preselected_professional,
-        'preselected_professional_email': preselected_professional_email
+        'preselected_professional': preselected_professional
     }
     return render(request, 'requests/create_request.html', context)
 
@@ -581,3 +578,64 @@ def edit_request(request, request_id):
         'professionals': professionals
     }
     return render(request, 'requests/edit_request.html', context)
+
+
+def accept_request(request, request_id):
+    """Professional accepts a request and creates a conversation"""
+    from messaging.models import Conversation
+    
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to accept requests.")
+        return redirect("login")
+    
+    if request.user.user_role != 'professional':
+        messages.error(request, "Only professionals can accept requests.")
+        return redirect("dashboard")
+    
+    service_request = get_object_or_404(Request, id=request_id)
+    
+    # Check if this request is for this professional
+    if service_request.professional != request.user.email:
+        messages.error(request, "You cannot accept this request.")
+        return redirect("dashboard")
+    
+    # Update request status
+    service_request.status = 'in_progress'
+    service_request.save()
+    
+    # Create or get conversation
+    conversation, created = Conversation.objects.get_or_create(
+        request=service_request,
+        defaults={
+            'client': service_request.get_client_user(),
+            'professional': request.user
+        }
+    )
+    
+    messages.success(request, "Request accepted! You can now message the client.")
+    return redirect('conversation_detail', conversation_id=conversation.id)
+
+
+def decline_request(request, request_id):
+    """Professional declines a request"""
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to decline requests.")
+        return redirect("login")
+    
+    if request.user.user_role != 'professional':
+        messages.error(request, "Only professionals can decline requests.")
+        return redirect("dashboard")
+    
+    service_request = get_object_or_404(Request, id=request_id)
+    
+    # Check if this request is for this professional
+    if service_request.professional != request.user.email:
+        messages.error(request, "You cannot decline this request.")
+        return redirect("dashboard")
+    
+    # Update request status
+    service_request.status = 'declined'
+    service_request.save()
+    
+    messages.info(request, "Request declined.")
+    return redirect("dashboard")

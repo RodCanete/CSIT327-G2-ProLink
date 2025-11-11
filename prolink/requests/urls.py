@@ -10,4 +10,6 @@ urlpatterns = [
     path("<int:request_id>/delete/", views.delete_request, name="delete_request"),
     path("<int:request_id>/message/", views.send_message, name="send_message"),
     path("<int:request_id>/cancel/", views.cancel_request, name="cancel_request"),
+    path("<int:request_id>/accept/", views.accept_request, name="accept_request"),
+    path("<int:request_id>/decline/", views.decline_request, name="decline_request"),
 ]

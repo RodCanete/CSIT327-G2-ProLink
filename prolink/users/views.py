@@ -43,6 +43,13 @@ def dashboard(request):
     
     # Route to appropriate dashboard based on role
     if user_role == 'professional':
+        # Get pending requests for this professional
+        pending_requests = ServiceRequest.objects.filter(
+            professional=user.email,
+            status='pending'
+        ).order_by('-created_at')[:10]
+        
+        context['pending_requests'] = pending_requests
         return render(request, "dashboard_professional.html", context)
     else:  # student, worker, or client
         # Get dashboard metrics
@@ -663,3 +670,81 @@ def edit_profile_picture(request):
         return JsonResponse({
             'error': f'Upload failed: {str(e)}'
         }, status=500)
+
+
+@login_required
+def accept_request(request, request_id):
+    """
+    Accept a service request and create a conversation
+    """
+    if request.method != 'POST':
+        return redirect('dashboard')
+    
+    # Get the service request
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    
+    # Verify the current user is the assigned professional
+    if service_request.professional != request.user.email:
+        messages.error(request, "You don't have permission to accept this request.")
+        return redirect('dashboard')
+    
+    # Check if already accepted
+    if service_request.status != 'pending':
+        messages.warning(request, "This request has already been processed.")
+        return redirect('dashboard')
+    
+    try:
+        # Update request status
+        service_request.status = 'in_progress'
+        service_request.save()
+        
+        # Create conversation
+        from messaging.models import Conversation
+        client_user = get_object_or_404(CustomUser, email=service_request.client)
+        
+        conversation = Conversation.objects.create(
+            request=service_request,
+            client=client_user,
+            professional=request.user
+        )
+        
+        messages.success(request, f"Request '{service_request.title}' accepted! You can now message the client.")
+        return redirect('messaging:conversation', conversation_id=conversation.id)
+        
+    except Exception as e:
+        messages.error(request, f"Error accepting request: {str(e)}")
+        return redirect('dashboard')
+
+
+@login_required
+def decline_request(request, request_id):
+    """
+    Decline a service request
+    """
+    if request.method != 'POST':
+        return redirect('dashboard')
+    
+    # Get the service request
+    service_request = get_object_or_404(ServiceRequest, id=request_id)
+    
+    # Verify the current user is the assigned professional
+    if service_request.professional != request.user.email:
+        messages.error(request, "You don't have permission to decline this request.")
+        return redirect('dashboard')
+    
+    # Check if already processed
+    if service_request.status != 'pending':
+        messages.warning(request, "This request has already been processed.")
+        return redirect('dashboard')
+    
+    try:
+        # Update request status
+        service_request.status = 'declined'
+        service_request.save()
+        
+        messages.success(request, f"Request '{service_request.title}' declined.")
+        return redirect('dashboard')
+        
+    except Exception as e:
+        messages.error(request, f"Error declining request: {str(e)}")
+        return redirect('dashboard')
