@@ -44,6 +44,7 @@ def dashboard(request):
     # Route to appropriate dashboard based on role
     if user_role == 'professional':
         from transactions.models import Transaction
+        from users.models import CustomUser
         
         # Get pending requests for this professional
         pending_requests = ServiceRequest.objects.filter(
@@ -51,17 +52,38 @@ def dashboard(request):
             status='pending'
         ).order_by('-created_at')[:10]
         
+        # Attach client user objects to each request
+        for req in pending_requests:
+            try:
+                req.client_user = CustomUser.objects.get(email=req.client)
+            except CustomUser.DoesNotExist:
+                req.client_user = None
+        
         # Get active work (in progress with escrowed payment - ready to submit)
         active_work = ServiceRequest.objects.filter(
             professional=user.email,
             status='in_progress'
         ).select_related('transaction').order_by('-created_at')[:10]
         
+        # Attach client user objects to active work
+        for work in active_work:
+            try:
+                work.client_user = CustomUser.objects.get(email=work.client)
+            except CustomUser.DoesNotExist:
+                work.client_user = None
+        
         # Get work awaiting client review
         pending_review = ServiceRequest.objects.filter(
             professional=user.email,
             status='under_review'
         ).select_related('transaction').order_by('-submitted_at')[:10]
+        
+        # Attach client user objects to pending review
+        for work in pending_review:
+            try:
+                work.client_user = CustomUser.objects.get(email=work.client)
+            except CustomUser.DoesNotExist:
+                work.client_user = None
         
         context.update({
             'pending_requests': pending_requests,
@@ -87,16 +109,14 @@ def dashboard(request):
         from transactions.models import Transaction
         pending_payments = Transaction.objects.filter(
             client=user,
-            status='pending_payment',
-            request__price_negotiation_status='agreed'  # Only show if price is agreed
+            status='pending_payment'
         ).select_related('request')[:5]
         
-        # Get requests in price negotiation
-        price_negotiations = ServiceRequest.objects.filter(
+        # Get requests awaiting payment (professional accepted, client needs to pay)
+        awaiting_payment_requests = ServiceRequest.objects.filter(
             client=user.email,
-            status='pending',
-            price_negotiation_status__in=['proposed', 'counter_offered']
-        ).order_by('-updated_at')[:5]
+            status='awaiting_payment'
+        ).select_related('transaction').order_by('-updated_at')[:5]
         
         # Get work awaiting review
         pending_reviews = ServiceRequest.objects.filter(
@@ -111,7 +131,7 @@ def dashboard(request):
             'active_requests_tracking': active_requests_data,
             'recommended_professionals': recommended_professionals,
             'pending_payments': pending_payments,
-            'price_negotiations': price_negotiations,
+            'awaiting_payment_requests': awaiting_payment_requests,
             'pending_reviews': pending_reviews,
         })
         

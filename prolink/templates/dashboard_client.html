@@ -8,6 +8,66 @@
     <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .request-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: #fff;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            transition: all 0.3s ease;
+        }
+        
+        .request-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #2D5016;
+        }
+        
+        .request-info h4 {
+            margin: 0 0 8px 0;
+            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .request-info p {
+            margin: 0 0 10px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .request-actions {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .no-requests {
+            text-align: center;
+            padding: 60px 20px;
+            color: #6b7280;
+        }
+        
+        .no-requests i {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.4;
+            color: #2D5016;
+        }
+        
+        .no-requests p {
+            font-size: 16px;
+            margin: 0 0 10px 0;
+        }
+        
+        .request-budget {
+            display: inline-block;
+            margin-right: 8px;
+        }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
@@ -71,7 +131,37 @@
             </div>
             {% endif %}
             
-            <!-- Pending Payments Alert -->
+            <!-- Awaiting Payment Alert (Professional Accepted) -->
+            {% if awaiting_payment_requests %}
+            <div style="margin-bottom: 30px;">
+                {% for req in awaiting_payment_requests %}
+                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
+                                <h3 style="margin: 0; font-size: 20px;">Payment Required - Professional Accepted!</h3>
+                            </div>
+                            <p style="margin: 0; font-size: 16px; opacity: 0.95; font-weight: 600;">
+                                {{ req.title }}
+                            </p>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
+                                <i class="fas fa-user-check"></i> {{ req.professional.user.get_full_name|default:"Professional" }} accepted your request
+                                • <i class="fas fa-peso-sign"></i>₱{{ req.price|floatformat:2 }}
+                                • <i class="fas fa-clock"></i> Pay now to start work
+                            </p>
+                        </div>
+                        <a href="{% url 'transactions:initiate_payment' req.transaction.id %}" 
+                           style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap; display: inline-block;">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Pending Payments Alert (Legacy/Old Flow) -->
             {% if pending_payments %}
             <div style="margin-bottom: 30px;">
                 {% for payment in pending_payments %}
@@ -89,7 +179,7 @@
                                 Professional is waiting for payment to begin work
                             </p>
                         </div>
-                        <a href="{% url 'transactions:create_payment' payment.request.id %}" 
+                        <a href="{% url 'transactions:initiate_payment' payment.id %}" 
                            style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap;">
                             <i class="fas fa-credit-card"></i> Pay Now
                         </a>
@@ -118,55 +208,28 @@
                             </p>
                         </div>
                         <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                            <form method="post" action="{% url 'transactions:approve_work' review.id %}" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" 
-                                        style="background: white; color: #4caf50; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;"
-                                        onclick="return confirm('Approve this work and release payment of ₱{{ review.transaction.professional_payout|floatformat:2 }} to professional?')">
-                                    <i class="fas fa-thumbs-up"></i> Approve & Release Payment
-                                </button>
-                            </form>
-                            <button type="button" 
-                                    onclick="document.getElementById('revisionForm{{ review.id }}').style.display='block'; this.style.display='none';"
-                                    style="background: rgba(255,255,255,0.2); color: white; padding: 12px 25px; border: 2px solid white; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer;">
+                            <a href="{% url 'request_detail' review.id %}" 
+                               style="background: white; color: #4caf50; padding: 12px 25px; border: none; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block;">
+                                <i class="fas fa-eye"></i> Review Work
+                            </a>
+                            <a href="{% url 'transactions:request_revision' review.id %}" 
+                               style="background: rgba(255,255,255,0.2); color: white; padding: 12px 25px; border: 2px solid white; border-radius: 8px; font-weight: 600; font-size: 16px; cursor: pointer; text-decoration: none; display: inline-block;">
                                 <i class="fas fa-redo"></i> Request Revision
-                            </button>
+                            </a>
                         </div>
                     </div>
                     
-                    <!-- Revision Form (Hidden by default) -->
-                    <form method="post" action="{% url 'transactions:request_revision' review.id %}" 
-                          id="revisionForm{{ review.id }}" 
-                          style="display: none; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.3);">
-                        {% csrf_token %}
-                        <label style="display: block; margin-bottom: 8px; font-weight: 600;">
-                            <i class="fas fa-comment-alt"></i> What needs to be revised?
-                        </label>
-                        <textarea name="revision_notes" required
-                                  style="width: 100%; padding: 12px; border: none; border-radius: 8px; font-size: 14px; min-height: 80px; font-family: inherit;"
-                                  placeholder="Explain what changes you'd like the professional to make..."></textarea>
-                        <div style="display: flex; gap: 10px; margin-top: 10px;">
-                            <button type="submit" 
-                                    style="background: white; color: #4caf50; padding: 10px 20px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                <i class="fas fa-paper-plane"></i> Send Revision Request
-                            </button>
-                            <button type="button" 
-                                    onclick="this.closest('form').style.display='none'; this.closest('.flex').querySelector('button[onclick*=revisionForm]').style.display='inline-block';"
-                                    style="background: transparent; color: white; padding: 10px 20px; border: 2px solid white; border-radius: 8px; font-weight: 600; cursor: pointer;">
-                                Cancel
-                            </button>
-                        </div>
-                    </form>
-                    
                     <!-- Deliverable Info -->
                     <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.3);">
+                        {% if review.deliverable_notes %}
                         <p style="margin: 0 0 8px 0; font-size: 14px; opacity: 0.9;">
                             <strong>Professional's Notes:</strong><br>
-                            {{ review.deliverable_notes }}
+                            {{ review.deliverable_notes|truncatewords:20 }}
                         </p>
-                        <a href="{% url 'messaging:inbox' %}" 
+                        {% endif %}
+                        <a href="{% url 'request_detail' review.id %}" 
                            style="color: white; text-decoration: underline; font-size: 14px;">
-                            <i class="fas fa-download"></i> View & Download Deliverables
+                            <i class="fas fa-file-alt"></i> View Full Details & Deliverables
                         </a>
                     </div>
                 </div>
@@ -358,25 +421,44 @@
                         <a href="{% url 'requests_list' %}" class="panel-link">View All</a>
                     </div>
                     <div class="panel-content">
-                        <div class="requests-tracking">
-                            {% for item in active_requests_tracking %}
-                            <div class="tracking-item">
-                                <div class="tracking-info">
-                                    <h4>{{ item.request.title }}</h4>
-                                    <p>Professional: {{ item.professional_name }}</p>
+                        <div class="requests-list">
+                            {% if active_requests_tracking %}
+                                {% for item in active_requests_tracking %}
+                                <div class="request-item">
+                                    <div class="request-info">
+                                        <h4>{{ item.request.title }}</h4>
+                                        <p>Professional: {{ item.professional_name }}</p>
+                                        {% if item.request.price %}
+                                        <span class="request-budget" style="background: #2D5016; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                            <i class="fas fa-tag"></i> Budget: ₱{{ item.request.price|floatformat:2 }}
+                                        </span>
+                                        {% endif %}
+                                        <span class="status-badge" style="margin-left: 8px; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; 
+                                            {% if item.request.status == 'pending' %}background: #fff3e0; color: #f57c00;
+                                            {% elif item.request.status == 'in_progress' %}background: #e3f2fd; color: #1976d2;
+                                            {% elif item.request.status == 'under_review' %}background: #f3e5f5; color: #7b1fa2;
+                                            {% elif item.request.status == 'completed' %}background: #e8f5e9; color: #2e7d32;
+                                            {% else %}background: #f5f5f5; color: #616161;
+                                            {% endif %}">
+                                            <i class="fas fa-circle" style="font-size: 8px;"></i> {{ item.status_display }}
+                                        </span>
+                                    </div>
+                                    <div class="request-actions">
+                                        <a href="{% url 'request_detail' item.request.id %}" class="btn btn-sm btn-primary">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                    </div>
                                 </div>
-                                <div class="tracking-status">
-                                    <span class="status-badge {{ item.request.status }}">{{ item.status_display }}</span>
-                                    <a href="{% url 'request_detail' item.request.id %}" class="btn btn-sm btn-primary" style="margin-top: 10px;">
-                                        <i class="fas fa-eye"></i> View Request
+                                {% endfor %}
+                            {% else %}
+                                <div class="no-requests">
+                                    <i class="fas fa-inbox"></i>
+                                    <p>No active requests at the moment</p>
+                                    <a href="{% url 'create_request' %}" class="btn btn-primary" style="margin-top: 15px;">
+                                        <i class="fas fa-plus"></i> Create Your First Request
                                     </a>
                                 </div>
-                            </div>
-                            {% empty %}
-                            <div class="no-requests">
-                                <p>No active requests. <a href="{% url 'create_request' %}">Create one now</a></p>
-                            </div>
-                            {% endfor %}
+                            {% endif %}
                         </div>
                     </div>
                 </div>

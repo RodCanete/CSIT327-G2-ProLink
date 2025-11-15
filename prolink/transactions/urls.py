@@ -1,10 +1,18 @@
 from django.urls import path
 from . import views
+from . import payment_views
 
 app_name = 'transactions'
 
 urlpatterns = [
-    # Payment flow
+    # PayMongo Payment flow
+    path('<int:transaction_id>/pay/', payment_views.initiate_payment, name='initiate_payment'),
+    path('<int:transaction_id>/payment-success/', payment_views.payment_success, name='paymongo_success'),
+    path('<int:transaction_id>/payment-cancel/', payment_views.payment_cancel, name='paymongo_cancel'),
+    path('webhook/paymongo/', payment_views.paymongo_webhook, name='paymongo_webhook'),
+    path('test-payment-info/', payment_views.test_payment_info, name='test_payment_info'),
+    
+    # Legacy payment flow (keep for backward compatibility)
     path('pay/<int:request_id>/', views.create_payment, name='create_payment'),
     path('payment-success/<int:transaction_id>/', views.payment_success, name='payment_success'),
     

@@ -1,10 +1,14 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
 {% load static %}
-
-{% block title %}Open Dispute - ProLink{% endblock %}
-
-{% block extra_css %}
-<style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Open Dispute - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
     .dispute-container {
         max-width: 900px;
         margin: 40px auto;
@@ -149,9 +153,12 @@
         justify-content: center;
     }
 </style>
-{% endblock %}
+</head>
+<body>
+    {% include 'components/navbar.html' %}
 
-{% block content %}
+    <main class="main-content">
+        <div class="dashboard-content">
 <div class="dispute-container">
     <div class="dispute-card">
         <div class="dispute-header">
@@ -280,4 +287,7 @@ function showFileNames() {
     }
 }
 </script>
-{% endblock %}
+        </div>
+    </main>
+</body>
+</html>

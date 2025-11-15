@@ -1,10 +1,14 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
 {% load static %}
-
-{% block title %}Accept Request - ProLink{% endblock %}
-
-{% block extra_css %}
-<style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accept Request - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
     .accept-container {
         max-width: 900px;
         margin: 2rem auto;
@@ -218,14 +222,15 @@
     }
     
     .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #2D5016 0%, #4A7C59 100%);
         color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 4px 15px rgba(45, 80, 22, 0.3);
     }
     
     .btn-primary:hover {
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        box-shadow: 0 6px 20px rgba(45, 80, 22, 0.4);
+        background: linear-gradient(135deg, #1A3009 0%, #2D5016 100%);
     }
     
     .btn-secondary {
@@ -260,10 +265,13 @@
         padding-left: 1.5rem;
     }
 </style>
-{% endblock %}
+</head>
+<body>
+    {% include 'components/navbar.html' %}
 
-{% block content %}
-<div class="accept-container">
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="accept-container">
     <div class="request-card">
         <div class="request-header">
             <div>
@@ -328,65 +336,19 @@
                 Choose Your Response
             </h2>
             
-            <!-- Option 1: Accept Client's Price -->
-            <div class="option-card" onclick="selectOption('accept_price')">
+            <!-- Option 1: Accept Client's Budget -->
+            <div class="option-card" onclick="selectOption('accept')">
                 <div class="option-header">
-                    <input type="radio" name="action" value="accept_price" id="opt_accept" class="option-radio">
+                    <input type="radio" name="action" value="accept" id="opt_accept" class="option-radio">
                     <label for="opt_accept" class="option-title">Accept Client's Budget</label>
                 </div>
                 <p class="option-description">
-                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
-                    Accept the client's proposed budget of <strong>₱{{ request.price|floatformat:2 }}</strong> and start immediately after payment.
+                    <i class="fas fa-check-circle" style="color: #2D5016;"></i>
+                    Accept the client's budget of <strong>₱{{ request.price|floatformat:2 }}</strong> and start work immediately after payment is received.
                 </p>
             </div>
             
-            <!-- Option 2: Propose Different Price -->
-            <div class="option-card" onclick="selectOption('propose_price')">
-                <div class="option-header">
-                    <input type="radio" name="action" value="propose_price" id="opt_propose" class="option-radio">
-                    <label for="opt_propose" class="option-title">Propose Different Price</label>
-                </div>
-                <p class="option-description">
-                    <i class="fas fa-edit" style="color: #ffc107;"></i>
-                    Suggest a different price based on the project complexity and your expertise.
-                </p>
-                
-                <div class="price-proposal-form" id="priceProposalForm">
-                    <div class="form-group">
-                        <label class="form-label" for="proposed_price">
-                            Your Proposed Price (₱) <span style="color: red;">*</span>
-                        </label>
-                        <input 
-                            type="number" 
-                            name="proposed_price" 
-                            id="proposed_price" 
-                            class="form-input" 
-                            placeholder="Enter your proposed price"
-                            step="0.01"
-                            min="1"
-                            value="{{ proposed_price }}"
-                        >
-                    </div>
-                    
-                    <div class="form-group">
-                        <label class="form-label" for="price_notes">
-                            Explanation (minimum 20 characters) <span style="color: red;">*</span>
-                        </label>
-                        <textarea 
-                            name="price_notes" 
-                            id="price_notes" 
-                            class="form-input form-textarea" 
-                            placeholder="Explain why you're proposing this price (e.g., complexity, time required, expertise needed...)"
-                            maxlength="500"
-                        >{{ price_notes }}</textarea>
-                        <div class="char-counter">
-                            <span id="charCount">0</span>/500 characters (minimum 20)
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Option 3: Decline -->
+            <!-- Option 2: Decline -->
             <div class="option-card" onclick="selectOption('decline')">
                 <div class="option-header">
                     <input type="radio" name="action" value="decline" id="opt_decline" class="option-radio">
@@ -413,40 +375,15 @@
 </div>
 
 <script>
-    let selectedOption = null;
-    
     function selectOption(option) {
-        selectedOption = option;
-        
         // Update radio button
-        document.getElementById('opt_' + option.split('_')[0]).checked = true;
+        document.getElementById('opt_' + option).checked = true;
         
         // Update card selection
         document.querySelectorAll('.option-card').forEach(card => {
             card.classList.remove('selected');
         });
         event.currentTarget.classList.add('selected');
-        
-        // Show/hide price proposal form
-        const priceForm = document.getElementById('priceProposalForm');
-        if (option === 'propose_price') {
-            priceForm.classList.add('show');
-        } else {
-            priceForm.classList.remove('show');
-        }
-    }
-    
-    // Character counter
-    const priceNotesTextarea = document.getElementById('price_notes');
-    const charCount = document.getElementById('charCount');
-    
-    if (priceNotesTextarea) {
-        priceNotesTextarea.addEventListener('input', function() {
-            charCount.textContent = this.value.length;
-        });
-        
-        // Initialize counter
-        charCount.textContent = priceNotesTextarea.value.length;
     }
     
     // Form validation
@@ -459,23 +396,6 @@
             return;
         }
         
-        if (action.value === 'propose_price') {
-            const price = document.getElementById('proposed_price').value;
-            const notes = document.getElementById('price_notes').value;
-            
-            if (!price || parseFloat(price) <= 0) {
-                e.preventDefault();
-                alert('Please enter a valid price.');
-                return;
-            }
-            
-            if (notes.length < 20) {
-                e.preventDefault();
-                alert('Please provide at least 20 characters explaining your proposed price.');
-                return;
-            }
-        }
-        
         if (action.value === 'decline') {
             if (!confirm('Are you sure you want to decline this request?')) {
                 e.preventDefault();
@@ -484,4 +404,8 @@
         }
     });
 </script>
-{% endblock %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>

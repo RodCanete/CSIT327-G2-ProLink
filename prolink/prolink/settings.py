@@ -192,3 +192,12 @@ if not DEBUG:
 PROLINK_GCASH_NUMBER = os.getenv('PROLINK_GCASH_NUMBER', '09XX-XXX-XXXX')  # Configure in production
 PROLINK_GCASH_NAME = os.getenv('PROLINK_GCASH_NAME', 'ProLink Services')
 PLATFORM_FEE_PERCENTAGE = 0.10  # 10% platform fee
+
+# PayMongo Configuration
+# Test Mode: Use test keys (starts with pk_test_ and sk_test_)
+# Live Mode: Use live keys (starts with pk_live_ and sk_live_)
+# Get keys from environment variables - DO NOT commit actual keys to git
+PAYMONGO_PUBLIC_KEY = os.getenv('PAYMONGO_PUBLIC_KEY', '')
+PAYMONGO_SECRET_KEY = os.getenv('PAYMONGO_SECRET_KEY', '')
+PAYMONGO_WEBHOOK_SECRET = os.getenv('PAYMONGO_WEBHOOK_SECRET', '')  # For webhook verification
+PAYMONGO_TEST_MODE = PAYMONGO_PUBLIC_KEY.startswith('pk_test_') if PAYMONGO_PUBLIC_KEY else True  # Auto-detect test mode

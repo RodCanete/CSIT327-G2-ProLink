@@ -6,6 +6,7 @@ from django.contrib.auth.models import User
 class Request(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),
+        ('awaiting_payment', 'Awaiting Payment'),  # Professional accepted, waiting for client payment
         ('in_progress', 'In Progress'),
         ('under_review', 'Under Review'),  # Professional submitted work, awaiting client approval
         ('revision_requested', 'Revision Requested'),  # Client requested changes
@@ -15,20 +16,12 @@ class Request(models.Model):
         ('disputed', 'Disputed'),  # Under dispute resolution
     ]
     
-    NEGOTIATION_STATUS_CHOICES = [
-        ('none', 'No Negotiation'),
-        ('proposed', 'Professional Proposed Price'),
-        ('counter_offered', 'Client Counter Offered'),
-        ('agreed', 'Price Agreed'),
-        ('cancelled', 'Negotiation Cancelled'),
-    ]
-    
     title = models.CharField(max_length=200)
     description = models.TextField()
     client = models.CharField(max_length=100)  # Client/Student email
     professional = models.CharField(max_length=100, blank=True)  # Professional email
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)  # Client sets this
     timeline_days = models.IntegerField(default=7)  # Expected completion in days
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -38,13 +31,6 @@ class Request(models.Model):
     # Revision tracking
     revision_count = models.IntegerField(default=0, help_text="Number of revisions requested")
     max_revisions = models.IntegerField(default=3, help_text="Maximum revisions allowed")
-    
-    # Price negotiation tracking
-    price_negotiation_status = models.CharField(max_length=20, choices=NEGOTIATION_STATUS_CHOICES, default='none')
-    professional_price_notes = models.TextField(blank=True, help_text="Professional's explanation for proposed price")
-    negotiation_round = models.IntegerField(default=0, help_text="Current negotiation round (max 5)")
-    client_initial_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, 
-                                                help_text="Client's original proposed budget")
     
     # Auto-approval tracking
     auto_approve_date = models.DateTimeField(null=True, blank=True, 

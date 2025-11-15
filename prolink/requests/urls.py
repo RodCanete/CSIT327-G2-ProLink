@@ -3,6 +3,7 @@ from . import views
 
 urlpatterns = [
     path("", views.requests_list, name="requests_list"),
+    path("professional/", views.professional_requests_list, name="professional_requests_list"),
     path("create/", views.create_request, name="create_request"),
     path("test-upload/", views.test_upload_page, name="test_upload"),
     path("<int:request_id>/", views.request_detail, name="request_detail"),
@@ -12,7 +13,6 @@ urlpatterns = [
     path("<int:request_id>/message/", views.send_message, name="send_message"),
     path("<int:request_id>/cancel/", views.cancel_request, name="cancel_request"),
     
-    # Professional acceptance and price negotiation
+    # Professional acceptance
     path("<int:request_id>/accept/", views.accept_request, name="accept_request"),
-    path("<int:request_id>/respond-to-price/", views.respond_to_price, name="respond_to_price"),
 ]

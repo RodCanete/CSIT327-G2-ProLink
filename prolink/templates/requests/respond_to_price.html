@@ -1,10 +1,14 @@
-{% extends 'base.html' %}
+<!DOCTYPE html>
 {% load static %}
-
-{% block title %}Price Negotiation - ProLink{% endblock %}
-
-{% block extra_css %}
-<style>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Price Negotiation - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
     .negotiate-container {
         max-width: 800px;
         margin: 2rem auto;
@@ -282,10 +286,13 @@
         padding-left: 1.5rem;
     }
 </style>
-{% endblock %}
+</head>
+<body>
+    {% include 'components/navbar.html' %}
 
-{% block content %}
-<div class="negotiate-container">
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="negotiate-container">
     <div class="negotiate-card">
         <div class="header">
             <h1 class="header-title">{{ request.title }}</h1>
@@ -514,4 +521,8 @@
         }
     });
 </script>
-{% endblock %}
+            </div>
+        </div>
+    </main>
+</body>
+</html>
