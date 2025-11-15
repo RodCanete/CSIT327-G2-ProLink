@@ -6,7 +6,7 @@ import os
 import sys
 
 # Add the inner prolink directory to path
-current_dir = os.path.dirname(os.path.abspath(__file__))
+current_dir = os.path.dirname(os.path.abspath(__filey__))
 prolink_dir = os.path.join(current_dir, 'prolink')
 sys.path.insert(0, prolink_dir)
 

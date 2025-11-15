@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProLink - Client Dashboard</title>
-    <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -331,12 +331,6 @@
                                 <div class="tracking-info">
                                     <h4>{{ item.request.title }}</h4>
                                     <p>Professional: {{ item.professional_name }}</p>
-                                    <div class="tracking-progress">
-                                        <div class="progress-bar">
-                                            <div class="progress-fill" style="width: {{ item.progress }}%"></div>
-                                        </div>
-                                        <span>{{ item.progress }}% Complete</span>
-                                    </div>
                                 </div>
                                 <div class="tracking-status">
                                     <span class="status-badge {{ item.request.status }}">{{ item.status_display }}</span>
@@ -354,43 +348,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Learning Resources Panel (Students Only) -->
-            {% if user_role == 'student' %}
-            <div class="content-grid">
-                <div class="panel resources-panel">
-                    <div class="panel-header">
-                        <h3>Learning Resources</h3>
-                        <span class="panel-subtitle">Improve your skills</span>
-                    </div>
-                    <div class="panel-content">
-                        <div class="resources-list">
-                            <div class="resource-item">
-                                <i class="fas fa-book"></i>
-                                <div class="resource-content">
-                                    <h4>How to Write Better</h4>
-                                    <p>Academic writing guide</p>
-                                </div>
-                            </div>
-                            <div class="resource-item">
-                                <i class="fas fa-video"></i>
-                                <div class="resource-content">
-                                    <h4>Project Presentation Tips</h4>
-                                    <p>Video tutorial series</p>
-                                </div>
-                            </div>
-                            <div class="resource-item">
-                                <i class="fas fa-file-pdf"></i>
-                                <div class="resource-content">
-                                    <h4>Professional Standards</h4>
-                                    <p>Industry best practices</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {% endif %}
         </div>
     </main>
 
