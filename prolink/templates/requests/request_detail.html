@@ -115,6 +115,116 @@
                             </div>
                         </div>
 
+                        <!-- Work Review Actions (Client) -->
+                        {% if request.status == 'under_review' and user.email == request.client %}
+                        <div class="detail-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 25px;">
+                            <h3 style="color: white; margin-bottom: 15px;">
+                                <i class="fas fa-clipboard-check"></i>
+                                Review Submitted Work
+                            </h3>
+                            <p style="margin-bottom: 20px; opacity: 0.9;">The professional has submitted their deliverables. Please review and choose an action below:</p>
+                            
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                                <a href="{% url 'transactions:approve_work' request.id %}" class="btn" style="background: #28a745; color: white; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i><br>
+                                    Approve & Release Payment
+                                </a>
+                                
+                                {% if request.revision_count < request.max_revisions %}
+                                <a href="{% url 'transactions:request_revision' request.id %}" class="btn" style="background: #ffc107; color: #000; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                                    <i class="fas fa-edit"></i><br>
+                                    Request Revision ({{ request.revision_count }}/{{ request.max_revisions }})
+                                </a>
+                                {% endif %}
+                                
+                                <a href="{% url 'transactions:open_dispute' request.id %}" class="btn" style="background: #dc3545; color: white; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                                    <i class="fas fa-gavel"></i><br>
+                                    Open Dispute
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Revision Status (Client) -->
+                        {% if request.status == 'revision_requested' and user.email == request.client %}
+                        <div class="detail-section" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #856404;">
+                                <i class="fas fa-redo"></i>
+                                Revision Requested
+                            </h3>
+                            <p style="color: #856404; margin: 10px 0 0 0;">
+                                Waiting for professional to resubmit work. 
+                                <strong>Revisions used: {{ request.revision_count }} / {{ request.max_revisions }}</strong>
+                            </p>
+                        </div>
+                        {% endif %}
+
+                        <!-- Dispute Status -->
+                        {% if request.status == 'disputed' %}
+                        <div class="detail-section" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #721c24;">
+                                <i class="fas fa-gavel"></i>
+                                Dispute Open
+                            </h3>
+                            <p style="color: #721c24; margin: 10px 0;">
+                                This request is under dispute. An administrator will review the case.
+                            </p>
+                            {% if request.transaction.dispute %}
+                            <a href="{% url 'transactions:dispute_detail' request.transaction.dispute.id %}" class="btn" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 10px;">
+                                <i class="fas fa-eye"></i> View Dispute Details
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
+                        <!-- Deliverables Section (When work submitted) -->
+                        {% if request.deliverable_files %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-box-open"></i>
+                                Deliverables
+                            </h3>
+                            <div class="detail-content">
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                    <strong>Professional's Notes:</strong>
+                                    <p style="margin: 10px 0 0 0;">{{ request.deliverable_notes|linebreaks }}</p>
+                                </div>
+                                <div class="files-list">
+                                    {% for file in request.deliverable_files %}
+                                    <div class="file-item-display">
+                                        <div class="file-icon-display">
+                                            <i class="fas fa-file" style="color: #667eea;"></i>
+                                        </div>
+                                        <div class="file-info-display">
+                                            <span class="file-name-display">{{ file.name }}</span>
+                                            <span class="file-size-display">({{ file.size|filesizeformat }})</span>
+                                        </div>
+                                        <a href="{{ file.url }}" class="file-download-btn" target="_blank" download="{{ file.name }}">
+                                            <i class="fas fa-download"></i>
+                                            Download
+                                        </a>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Revision Feedback (When revision requested) -->
+                        {% if request.status == 'revision_requested' and request.revision_notes %}
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-comment-dots"></i>
+                                Revision Feedback
+                            </h3>
+                            <div class="detail-content">
+                                <div style="background: #fff3cd; padding: 15px; border-radius: 10px; border-left: 4px solid #ffc107;">
+                                    {{ request.revision_notes|linebreaks }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
                         <!-- Attached Files Section -->
                         {% if request.attached_files %}
                         <div class="detail-section">

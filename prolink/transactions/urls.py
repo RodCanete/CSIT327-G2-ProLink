@@ -15,7 +15,7 @@ urlpatterns = [
     path('request-revision/<int:request_id>/', views.request_revision, name='request_revision'),
     
     # Dispute management
-    path('open-dispute/<int:transaction_id>/', views.open_dispute, name='open_dispute'),
+    path('open-dispute/<int:request_id>/', views.open_dispute, name='open_dispute'),
     path('dispute/<int:dispute_id>/', views.dispute_detail, name='dispute_detail'),
     path('submit-evidence/<int:dispute_id>/', views.submit_evidence, name='submit_evidence'),
     

@@ -12,6 +12,15 @@ class Request(models.Model):
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
         ('declined', 'Declined'),
+        ('disputed', 'Disputed'),  # Under dispute resolution
+    ]
+    
+    NEGOTIATION_STATUS_CHOICES = [
+        ('none', 'No Negotiation'),
+        ('proposed', 'Professional Proposed Price'),
+        ('counter_offered', 'Client Counter Offered'),
+        ('agreed', 'Price Agreed'),
+        ('cancelled', 'Negotiation Cancelled'),
     ]
     
     title = models.CharField(max_length=200)
@@ -25,6 +34,21 @@ class Request(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     completed_at = models.DateTimeField(null=True, blank=True)
     submitted_at = models.DateTimeField(null=True, blank=True, help_text="When professional submitted work")
+    
+    # Revision tracking
+    revision_count = models.IntegerField(default=0, help_text="Number of revisions requested")
+    max_revisions = models.IntegerField(default=3, help_text="Maximum revisions allowed")
+    
+    # Price negotiation tracking
+    price_negotiation_status = models.CharField(max_length=20, choices=NEGOTIATION_STATUS_CHOICES, default='none')
+    professional_price_notes = models.TextField(blank=True, help_text="Professional's explanation for proposed price")
+    negotiation_round = models.IntegerField(default=0, help_text="Current negotiation round (max 5)")
+    client_initial_budget = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True, 
+                                                help_text="Client's original proposed budget")
+    
+    # Auto-approval tracking
+    auto_approve_date = models.DateTimeField(null=True, blank=True, 
+                                            help_text="Date when work will be auto-approved if client doesn't respond")
     
     # File attachments (stored as JSON string for simplicity)
     attached_files = models.TextField(blank=True, help_text="Client's initial request files (JSON)")

@@ -218,8 +218,8 @@ def approve_work(request, request_id):
     
     # Ensure work is submitted
     if service_request.status != 'under_review':
-        messages.error(request, 'Work has not been submitted yet.')
-        return redirect('dashboard')
+        messages.error(request, f'Cannot approve work. Current status: {service_request.get_status_display()}')
+        return redirect('requests:request_detail', request_id=request_id)
     
     # Get transaction
     try:
@@ -228,11 +228,17 @@ def approve_work(request, request_id):
         messages.error(request, 'No transaction found.')
         return redirect('dashboard')
     
+    # Ensure transaction is pending approval
+    if transaction.status != 'pending_approval':
+        messages.error(request, f'Payment cannot be released. Transaction status: {transaction.get_status_display()}')
+        return redirect('requests:request_detail', request_id=request_id)
+    
     if request.method == 'POST':
         try:
             # Update request status
             service_request.status = 'completed'
             service_request.completed_at = timezone.now()
+            service_request.auto_approve_date = None  # Clear auto-approve
             service_request.save()
             
             # Release payment
@@ -240,13 +246,22 @@ def approve_work(request, request_id):
             transaction.released_at = timezone.now()
             transaction.save()
             
-            messages.success(request, f'Work approved! Payment of ₱{transaction.professional_payout:,.2f} has been released to the professional.')
-            return redirect('dashboard')
+            # Create notification for professional
+            # TODO: Add notification system
+            
+            messages.success(request, f'✅ Work approved! Payment of ₱{transaction.professional_payout:,.2f} has been released to {service_request.professional}.')
+            return redirect('requests:request_detail', request_id=request_id)
             
         except Exception as e:
             messages.error(request, f'Error approving work: {str(e)}')
+            return redirect('requests:request_detail', request_id=request_id)
     
-    return redirect('dashboard')
+    # GET request - show confirmation page
+    context = {
+        'service_request': service_request,
+        'transaction': transaction,
+    }
+    return render(request, 'transactions/approve_work.html', context)
 
 
 @login_required
@@ -261,69 +276,259 @@ def request_revision(request, request_id):
     
     # Ensure work is submitted
     if service_request.status != 'under_review':
-        messages.error(request, 'Work has not been submitted yet.')
-        return redirect('dashboard')
+        messages.error(request, f'Cannot request revision. Current status: {service_request.get_status_display()}')
+        return redirect('requests:request_detail', request_id=request_id)
+    
+    # Check revision limit
+    if service_request.revision_count >= service_request.max_revisions:
+        messages.error(request, 
+            f'Maximum revisions ({service_request.max_revisions}) reached. '
+            'You must either approve the work or open a dispute.'
+        )
+        return redirect('requests:request_detail', request_id=request_id)
     
     if request.method == 'POST':
         revision_notes = request.POST.get('revision_notes', '').strip()
         
-        if not revision_notes:
-            messages.error(request, 'Please provide revision instructions.')
-            return redirect('dashboard')
+        if not revision_notes or len(revision_notes) < 20:
+            messages.error(request, 'Please provide detailed revision instructions (minimum 20 characters).')
+            context = {
+                'service_request': service_request,
+                'remaining_revisions': service_request.max_revisions - service_request.revision_count,
+            }
+            return render(request, 'transactions/request_revision.html', context)
         
         try:
-            # Get transaction
-            transaction = Transaction.objects.get(request=service_request)
+            # Get transaction (just for validation)
+            Transaction.objects.get(request=service_request)
             
             # Update request
             service_request.status = 'revision_requested'
             service_request.revision_notes = revision_notes
+            service_request.revision_count += 1  # Increment revision counter
+            service_request.auto_approve_date = None  # Reset auto-approve timer
             service_request.save()
             
-            # Transaction stays in pending_approval
+            # Transaction stays in 'pending_approval' - money still in escrow
             
-            messages.success(request, 'Revision requested! The professional has been notified.')
-            return redirect('messaging:inbox')
+            # Create notification for professional
+            # TODO: Add notification system
+            
+            revisions_left = service_request.max_revisions - service_request.revision_count
+            
+            messages.success(request, 
+                f'✅ Revision requested! ({service_request.revision_count}/{service_request.max_revisions} used) '
+                f'The professional has been notified. {revisions_left} revision(s) remaining.'
+            )
+            return redirect('requests:request_detail', request_id=request_id)
             
         except Transaction.DoesNotExist:
             messages.error(request, 'No transaction found.')
-        except Exception as e:
-            messages.error(request, f'Error requesting revision: {str(e)}')
+            return redirect('dashboard')
     
-    return redirect('dashboard')
+    # GET request - show revision request form
+    context = {
+        'service_request': service_request,
+        'remaining_revisions': service_request.max_revisions - service_request.revision_count,
+    }
+    return render(request, 'transactions/request_revision.html', context)
 
 
 # ============= DISPUTE MANAGEMENT =============
 
 @login_required
-def open_dispute(request, transaction_id):
-    """Open a dispute for a transaction"""
-    transaction = get_object_or_404(Transaction, id=transaction_id)
+def open_dispute(request, request_id):
+    """Client opens a dispute for a request"""
+    service_request = get_object_or_404(Request, id=request_id)
+    
+    # Ensure user is the client
+    if request.user.email != service_request.client:
+        messages.error(request, 'Only the client can open a dispute.')
+        return redirect('dashboard')
+    
+    # Get transaction
+    try:
+        transaction = Transaction.objects.get(request=service_request)
+    except Transaction.DoesNotExist:
+        messages.error(request, 'No transaction found for this request.')
+        return redirect('dashboard')
+    
+    # Check if dispute can be opened
+    if transaction.status not in ['escrowed', 'pending_approval']:
+        messages.error(request, 
+            f'Cannot open dispute. Transaction must be in escrow or pending approval. '
+            f'Current status: {transaction.get_status_display()}'
+        )
+        return redirect('requests:request_detail', request_id=request_id)
+    
+    # Check if dispute already exists
+    if hasattr(transaction, 'dispute'):
+        messages.warning(request, 'A dispute has already been opened for this transaction.')
+        return redirect('transactions:dispute_detail', dispute_id=transaction.dispute.id)
     
     if request.method == 'POST':
-        # TODO: Implement dispute creation
-        messages.success(request, 'Dispute system coming soon!')
-        return redirect('transactions:detail', transaction_id=transaction_id)
+        reason = request.POST.get('reason', '').strip()
+        client_evidence = request.POST.get('client_evidence', '').strip()
+        evidence_files = request.FILES.getlist('evidence_files')
+        
+        # Validation
+        if not reason or len(reason) < 50:
+            messages.error(request, 'Please provide a detailed reason for the dispute (minimum 50 characters).')
+            context = {
+                'service_request': service_request,
+                'transaction': transaction,
+            }
+            return render(request, 'transactions/open_dispute.html', context)
+        
+        try:
+            # Upload evidence files
+            uploaded_evidence = []
+            if evidence_files:
+                from requests.storage_utils import get_storage_manager
+                storage_manager = get_storage_manager()
+                for file in evidence_files:
+                    result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
+                    if result.get('success'):
+                        uploaded_evidence.append({
+                            'name': file.name,
+                            'url': result.get('url'),
+                            'size': file.size
+                        })
+            
+            # Create dispute
+            dispute = Dispute.objects.create(
+                transaction=transaction,
+                opened_by=request.user,
+                reason=reason,
+                client_evidence=client_evidence,
+                client_files=json.dumps(uploaded_evidence),
+                status='open'
+            )
+            
+            # Update transaction status
+            transaction.status = 'disputed'
+            transaction.save()
+            
+            # Update request status
+            service_request.status = 'disputed'
+            service_request.save()
+            
+            # Notify admin and professional
+            # TODO: Add notification system
+            
+            messages.success(request, 
+                '⚠️ Dispute opened successfully. An administrator will review your case within 24-48 hours. '
+                'Transaction funds are now frozen.'
+            )
+            return redirect('transactions:dispute_detail', dispute_id=dispute.id)
+            
+        except Exception as e:
+            messages.error(request, f'Error opening dispute: {str(e)}')
+            return redirect('requests:request_detail', request_id=request_id)
     
-    return render(request, 'transactions/open_dispute.html', {'transaction': transaction})
+    # GET request - show dispute form
+    context = {
+        'service_request': service_request,
+        'transaction': transaction,
+    }
+    return render(request, 'transactions/open_dispute.html', context)
 
 
 @login_required
 def dispute_detail(request, dispute_id):
     """View dispute details"""
     dispute = get_object_or_404(Dispute, id=dispute_id)
-    return render(request, 'transactions/dispute_detail.html', {'dispute': dispute})
+    transaction = dispute.transaction
+    service_request = transaction.request
+    
+    # Ensure user is involved or is admin
+    is_involved = request.user in [transaction.client, transaction.professional]
+    is_admin = request.user.is_staff or request.user.is_superuser
+    
+    if not (is_involved or is_admin):
+        messages.error(request, 'You do not have permission to view this dispute.')
+        return redirect('dashboard')
+    
+    # Parse evidence files
+    client_files = []
+    professional_files = []
+    
+    if dispute.client_files:
+        try:
+            client_files = json.loads(dispute.client_files)
+        except json.JSONDecodeError:
+            client_files = []
+    
+    if dispute.professional_files:
+        try:
+            professional_files = json.loads(dispute.professional_files)
+        except json.JSONDecodeError:
+            professional_files = []
+    
+    context = {
+        'dispute': dispute,
+        'transaction': transaction,
+        'service_request': service_request,
+        'client_files': client_files,
+        'professional_files': professional_files,
+        'is_admin': is_admin,
+        'is_client': request.user == transaction.client,
+        'is_professional': request.user == transaction.professional,
+    }
+    return render(request, 'transactions/dispute_detail.html', context)
 
 
 @login_required
 def submit_evidence(request, dispute_id):
-    """Submit evidence for a dispute"""
+    """Submit evidence for a dispute (Professional only)"""
     dispute = get_object_or_404(Dispute, id=dispute_id)
+    transaction = dispute.transaction
+    
+    # Ensure user is the professional
+    if request.user != transaction.professional:
+        messages.error(request, 'Only the professional can submit counter-evidence.')
+        return redirect('transactions:dispute_detail', dispute_id=dispute_id)
+    
+    # Ensure dispute is open or under review
+    if dispute.status not in ['open', 'under_review']:
+        messages.error(request, f'Cannot submit evidence. Dispute status: {dispute.get_status_display()}')
+        return redirect('transactions:dispute_detail', dispute_id=dispute_id)
     
     if request.method == 'POST':
-        # TODO: Implement evidence submission
-        messages.success(request, 'Evidence submission coming soon!')
-        return redirect('transactions:dispute_detail', dispute_id=dispute_id)
+        professional_evidence = request.POST.get('professional_evidence', '').strip()
+        evidence_files = request.FILES.getlist('evidence_files')
+        
+        if not professional_evidence or len(professional_evidence) < 50:
+            messages.error(request, 'Please provide detailed evidence (minimum 50 characters).')
+            return redirect('transactions:dispute_detail', dispute_id=dispute_id)
+        
+        try:
+            # Upload evidence files
+            uploaded_evidence = []
+            if evidence_files:
+                from requests.storage_utils import get_storage_manager
+                storage_manager = get_storage_manager()
+                for file in evidence_files:
+                    result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
+                    if result.get('success'):
+                        uploaded_evidence.append({
+                            'name': file.name,
+                            'url': result.get('url'),
+                            'size': file.size
+                        })
+            
+            # Update dispute
+            dispute.professional_evidence = professional_evidence
+            dispute.professional_files = json.dumps(uploaded_evidence)
+            dispute.status = 'under_review'  # Move to under_review once professional responds
+            dispute.save()
+            
+            messages.success(request, '✅ Evidence submitted successfully. Admin will review both sides.')
+            return redirect('transactions:dispute_detail', dispute_id=dispute_id)
+            
+        except Exception as e:
+            messages.error(request, f'Error submitting evidence: {str(e)}')
+            return redirect('transactions:dispute_detail', dispute_id=dispute_id)
     
     return redirect('transactions:dispute_detail', dispute_id=dispute_id)
 
