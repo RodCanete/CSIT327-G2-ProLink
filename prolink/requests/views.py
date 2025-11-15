@@ -35,7 +35,7 @@ def requests_list(request):
     search_query = request.GET.get('search', '')
     
     # Query real requests from database
-    user_requests = Request.objects.filter(client=user_email).order_by('-created_at')
+    user_requests = Request.objects.filter(client=user_email).select_related('conversation').order_by('-created_at')
     
     # Calculate counts for each status
     all_requests_count = user_requests.count()
@@ -43,6 +43,7 @@ def requests_list(request):
     in_progress_count = user_requests.filter(status='in_progress').count()
     completed_count = user_requests.filter(status='completed').count()
     cancelled_count = user_requests.filter(status='cancelled').count()
+    declined_count = user_requests.filter(status='declined').count()
     
     # Apply filters
     filtered_requests = user_requests
@@ -56,8 +57,8 @@ def requests_list(request):
             models.Q(professional__icontains=search_query)
         )
     
-    # Convert to list of dictionaries for template compatibility
-    requests_list = []
+    # Add progress calculation as annotation
+    requests_with_progress = []
     for req in filtered_requests:
         # Calculate progress based on status
         progress = 0
@@ -68,27 +69,12 @@ def requests_list(request):
         elif req.status == 'pending':
             progress = 0
         
-        # Safely convert price to float, handling invalid decimals
-        try:
-            price_value = float(req.price) if req.price else None
-        except (ValueError, TypeError, decimal.InvalidOperation):
-            price_value = None
-        
-        requests_list.append({
-            'id': req.id,
-            'title': req.title,
-            'description': req.description,
-            'professional': req.professional,
-            'status': req.status,
-            'price': price_value,
-            'timeline_days': req.timeline_days,
-            'created_at': req.created_at.strftime('%Y-%m-%d'),
-            'updated_at': req.updated_at.strftime('%Y-%m-%d'),
-            'progress': progress
-        })
+        # Add progress attribute to the request object
+        req.progress = progress
+        requests_with_progress.append(req)
     
     context = {
-        'requests': requests_list,
+        'requests': requests_with_progress,
         'current_status': status_filter,
         'search_query': search_query,
         'user_email': user_email,
@@ -98,7 +84,8 @@ def requests_list(request):
         'pending_count': pending_count,
         'in_progress_count': in_progress_count,
         'completed_count': completed_count,
-        'cancelled_count': cancelled_count
+        'cancelled_count': cancelled_count,
+        'declined_count': declined_count
     }
     
     return render(request, 'requests/requests.html', context)
@@ -202,6 +189,85 @@ def request_detail(request, request_id):
         context['user_review'] = None
     
     return render(request, 'requests/request_detail.html', context)
+
+
+def professional_requests_list(request):
+    """Professional view for all their client requests"""
+    # Check if user is authenticated
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to view requests.")
+        return redirect("login")
+    
+    # Check if user is a professional
+    if request.user.user_role != 'professional':
+        messages.error(request, "This page is for professionals only.")
+        return redirect('dashboard')
+    
+    user_email = request.user.email
+    
+    # Get filter parameters
+    status_filter = request.GET.get('status', 'all')
+    search_query = request.GET.get('search', '')
+    sort_by = request.GET.get('sort', 'latest')  # latest, price_high, price_low
+    
+    # Query all requests assigned to this professional
+    professional_requests = Request.objects.filter(professional=user_email)
+    
+    # Apply sorting
+    if sort_by == 'latest':
+        professional_requests = professional_requests.order_by('-created_at')
+    elif sort_by == 'price_high':
+        professional_requests = professional_requests.order_by('-price', '-created_at')
+    elif sort_by == 'price_low':
+        professional_requests = professional_requests.order_by('price', '-created_at')
+    else:
+        professional_requests = professional_requests.order_by('-created_at')
+    
+    # Calculate counts for each status
+    total_count = professional_requests.count()
+    pending_count = professional_requests.filter(status='pending').count()
+    in_progress_count = professional_requests.filter(status='in_progress').count()
+    under_review_count = professional_requests.filter(status='under_review').count()
+    completed_count = professional_requests.filter(status='completed').count()
+    cancelled_count = professional_requests.filter(status='cancelled').count()
+    
+    # Apply filters
+    filtered_requests = professional_requests
+    
+    if status_filter != 'all':
+        filtered_requests = filtered_requests.filter(status=status_filter)
+    
+    if search_query:
+        filtered_requests = filtered_requests.filter(
+            models.Q(title__icontains=search_query) | 
+            models.Q(client__icontains=search_query)
+        )
+    
+    # Attach client_user objects to each request
+    requests_list = []
+    for req in filtered_requests:
+        try:
+            req.client_user = CustomUser.objects.get(email=req.client)
+        except CustomUser.DoesNotExist:
+            req.client_user = None
+        requests_list.append(req)
+    
+    context = {
+        'requests': requests_list,
+        'current_status': status_filter,
+        'search_query': search_query,
+        'sort_by': sort_by,
+        'user_email': user_email,
+        'user': request.user,
+        'total_count': total_count,
+        'pending_count': pending_count,
+        'in_progress_count': in_progress_count,
+        'under_review_count': under_review_count,
+        'completed_count': completed_count,
+        'cancelled_count': cancelled_count
+    }
+    
+    return render(request, 'requests/professional_requests_list.html', context)
 
 
 def professional_request_detail(request, request_id):
@@ -487,30 +553,49 @@ def cancel_request(request, request_id):
     return JsonResponse({'success': False, 'error': 'Invalid request method'})
 
 def delete_request(request, request_id):
-    """Delete a request (only pending requests can be deleted)"""
+    """Delete a request - clients can delete any of their requests"""
+    print(f"🗑️ Delete request called: ID={request_id}, Method={request.method}, Auth={request.user.is_authenticated}")
+    
     if not request.user.is_authenticated:
+        print("❌ User not authenticated")
         return JsonResponse({'success': False, 'error': 'Not authenticated'}, status=401)
     
     if request.method == 'POST':
         try:
             user_email = request.user.email
+            print(f"👤 User email: {user_email}")
             req = get_object_or_404(Request, id=request_id, client=user_email)
+            print(f"📝 Found request: {req.title}, Status: {req.status}")
             
-            # Only allow deletion of pending requests
-            if req.status != 'pending':
-                return JsonResponse({
-                    'success': False, 
-                    'error': 'Only pending requests can be deleted'
-                }, status=400)
+            # Clients can delete any of their requests
+            # But prevent deletion of in_progress requests with active transactions
+            if req.status == 'in_progress':
+                # Check if there's an active transaction
+                try:
+                    from transactions.models import Transaction
+                    transaction = Transaction.objects.filter(request=req, status__in=['pending_payment', 'escrowed']).first()
+                    if transaction:
+                        return JsonResponse({
+                            'success': False, 
+                            'error': 'Cannot delete request with active payment. Please complete or cancel the transaction first.'
+                        }, status=400)
+                except:
+                    pass
             
             req.delete()
+            print(f"✅ Request {request_id} deleted successfully")
             return JsonResponse({'success': True, 'message': 'Request deleted successfully'})
             
         except Request.DoesNotExist:
+            print(f"❌ Request {request_id} not found")
             return JsonResponse({'success': False, 'error': 'Request not found'}, status=404)
         except Exception as e:
+            print(f"❌ Error deleting request: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
     
+    print(f"❌ Invalid method: {request.method}")
     return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=405)
 
 def edit_request(request, request_id):
@@ -645,3 +730,76 @@ def edit_request(request, request_id):
         'professionals': professionals
     }
     return render(request, 'requests/edit_request.html', context)
+
+
+def accept_request(request, request_id):
+    """Professional accepts or declines client's request with set price"""
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to respond to requests.")
+        return redirect("login")
+    
+    if request.user.user_role != 'professional':
+        messages.error(request, "Only professionals can respond to requests.")
+        return redirect('dashboard')
+    
+    user_email = request.user.email
+    
+    # Get the request assigned to this professional
+    try:
+        req = Request.objects.get(id=request_id, professional=user_email, status='pending')
+    except Request.DoesNotExist:
+        messages.error(request, "Request not found or already processed.")
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'accept':
+            # Professional accepts client's budget
+            try:
+                from transactions.models import Transaction
+                
+                # Create transaction with client's set price
+                client_user = CustomUser.objects.get(email=req.client)
+                transaction = Transaction.objects.create(
+                    request=req,
+                    client=client_user,
+                    professional=request.user,
+                    amount=req.price,
+                    status='pending_payment'
+                )
+                
+                # Update request status to awaiting payment
+                req.status = 'awaiting_payment'
+                req.save()
+                
+                # Send notification to client (you can add email/notification here later)
+                messages.success(request, f"Request accepted! Client will be notified to pay ₱{req.price:,.2f}")
+                
+                # Redirect to messaging to start conversation
+                return redirect('messaging:inbox')
+                
+            except Exception as e:
+                messages.error(request, f"Error accepting request: {str(e)}")
+                return redirect('professional_request_detail', request_id=req.id)
+        
+        elif action == 'decline':
+            # Professional declines the request - update status to declined
+            req.status = 'declined'
+            req.save()
+            messages.info(request, "Request declined.")
+            return redirect('professional_requests_list')
+    
+    # GET request - show acceptance form
+    context = {
+        'request': req,
+        'user': request.user
+    }
+    return render(request, 'requests/accept_request.html', context)
+
+
+# DEPRECATED: Price negotiation removed - client sets price, professional accepts or declines
+# def respond_to_price(request, request_id):
+#     """This function is no longer used - price negotiation has been simplified"""
+#     messages.error(request, "Price negotiation is no longer available.")
+#     return redirect('requests_list')

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Cancelled - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .cancel-container {
+            max-width: 600px;
+            margin: 60px auto;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .cancel-icon {
+            font-size: 80px;
+            color: #ef4444;
+            margin-bottom: 24px;
+        }
+        
+        .cancel-container h1 {
+            font-size: 32px;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+        
+        .cancel-container p {
+            font-size: 18px;
+            color: #6b7280;
+            margin-bottom: 32px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #2D5016 0%, #4A7C59 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(45, 80, 22, 0.3);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: #374151;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .btn-secondary:hover {
+            border-color: #2D5016;
+            color: #2D5016;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <main class="main-content">
+        <div class="cancel-container">
+            <i class="fas fa-times-circle cancel-icon"></i>
+            
+            <h1>Payment Cancelled</h1>
+            <p>Your payment was not completed. The request is still waiting for payment.</p>
+            
+            <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin-bottom: 32px; text-align: left;">
+                <p style="margin: 0; color: #92400e;">
+                    <i class="fas fa-info-circle"></i>
+                    No charges were made. You can try again when you're ready.
+                </p>
+            </div>
+            
+            <div class="action-buttons">
+                <a href="{% url 'transactions:initiate_payment' transaction.id %}" class="btn btn-primary">
+                    <i class="fas fa-credit-card"></i>
+                    Try Payment Again
+                </a>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-home"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

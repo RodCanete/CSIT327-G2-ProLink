@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Payment Info - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=6">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .test-info-container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+        
+        .test-badge {
+            background: #fef3c7;
+            color: #92400e;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            display: inline-block;
+            margin-bottom: 32px;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            margin-bottom: 24px;
+        }
+        
+        .info-card h2 {
+            font-size: 24px;
+            color: #111827;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .info-card h3 {
+            font-size: 18px;
+            color: #374151;
+            margin: 24px 0 12px 0;
+        }
+        
+        .test-card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        
+        .test-card-item {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .test-card-item h4 {
+            font-size: 16px;
+            color: #111827;
+            margin-bottom: 12px;
+        }
+        
+        .test-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        
+        .test-detail-label {
+            color: #6b7280;
+        }
+        
+        .test-detail-value {
+            font-family: 'Courier New', monospace;
+            color: #111827;
+            font-weight: 600;
+        }
+        
+        .copy-btn {
+            padding: 4px 12px;
+            background: #2D5016;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+        
+        .copy-btn:hover {
+            background: #1A3009;
+        }
+        
+        .alert-box {
+            background: #e0f2fe;
+            border-left: 4px solid #0284c7;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+        
+        .alert-box p {
+            margin: 0;
+            color: #0c4a6e;
+        }
+        
+        code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            color: #dc2626;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <main class="main-content">
+        <div class="test-info-container">
+            <h1 style="font-size: 36px; margin-bottom: 16px;">
+                <i class="fas fa-flask"></i> Test Payment Information
+            </h1>
+            
+            <div class="test-badge">
+                <i class="fas fa-exclamation-triangle"></i> TEST MODE ENABLED - No real money will be charged
+            </div>
+            
+            <div class="alert-box">
+                <p>
+                    <strong><i class="fas fa-info-circle"></i> How to Test:</strong>
+                    When you reach the PayMongo checkout page, use the test credentials below to simulate different payment scenarios.
+                </p>
+            </div>
+            
+            <!-- Test Cards -->
+            <div class="info-card">
+                <h2><i class="fas fa-credit-card"></i> Test Credit/Debit Cards</h2>
+                <p style="color: #6b7280; margin-bottom: 24px;">Use these card numbers to test different payment outcomes:</p>
+                
+                <div class="test-card-grid">
+                    {% for key, card in test_cards.items %}
+                    <div class="test-card-item">
+                        <h4>✅ {{ card.description }}</h4>
+                        <div class="test-detail">
+                            <span class="test-detail-label">Card Number:</span>
+                            <span class="test-detail-value">
+                                {{ card.number }}
+                                <button class="copy-btn" onclick="copyToClipboard('{{ card.number }}')">Copy</button>
+                            </span>
+                        </div>
+                        <div class="test-detail">
+                            <span class="test-detail-label">CVC:</span>
+                            <span class="test-detail-value">{{ card.cvc }}</span>
+                        </div>
+                        <div class="test-detail">
+                            <span class="test-detail-label">Expiry:</span>
+                            <span class="test-detail-value">{{ card.exp_month }}/{{ card.exp_year }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Test GCash -->
+            <div class="info-card">
+                <h2><i class="fas fa-mobile-alt"></i> Test GCash</h2>
+                <p style="color: #6b7280; margin-bottom: 16px;">{{ test_gcash.message }}</p>
+                
+                <div style="background: #f9fafb; padding: 16px; border-radius: 8px; border: 2px solid #e5e7eb;">
+                    <div class="test-detail">
+                        <span class="test-detail-label">Test Phone Number:</span>
+                        <span class="test-detail-value">
+                            {{ test_gcash.phone }}
+                            <button class="copy-btn" onclick="copyToClipboard('{{ test_gcash.phone }}')">Copy</button>
+                        </span>
+                    </div>
+                    <p style="margin-top: 12px; color: #6b7280; font-size: 14px;">
+                        <i class="fas fa-check-circle" style="color: #2D5016;"></i> {{ test_gcash.note }}
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Instructions -->
+            <div class="info-card">
+                <h2><i class="fas fa-list-check"></i> Testing Steps</h2>
+                <ol style="color: #374151; line-height: 1.8; padding-left: 20px;">
+                    <li>Create a test request with any professional</li>
+                    <li>Professional accepts your request</li>
+                    <li>Click the "Pay Now" button on your dashboard</li>
+                    <li>You'll be redirected to PayMongo's checkout page</li>
+                    <li>Choose your payment method (Card/GCash/GrabPay/Maya)</li>
+                    <li>Enter the test credentials from above</li>
+                    <li>Complete the payment flow</li>
+                    <li>You'll be redirected back with success/failure message</li>
+                </ol>
+            </div>
+            
+            <!-- Important Notes -->
+            <div class="info-card" style="border: 2px solid #fbbf24;">
+                <h2><i class="fas fa-exclamation-circle" style="color: #f59e0b;"></i> Important Notes</h2>
+                <ul style="color: #374151; line-height: 1.8; padding-left: 20px;">
+                    <li><strong>Test Mode:</strong> All payments are simulated - no real money changes hands</li>
+                    <li><strong>Test Cards:</strong> Only the card numbers above will work in test mode</li>
+                    <li><strong>Real Cards:</strong> Real card numbers will be rejected in test mode</li>
+                    <li><strong>Transaction IDs:</strong> Test transactions will have IDs starting with <code>pay_test_</code></li>
+                    <li><strong>Webhooks:</strong> Webhook events will still be sent for testing purposes</li>
+                    <li><strong>Production:</strong> Switch to live keys when you're ready to accept real payments</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin-top: 32px;">
+                <a href="{% url 'dashboard' %}" class="btn btn-primary" style="padding: 14px 28px; border-radius: 10px; background: linear-gradient(135deg, #2D5016 0%, #4A7C59 100%); color: white; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </main>
+    
+    <script>
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Copied to clipboard: ' + text);
+            }, function(err) {
+                alert('Failed to copy: ' + err);
+            });
+        }
+    </script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
+</body>
+</html>

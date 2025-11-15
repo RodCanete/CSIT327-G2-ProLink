@@ -147,6 +147,45 @@
                         </div>
                         {% endif %}
 
+                        <!-- Revision Alert -->
+                        {% if request.status == 'revision_requested' %}
+                        <div class="detail-section" style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #856404;">
+                                <i class="fas fa-redo"></i>
+                                Revision Requested
+                            </h3>
+                            <p style="color: #856404; margin: 10px 0;">
+                                The client has requested changes to your submission.
+                                <strong>Revision {{ request.revision_count }} of {{ request.max_revisions }}</strong>
+                            </p>
+                            <div style="background: white; padding: 15px; border-radius: 8px; margin-top: 15px;">
+                                <strong>Client's Feedback:</strong>
+                                <p style="margin: 10px 0 0 0;">{{ request.revision_notes|linebreaks }}</p>
+                            </div>
+                            <a href="{% url 'transactions:submit_work' request.id %}" class="btn" style="background: #ffc107; color: #000; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 15px; font-weight: 600;">
+                                <i class="fas fa-upload"></i> Resubmit Work
+                            </a>
+                        </div>
+                        {% endif %}
+
+                        <!-- Dispute Alert -->
+                        {% if request.status == 'disputed' %}
+                        <div class="detail-section" style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 20px; border-radius: 10px;">
+                            <h3 style="color: #721c24;">
+                                <i class="fas fa-gavel"></i>
+                                Dispute Opened
+                            </h3>
+                            <p style="color: #721c24; margin: 10px 0;">
+                                The client has opened a dispute for this request. Please respond with your evidence.
+                            </p>
+                            {% if transaction.dispute %}
+                            <a href="{% url 'transactions:dispute_detail' transaction.dispute.id %}" class="btn" style="background: #dc3545; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin-top: 10px; font-weight: 600;">
+                                <i class="fas fa-eye"></i> View Dispute & Respond
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         <!-- Deliverables Section (if submitted) -->
                         {% if request.deliverable_files %}
                         <div class="detail-section">
