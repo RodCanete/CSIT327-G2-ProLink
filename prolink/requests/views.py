@@ -645,3 +645,254 @@ def edit_request(request, request_id):
         'professionals': professionals
     }
     return render(request, 'requests/edit_request.html', context)
+
+
+def accept_request(request, request_id):
+    """Professional accepts request and proposes/accepts price"""
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to accept requests.")
+        return redirect("login")
+    
+    if request.user.user_role != 'professional':
+        messages.error(request, "Only professionals can accept requests.")
+        return redirect('dashboard')
+    
+    user_email = request.user.email
+    
+    # Get the request assigned to this professional
+    try:
+        req = Request.objects.get(id=request_id, professional=user_email, status='pending')
+    except Request.DoesNotExist:
+        messages.error(request, "Request not found or already processed.")
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'accept_price':
+            # Professional accepts client's initial budget
+            try:
+                from transactions.models import Transaction
+                
+                # Store client's initial budget
+                req.client_initial_budget = req.price
+                req.price_negotiation_status = 'agreed'
+                req.negotiation_round = 1
+                req.save()
+                
+                # Create transaction
+                client_user = CustomUser.objects.get(email=req.client)
+                Transaction.objects.create(
+                    request=req,
+                    client=client_user,
+                    professional=request.user,
+                    amount=req.price,
+                    status='pending_payment'
+                )
+                
+                messages.success(request, f"Request accepted! Waiting for client payment of ₱{req.price:,.2f}")
+                return redirect('professional_request_detail', request_id=req.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error accepting request: {str(e)}")
+                return redirect('professional_request_detail', request_id=req.id)
+        
+        elif action == 'propose_price':
+            # Professional proposes different price
+            proposed_price = request.POST.get('proposed_price', '').strip()
+            price_notes = request.POST.get('price_notes', '').strip()
+            
+            errors = []
+            if not proposed_price:
+                errors.append("Please enter a proposed price.")
+            else:
+                try:
+                    proposed_price_float = float(proposed_price)
+                    if proposed_price_float <= 0:
+                        errors.append("Price must be greater than zero.")
+                    elif proposed_price_float > 1000000:
+                        errors.append("Price must be less than ₱1,000,000.")
+                except ValueError:
+                    errors.append("Invalid price format.")
+            
+            if not price_notes or len(price_notes) < 20:
+                errors.append("Please provide an explanation (minimum 20 characters) for your proposed price.")
+            
+            if errors:
+                context = {
+                    'request': req,
+                    'errors': errors,
+                    'proposed_price': proposed_price,
+                    'price_notes': price_notes
+                }
+                return render(request, 'requests/accept_request.html', context)
+            
+            try:
+                from transactions.models import Transaction
+                
+                # Store client's initial budget
+                req.client_initial_budget = req.price
+                # Update with professional's proposed price
+                req.price = decimal.Decimal(proposed_price)
+                req.professional_price_notes = price_notes
+                req.price_negotiation_status = 'proposed'
+                req.negotiation_round = 1
+                req.save()
+                
+                # Create transaction with proposed price
+                client_user = CustomUser.objects.get(email=req.client)
+                Transaction.objects.create(
+                    request=req,
+                    client=client_user,
+                    professional=request.user,
+                    amount=req.price,
+                    status='pending_payment'
+                )
+                
+                messages.success(request, f"Price proposal sent! Client will review your offer of ₱{req.price:,.2f}")
+                return redirect('professional_request_detail', request_id=req.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error proposing price: {str(e)}")
+                return redirect('professional_request_detail', request_id=req.id)
+        
+        elif action == 'decline':
+            # Professional declines the request
+            req.status = 'declined'
+            req.save()
+            messages.info(request, "Request declined.")
+            return redirect('dashboard')
+    
+    # GET request - show acceptance form
+    context = {
+        'request': req,
+        'user': request.user
+    }
+    return render(request, 'requests/accept_request.html', context)
+
+
+def respond_to_price(request, request_id):
+    """Client responds to professional's price proposal"""
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to respond.")
+        return redirect("login")
+    
+    user_email = request.user.email
+    
+    # Get the request
+    try:
+        req = Request.objects.get(id=request_id, client=user_email)
+    except Request.DoesNotExist:
+        messages.error(request, "Request not found.")
+        return redirect('requests_list')
+    
+    # Check if negotiation is still ongoing
+    if req.price_negotiation_status not in ['proposed', 'counter_offered']:
+        messages.error(request, "This request is not in negotiation.")
+        return redirect('request_detail', request_id=req.id)
+    
+    # Check max negotiation rounds (5)
+    if req.negotiation_round >= 5:
+        messages.error(request, "Maximum negotiation rounds reached. Please accept or cancel.")
+        return redirect('request_detail', request_id=req.id)
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'accept':
+            # Client accepts professional's price
+            try:
+                from transactions.models import Transaction
+                
+                req.price_negotiation_status = 'agreed'
+                req.save()
+                
+                # Update transaction amount
+                transaction = Transaction.objects.get(request=req)
+                transaction.amount = req.price
+                transaction.save()
+                
+                messages.success(request, f"Price agreed! Please proceed to payment of ₱{req.price:,.2f}")
+                return redirect('transactions:create_payment', request_id=req.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error accepting price: {str(e)}")
+                return redirect('request_detail', request_id=req.id)
+        
+        elif action == 'counter_offer':
+            # Client makes counter-offer
+            counter_price = request.POST.get('counter_price', '').strip()
+            counter_notes = request.POST.get('counter_notes', '').strip()
+            
+            errors = []
+            if not counter_price:
+                errors.append("Please enter a counter-offer price.")
+            else:
+                try:
+                    counter_price_float = float(counter_price)
+                    if counter_price_float <= 0:
+                        errors.append("Price must be greater than zero.")
+                    elif counter_price_float > 1000000:
+                        errors.append("Price must be less than ₱1,000,000.")
+                except ValueError:
+                    errors.append("Invalid price format.")
+            
+            if not counter_notes or len(counter_notes) < 20:
+                errors.append("Please explain your counter-offer (minimum 20 characters).")
+            
+            if errors:
+                context = {
+                    'request': req,
+                    'errors': errors,
+                    'counter_price': counter_price,
+                    'counter_notes': counter_notes
+                }
+                return render(request, 'requests/respond_to_price.html', context)
+            
+            try:
+                from transactions.models import Transaction
+                
+                # Update price and status
+                req.price = decimal.Decimal(counter_price)
+                req.professional_price_notes = counter_notes  # Store client's counter explanation
+                req.price_negotiation_status = 'counter_offered'
+                req.negotiation_round += 1
+                req.save()
+                
+                # Update transaction
+                transaction = Transaction.objects.get(request=req)
+                transaction.amount = req.price
+                transaction.save()
+                
+                messages.success(request, f"Counter-offer sent! Proposed: ₱{req.price:,.2f} (Round {req.negotiation_round}/5)")
+                return redirect('request_detail', request_id=req.id)
+                
+            except Exception as e:
+                messages.error(request, f"Error sending counter-offer: {str(e)}")
+                return redirect('request_detail', request_id=req.id)
+        
+        elif action == 'cancel':
+            # Client cancels negotiation
+            try:
+                from transactions.models import Transaction
+                
+                req.status = 'cancelled'
+                req.price_negotiation_status = 'cancelled'
+                req.save()
+                
+                # Delete transaction if exists
+                Transaction.objects.filter(request=req).delete()
+                
+                messages.info(request, "Request cancelled.")
+                return redirect('requests_list')
+                
+            except Exception as e:
+                messages.error(request, f"Error cancelling: {str(e)}")
+                return redirect('request_detail', request_id=req.id)
+    
+    # GET request - show response form
+    context = {
+        'request': req,
+        'user': request.user
+    }
+    return render(request, 'requests/respond_to_price.html', context)

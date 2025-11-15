@@ -87,8 +87,16 @@ def dashboard(request):
         from transactions.models import Transaction
         pending_payments = Transaction.objects.filter(
             client=user,
-            status='pending_payment'
+            status='pending_payment',
+            request__price_negotiation_status='agreed'  # Only show if price is agreed
         ).select_related('request')[:5]
+        
+        # Get requests in price negotiation
+        price_negotiations = ServiceRequest.objects.filter(
+            client=user.email,
+            status='pending',
+            price_negotiation_status__in=['proposed', 'counter_offered']
+        ).order_by('-updated_at')[:5]
         
         # Get work awaiting review
         pending_reviews = ServiceRequest.objects.filter(
@@ -103,6 +111,7 @@ def dashboard(request):
             'active_requests_tracking': active_requests_data,
             'recommended_professionals': recommended_professionals,
             'pending_payments': pending_payments,
+            'price_negotiations': price_negotiations,
             'pending_reviews': pending_reviews,
         })
         

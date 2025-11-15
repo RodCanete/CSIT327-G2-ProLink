@@ -1,0 +1,487 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Accept Request - ProLink{% endblock %}
+
+{% block extra_css %}
+<style>
+    .accept-container {
+        max-width: 900px;
+        margin: 2rem auto;
+        padding: 0 1rem;
+    }
+    
+    .request-card {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .request-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 2px solid #f0f0f0;
+    }
+    
+    .request-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #1a1a1a;
+        margin-bottom: 0.5rem;
+    }
+    
+    .client-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #666;
+        font-size: 0.95rem;
+    }
+    
+    .price-badge {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 12px;
+        font-size: 1.5rem;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .section {
+        margin-bottom: 2rem;
+    }
+    
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .description-text {
+        color: #555;
+        line-height: 1.8;
+        font-size: 1rem;
+    }
+    
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+    
+    .info-item {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 10px;
+        border-left: 4px solid #667eea;
+    }
+    
+    .info-label {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 0.25rem;
+    }
+    
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .action-options {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 2rem;
+    }
+    
+    .option-card {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .option-card:hover {
+        border-color: #667eea;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+    }
+    
+    .option-card.selected {
+        border-color: #667eea;
+        background: #f0f3ff;
+    }
+    
+    .option-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+    }
+    
+    .option-radio {
+        width: 20px;
+        height: 20px;
+        accent-color: #667eea;
+    }
+    
+    .option-title {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #333;
+    }
+    
+    .option-description {
+        color: #666;
+        font-size: 0.95rem;
+        margin-left: 2rem;
+    }
+    
+    .price-proposal-form {
+        margin-left: 2rem;
+        margin-top: 1rem;
+        display: none;
+    }
+    
+    .price-proposal-form.show {
+        display: block;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 0.75rem 1rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .form-textarea {
+        min-height: 100px;
+        resize: vertical;
+        font-family: inherit;
+    }
+    
+    .char-counter {
+        font-size: 0.85rem;
+        color: #999;
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+    
+    .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+    }
+    
+    .btn {
+        padding: 0.875rem 2rem;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 1rem;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-secondary {
+        background: #f0f0f0;
+        color: #666;
+    }
+    
+    .btn-secondary:hover {
+        background: #e0e0e0;
+    }
+    
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+    
+    .btn-danger:hover {
+        background: #c82333;
+    }
+    
+    .error-message {
+        background: #fee;
+        border-left: 4px solid #dc3545;
+        padding: 1rem;
+        border-radius: 8px;
+        color: #721c24;
+        margin-bottom: 1.5rem;
+    }
+    
+    .error-list {
+        margin: 0;
+        padding-left: 1.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="accept-container">
+    <div class="request-card">
+        <div class="request-header">
+            <div>
+                <h1 class="request-title">{{ request.title }}</h1>
+                <div class="client-info">
+                    <i class="fas fa-user"></i>
+                    <span>Client: {{ request.client }}</span>
+                </div>
+            </div>
+            <div class="price-badge">
+                ₱{{ request.price|floatformat:2 }}
+            </div>
+        </div>
+        
+        {% if errors %}
+        <div class="error-message">
+            <strong><i class="fas fa-exclamation-triangle"></i> Please fix the following errors:</strong>
+            <ul class="error-list">
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Request Description
+            </h2>
+            <p class="description-text">{{ request.description }}</p>
+        </div>
+        
+        <div class="section">
+            <h2 class="section-title">
+                <i class="fas fa-info-circle"></i>
+                Request Details
+            </h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">Client's Budget</div>
+                    <div class="info-value">₱{{ request.price|floatformat:2 }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Timeline</div>
+                    <div class="info-value">{{ request.timeline_days }} days</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Created</div>
+                    <div class="info-value">{{ request.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <form method="post" id="acceptForm">
+        {% csrf_token %}
+        
+        <div class="action-options">
+            <h2 class="section-title">
+                <i class="fas fa-hand-pointer"></i>
+                Choose Your Response
+            </h2>
+            
+            <!-- Option 1: Accept Client's Price -->
+            <div class="option-card" onclick="selectOption('accept_price')">
+                <div class="option-header">
+                    <input type="radio" name="action" value="accept_price" id="opt_accept" class="option-radio">
+                    <label for="opt_accept" class="option-title">Accept Client's Budget</label>
+                </div>
+                <p class="option-description">
+                    <i class="fas fa-check-circle" style="color: #28a745;"></i>
+                    Accept the client's proposed budget of <strong>₱{{ request.price|floatformat:2 }}</strong> and start immediately after payment.
+                </p>
+            </div>
+            
+            <!-- Option 2: Propose Different Price -->
+            <div class="option-card" onclick="selectOption('propose_price')">
+                <div class="option-header">
+                    <input type="radio" name="action" value="propose_price" id="opt_propose" class="option-radio">
+                    <label for="opt_propose" class="option-title">Propose Different Price</label>
+                </div>
+                <p class="option-description">
+                    <i class="fas fa-edit" style="color: #ffc107;"></i>
+                    Suggest a different price based on the project complexity and your expertise.
+                </p>
+                
+                <div class="price-proposal-form" id="priceProposalForm">
+                    <div class="form-group">
+                        <label class="form-label" for="proposed_price">
+                            Your Proposed Price (₱) <span style="color: red;">*</span>
+                        </label>
+                        <input 
+                            type="number" 
+                            name="proposed_price" 
+                            id="proposed_price" 
+                            class="form-input" 
+                            placeholder="Enter your proposed price"
+                            step="0.01"
+                            min="1"
+                            value="{{ proposed_price }}"
+                        >
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="price_notes">
+                            Explanation (minimum 20 characters) <span style="color: red;">*</span>
+                        </label>
+                        <textarea 
+                            name="price_notes" 
+                            id="price_notes" 
+                            class="form-input form-textarea" 
+                            placeholder="Explain why you're proposing this price (e.g., complexity, time required, expertise needed...)"
+                            maxlength="500"
+                        >{{ price_notes }}</textarea>
+                        <div class="char-counter">
+                            <span id="charCount">0</span>/500 characters (minimum 20)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Option 3: Decline -->
+            <div class="option-card" onclick="selectOption('decline')">
+                <div class="option-header">
+                    <input type="radio" name="action" value="decline" id="opt_decline" class="option-radio">
+                    <label for="opt_decline" class="option-title">Decline Request</label>
+                </div>
+                <p class="option-description">
+                    <i class="fas fa-times-circle" style="color: #dc3545;"></i>
+                    Politely decline this request. The client will be notified.
+                </p>
+            </div>
+            
+            <div class="button-group">
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-check"></i>
+                    Submit Response
+                </button>
+                <a href="{% url 'professional_request_detail' request.id %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Cancel
+                </a>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    let selectedOption = null;
+    
+    function selectOption(option) {
+        selectedOption = option;
+        
+        // Update radio button
+        document.getElementById('opt_' + option.split('_')[0]).checked = true;
+        
+        // Update card selection
+        document.querySelectorAll('.option-card').forEach(card => {
+            card.classList.remove('selected');
+        });
+        event.currentTarget.classList.add('selected');
+        
+        // Show/hide price proposal form
+        const priceForm = document.getElementById('priceProposalForm');
+        if (option === 'propose_price') {
+            priceForm.classList.add('show');
+        } else {
+            priceForm.classList.remove('show');
+        }
+    }
+    
+    // Character counter
+    const priceNotesTextarea = document.getElementById('price_notes');
+    const charCount = document.getElementById('charCount');
+    
+    if (priceNotesTextarea) {
+        priceNotesTextarea.addEventListener('input', function() {
+            charCount.textContent = this.value.length;
+        });
+        
+        // Initialize counter
+        charCount.textContent = priceNotesTextarea.value.length;
+    }
+    
+    // Form validation
+    document.getElementById('acceptForm').addEventListener('submit', function(e) {
+        const action = document.querySelector('input[name="action"]:checked');
+        
+        if (!action) {
+            e.preventDefault();
+            alert('Please select an option.');
+            return;
+        }
+        
+        if (action.value === 'propose_price') {
+            const price = document.getElementById('proposed_price').value;
+            const notes = document.getElementById('price_notes').value;
+            
+            if (!price || parseFloat(price) <= 0) {
+                e.preventDefault();
+                alert('Please enter a valid price.');
+                return;
+            }
+            
+            if (notes.length < 20) {
+                e.preventDefault();
+                alert('Please provide at least 20 characters explaining your proposed price.');
+                return;
+            }
+        }
+        
+        if (action.value === 'decline') {
+            if (!confirm('Are you sure you want to decline this request?')) {
+                e.preventDefault();
+                return;
+            }
+        }
+    });
+</script>
+{% endblock %}

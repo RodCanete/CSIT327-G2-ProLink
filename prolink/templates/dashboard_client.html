@@ -38,6 +38,39 @@
                 </div>
             </div>
 
+            <!-- Price Negotiation Alerts -->
+            {% if price_negotiations %}
+            <div style="margin-bottom: 30px;">
+                {% for req in price_negotiations %}
+                <div style="background: linear-gradient(135deg, #ffc107 0%, #ffb300 100%); color: #1a1a1a; padding: 20px 30px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div style="flex: 1; min-width: 250px;">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                                <i class="fas fa-handshake" style="font-size: 24px;"></i>
+                                <h3 style="margin: 0; font-size: 20px;">Price Negotiation - Response Needed</h3>
+                            </div>
+                            <p style="margin: 0; font-size: 16px; font-weight: 600;">
+                                {{ req.title }}
+                            </p>
+                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.9;">
+                                <i class="fas fa-tag"></i> Your budget: ₱{{ req.client_initial_budget|floatformat:2 }} 
+                                <i class="fas fa-arrow-right" style="margin: 0 5px;"></i> 
+                                Professional proposed: ₱{{ req.price|floatformat:2 }}
+                                {% if req.negotiation_round %}
+                                • Round {{ req.negotiation_round }}/5
+                                {% endif %}
+                            </p>
+                        </div>
+                        <a href="{% url 'respond_to_price' req.id %}" 
+                           style="background: #1a1a1a; color: white; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap;">
+                            <i class="fas fa-reply"></i> Respond
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
             <!-- Pending Payments Alert -->
             {% if pending_payments %}
             <div style="margin-bottom: 30px;">
