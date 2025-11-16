@@ -8,6 +8,49 @@
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="panel" style="max-width:820px; margin:0 auto;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-redo"></i> Request Revision</h3>
+                    <span class="panel-subtitle">Provide clear notes so the professional can resubmit quickly.</span>
+                </div>
+                <div class="panel-content">
+                    <p style="color:#374151; margin-bottom: 12px;">
+                        Request: <strong>{{ service_request.title }}</strong>
+                    </p>
+                    <p style="color:#6b7280; margin-bottom: 10px;">Revisions remaining: {{ remaining_revisions }}</p>
+                    <form method="post" style="display:grid; gap:12px;">
+                        {% csrf_token %}
+                        <label class="form-label" for="revision_notes">Revision details</label>
+                        <textarea id="revision_notes" name="revision_notes" class="form-textarea" rows="6" placeholder="Explain what needs to be changed. Minimum 20 characters." required></textarea>
+                        <div style="display:flex; gap:10px;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Send Revision Request
+                            </button>
+                            <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Revision - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
     .revision-container {
         max-width: 800px;
@@ -209,7 +252,7 @@
             </div>
 
             <div class="action-buttons">
-                <a href="{% url 'requests:request_detail' service_request.id %}" class="btn-cancel">
+                <a href="{% url 'request_detail' service_request.id %}" class="btn-cancel">
                     <i class="fas fa-times"></i> Cancel
                 </a>
                 <button type="submit" class="btn-submit-revision" id="submitBtn">

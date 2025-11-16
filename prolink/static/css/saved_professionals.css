@@ -1,0 +1,32 @@
+/* Saved Professionals page-specific tweaks, scoped to .saved-page to avoid bleed */
+.saved-page .professionals-container {
+	margin-top: 20px;
+}
+
+/* Ensure grid spacing mirrors professionals_list */
+.saved-page .professionals-grid {
+	gap: 20px;
+}
+
+/* Normalize card paddings to match professionals.css expectations */
+.saved-page .professional-header {
+	padding: 16px;
+}
+.saved-page .professional-body {
+	padding: 16px;
+}
+.saved-page .professional-footer {
+	padding: 12px 16px;
+}
+
+/* Avoid unexpected global button styles */
+.saved-page .btn {
+	line-height: 1.1;
+}
+
+/* Keep the bookmark button aligned */
+.saved-page .save-btn {
+	top: 12px;
+	right: 12px;
+}
+

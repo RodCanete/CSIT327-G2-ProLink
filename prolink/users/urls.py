@@ -24,4 +24,7 @@ urlpatterns = [
     path('professionals/<int:pk>/save/', views.save_professional, name='save_professional'),
     path('professionals/<int:pk>/unsave/', views.unsave_professional, name='unsave_professional'),
     path('saved/', views.saved_professionals_list, name='saved_professionals'),
+
+    # API
+    path('api/professionals/', views.professionals_api, name='professionals_api'),
 ]

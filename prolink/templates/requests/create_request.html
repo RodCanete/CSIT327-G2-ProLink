@@ -33,18 +33,7 @@
             <div class="form-container">
                 <form method="post" enctype="multipart/form-data" class="request-form">
                     {% csrf_token %}
-                    
-                    <!-- Messages -->
-                    {% if messages %}
-                        {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
-                            <i class="fas {% if message.tags == 'error' %}fa-exclamation-triangle{% elif message.tags == 'success' %}fa-check-circle{% else %}fa-info-circle{% endif %}"></i>
-                            <div class="alert-content">
-                                <p>{{ message }}</p>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    {% endif %}
+					
                     
                     <!-- Error Messages -->
                     {% if errors %}
@@ -185,19 +174,14 @@
                         
                         <div class="form-group">
                             <label for="professional" class="form-label">Select Professional (Optional)</label>
-                            <select id="professional" name="professional" class="form-select">
-                                <option value="">-- Select a Professional (Optional) --</option>
-                                {% for prof in professionals %}
-                                <option value="{{ prof.email }}" 
-                                    {% if preselected_professional_email and prof.email == preselected_professional_email %}selected{% elif professional == prof.email %}selected{% endif %}>
-                                    {% if prof.first_name and prof.last_name %}
-                                        {{ prof.first_name }} {{ prof.last_name }} ({{ prof.email }})
-                                    {% else %}
-                                        {{ prof.email }}
-                                    {% endif %}
-                                </option>
-                                {% endfor %}
-                            </select>
+                            <!-- Hidden field will be set by the modal picker -->
+                            <input type="hidden" id="professional" name="professional" value="{{ professional|default:preselected_professional_email|default:'' }}">
+                            <div class="input-group">
+                                <input type="text" id="professional_display" class="form-input" placeholder="No professional selected" value="" readonly>
+                                <button type="button" id="openProfessionalPicker" class="btn btn-secondary">
+                                    <i class="fas fa-user-search"></i> Browse & Filter Professionals
+                                </button>
+                            </div>
                             <div class="form-help">
                                 {% if preselected_professional %}
                                     <i class="fas fa-info-circle"></i> Professional pre-selected: <strong>{{ preselected_professional.get_full_name }} ({{ preselected_professional.email }})</strong>
@@ -205,6 +189,7 @@
                                     Choose a professional to assign to this request, or leave empty to assign later
                                 {% endif %}
                             </div>
+                            <small style="display:block; margin-top: 6px; color:#6b7280;">Opens a searchable list without leaving this page.</small>
                         </div>
                     </div>
 
@@ -296,6 +281,126 @@
     <script src="/static/js/dashboard.js"></script>
     
     <style>
+        /* Professional Picker Modal (scoped) */
+        .picker-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(2px);
+            z-index: 10000;
+        }
+        .picker-dialog {
+            background: #fff;
+            width: min(1100px, 92vw);
+            max-height: 85vh;
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 6vh auto 0 auto;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.25);
+            display: flex;
+            flex-direction: column;
+        }
+        .picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .picker-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+        }
+        .picker-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .picker-body {
+            padding: 16px 20px 8px 20px;
+        }
+        .picker-search {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .picker-search .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f5f6f8;
+            border: 1px solid #e5e7eb;
+            padding: 10px 12px;
+            border-radius: 10px;
+            flex: 1;
+        }
+        .picker-search input {
+            border: none;
+            outline: none;
+            background: transparent;
+            width: 100%;
+        }
+        .picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+            padding-bottom: 16px;
+            overflow: auto;
+            max-height: 56vh;
+        }
+        .picker-card {
+            border: 1px solid #eee;
+            border-radius: 12px;
+            background: #fff;
+            display: flex;
+            flex-direction: column;
+        }
+        .picker-card .card-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+        .picker-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #f3f4f6;
+            flex-shrink: 0;
+        }
+        .picker-name { font-weight: 700; }
+        .picker-email { color: #6b7280; font-size: 12px; }
+        .picker-card .card-body { padding: 12px 14px; color: #444; font-size: 14px; min-height: 60px; }
+        .picker-card .card-foot {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 14px;
+            border-top: 1px solid #f1f1f1;
+        }
+        .btn-outline-small {
+            border: 1px solid #d1d5db;
+            color: #111827;
+            background: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+        }
+        .btn-primary-small {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            border: none;
+        }
         /* Alert Styles */
         .alert {
             padding: 16px;
@@ -615,6 +720,89 @@
     <script>
         // Character counters
         document.addEventListener('DOMContentLoaded', function() {
+            // Professional Picker wiring
+            const pickerEl = document.getElementById('professionalPicker');
+            const openPickerBtn = document.getElementById('openProfessionalPicker');
+            const closePickerBtn = document.getElementById('closeProfessionalPicker');
+            const searchInput = document.getElementById('pickerSearchInput');
+            const cardList = document.getElementById('pickerCards');
+            const hiddenEl = document.getElementById('professional');
+            const displayEl = document.getElementById('professional_display');
+
+            function openPicker() { if (pickerEl) { pickerEl.style.display = 'block'; document.body.style.overflow = 'hidden'; searchInput && searchInput.focus(); } }
+            function closePicker() { if (pickerEl) { pickerEl.style.display = 'none'; document.body.style.overflow = ''; } }
+
+            function filterCards() {
+                const q = (searchInput?.value || '').toLowerCase();
+                loadData(q);
+            }
+
+            function selectProfessional(email, name) {
+                if (!email) return;
+                hiddenEl.value = email;
+                displayEl.value = name ? `${name} (${email})` : email;
+                closePicker();
+            }
+
+            async function loadData(q = '') {
+                try {
+                    const params = new URLSearchParams({ q, per_page: 12 });
+                    const res = await fetch(`/api/professionals/?${params.toString()}`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await res.json();
+                    cardList.innerHTML = '';
+                    data.results.forEach(p => {
+                        const el = document.createElement('div');
+                        el.className = 'picker-card';
+                        el.setAttribute('data-name', (p.name || '').toLowerCase());
+                        el.setAttribute('data-email', (p.email || '').toLowerCase());
+                        el.innerHTML = `
+                            <div class="card-head">
+                                <img class="picker-avatar" src="${p.avatar}" alt="${p.name}">
+                                <div>
+                                    <div class="picker-name">${p.name}</div>
+                                    <div class="picker-email">${p.email}</div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <span style="color:#6b7280;">Rating: ${p.average_rating.toFixed ? p.average_rating.toFixed(1) : p.average_rating} (${p.total_reviews}) • ${p.is_available ? 'Available' : 'Unavailable'}</span>
+                            </div>
+                            <div class="card-foot">
+                                <button type="button" class="btn-outline-small" data-view-email="${p.email}">
+                                    <i class="fas fa-user"></i> View Profile
+                                </button>
+                                <button type="button" class="btn-primary-small" data-select-email="${p.email}" data-select-name="${p.name}">
+                                    <i class="fas fa-check"></i> Select
+                                </button>
+                            </div>`;
+                        cardList.appendChild(el);
+                    });
+                } catch (e) {
+                    cardList.innerHTML = `<div style="color:#ef4444;">Failed to load professionals.</div>`;
+                }
+            }
+
+            openPickerBtn && openPickerBtn.addEventListener('click', openPicker);
+            closePickerBtn && closePickerBtn.addEventListener('click', closePicker);
+            searchInput && searchInput.addEventListener('input', filterCards);
+            pickerEl && pickerEl.addEventListener('click', (e) => { if (e.target === pickerEl) closePicker(); });
+            cardList && cardList.addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-select-email]');
+                if (btn) selectProfessional(btn.getAttribute('data-select-email'), btn.getAttribute('data-select-name'));
+                const view = e.target.closest('[data-view-email]');
+                if (view) {
+                    // open detail page in a new tab, requires an id normally; fallback to search page
+                    const email = view.getAttribute('data-view-email');
+                    window.open(`/professionals/?q=${encodeURIComponent(email)}`, '_blank');
+                }
+            });
+
+            // Initialize preselected display
+            if (hiddenEl.value) {
+                displayEl.value = hiddenEl.value;
+            }
+
+            // Load initial data
+            loadData();
             const titleInput = document.getElementById('title');
             const descriptionInput = document.getElementById('description');
             const titleCount = document.getElementById('title-count');
@@ -918,5 +1106,53 @@
             }
         });
     </script>
+
+    <!-- Professional Picker Modal -->
+    <div class="picker-modal" id="professionalPicker">
+        <div class="picker-dialog">
+            <div class="picker-header">
+                <div class="picker-title">
+                    <i class="fas fa-user-search"></i> <span>Select a Professional</span>
+                </div>
+                <div class="picker-actions">
+                    <button class="btn btn-secondary" id="closeProfessionalPicker">
+                        <i class="fas fa-times"></i> Close
+                    </button>
+                </div>
+            </div>
+            <div class="picker-body">
+                <div class="picker-search">
+                    <div class="search-box" style="flex:1;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="pickerSearchInput" placeholder="Search by name or email...">
+                    </div>
+                </div>
+                <div class="picker-grid" id="pickerCards">
+                    {% for prof in professionals %}
+                    <div class="picker-card" data-name="{{ prof.first_name }} {{ prof.last_name }}" data-email="{{ prof.email }}">
+                        <div class="card-head">
+                            <img class="picker-avatar" src="{% if prof.profile_picture %}{{ prof.profile_picture }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" alt="{{ prof.first_name }} {{ prof.last_name }}">
+                            <div>
+                                <div class="picker-name">{{ prof.first_name }} {{ prof.last_name }}</div>
+                                <div class="picker-email">{{ prof.email }}</div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <span style="color:#6b7280;">Click select to assign this professional.</span>
+                        </div>
+                        <div class="card-foot">
+                            <a class="btn-outline-small" href="{% url 'professional_detail' prof.id %}" target="_blank">
+                                <i class="fas fa-user"></i> View Profile
+                            </a>
+                            <button type="button" class="btn-primary-small" data-select-email="{{ prof.email }}">
+                                <i class="fas fa-check"></i> Select
+                            </button>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
