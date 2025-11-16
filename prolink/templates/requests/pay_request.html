@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Pay for Request: {{ request.title }}</h2>
+    <p>Status: <strong>{{ request.get_status_display }}</strong></p>
+    <p>Amount Due: <strong>${{ request.price }}</strong></p>
+    <p>This is a placeholder for the payment flow. Integrate PayMongo or your payment gateway here.</p>
+    <a href="/requests/{{ request.id }}/" class="btn btn-secondary mt-3">Back to Request Details</a>
+</div>
+{% endblock %}

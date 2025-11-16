@@ -146,48 +146,35 @@
                                 {{ req.title }}
                             </p>
                             <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
-                                <i class="fas fa-user-check"></i> {{ req.professional.user.get_full_name|default:"Professional" }} accepted your request
+                                <i class="fas fa-user-check"></i> {{ req.professional_user.get_full_name|default:"Professional" }} accepted your request
                                 • <i class="fas fa-peso-sign"></i>₱{{ req.price|floatformat:2 }}
                                 • <i class="fas fa-clock"></i> Pay now to start work
                             </p>
+                            {% if req.conversation %}
+                            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">
+                                <i class="fas fa-comments"></i> <a href="{% url 'messaging:conversation' req.conversation.id %}" style="color: white; text-decoration: underline;">Chat is now available - Click here to message</a>
+                            </p>
+                            {% endif %}
                         </div>
-                        <a href="{% url 'transactions:initiate_payment' req.transaction.id %}" 
-                           style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap; display: inline-block;">
-                            <i class="fas fa-credit-card"></i> Pay Now
-                        </a>
+                        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                            {% if req.conversation %}
+                            <a href="{% url 'messaging:conversation' req.conversation.id %}" 
+                               style="background: rgba(255, 255, 255, 0.2); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap; display: inline-block; border: 2px solid white;">
+                                <i class="fas fa-comments"></i> Message
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'transactions:initiate_payment' req.transaction.id %}" 
+                               style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap; display: inline-block;">
+                                <i class="fas fa-credit-card"></i> Pay Now
+                            </a>
+                        </div>
                     </div>
                 </div>
                 {% endfor %}
             </div>
             {% endif %}
             
-            <!-- Pending Payments Alert (Legacy/Old Flow) -->
-            {% if pending_payments %}
-            <div style="margin-bottom: 30px;">
-                {% for payment in pending_payments %}
-                <div style="background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%); color: white; padding: 20px 30px; border-radius: 12px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-                                <i class="fas fa-exclamation-circle" style="font-size: 24px;"></i>
-                                <h3 style="margin: 0; font-size: 20px;">Payment Required</h3>
-                            </div>
-                            <p style="margin: 0; font-size: 16px; opacity: 0.95;">
-                                {{ payment.request.title }} - ₱{{ payment.amount|floatformat:2 }}
-                            </p>
-                            <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
-                                Professional is waiting for payment to begin work
-                            </p>
-                        </div>
-                        <a href="{% url 'transactions:initiate_payment' payment.id %}" 
-                           style="background: white; color: #ff6b6b; padding: 12px 30px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px; white-space: nowrap;">
-                            <i class="fas fa-credit-card"></i> Pay Now
-                        </a>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
+            <!-- Legacy Pending Payments section removed to avoid duplicate banners -->
 
             <!-- Work Awaiting Review -->
             {% if pending_reviews %}
@@ -443,10 +430,21 @@
                                             <i class="fas fa-circle" style="font-size: 8px;"></i> {{ item.status_display }}
                                         </span>
                                     </div>
-                                    <div class="request-actions">
+                                    <div class="request-actions" style="display: flex; gap: 10px;">
+                                        {% if item.request.status == 'awaiting_payment' and item.request.transaction %}
+                                        <a href="{% url 'transactions:initiate_payment' item.request.transaction.id %}" class="btn btn-sm" style="background: #ff6b6b; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; white-space: nowrap;">
+                                            <i class="fas fa-credit-card"></i> Pay Now
+                                        </a>
+                                        {% if item.request.conversation %}
+                                        <a href="{% url 'messaging:conversation' item.request.conversation.id %}" class="btn btn-sm" style="background: transparent; color: #2196F3; border: 2px solid #2196F3; padding: 8px 16px; border-radius: 6px; font-weight: 600; white-space: nowrap;">
+                                            <i class="fas fa-comments"></i> Message
+                                        </a>
+                                        {% endif %}
+                                        {% else %}
                                         <a href="{% url 'request_detail' item.request.id %}" class="btn btn-sm btn-primary">
                                             <i class="fas fa-eye"></i> View Details
                                         </a>
+                                        {% endif %}
                                     </div>
                                 </div>
                                 {% endfor %}

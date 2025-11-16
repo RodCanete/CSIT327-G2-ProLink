@@ -12,7 +12,7 @@ urlpatterns = [
     path("<int:request_id>/delete/", views.delete_request, name="delete_request"),
     path("<int:request_id>/message/", views.send_message, name="send_message"),
     path("<int:request_id>/cancel/", views.cancel_request, name="cancel_request"),
-    
+    path("<int:request_id>/pay/", views.pay_request, name="pay_request"),
     # Professional acceptance
     path("<int:request_id>/accept/", views.accept_request, name="accept_request"),
 ]

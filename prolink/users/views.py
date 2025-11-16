@@ -6,6 +6,7 @@ from django.contrib import messages
 from django.conf import settings
 import json
 from requests.models import Request as ServiceRequest
+from users.models import CustomUser
 from analytics.utils import (
     get_client_dashboard_metrics,
     get_recent_activities,
@@ -44,7 +45,6 @@ def dashboard(request):
     # Route to appropriate dashboard based on role
     if user_role == 'professional':
         from transactions.models import Transaction
-        from users.models import CustomUser
         
         # Get pending requests for this professional
         pending_requests = ServiceRequest.objects.filter(
@@ -59,11 +59,24 @@ def dashboard(request):
             except CustomUser.DoesNotExist:
                 req.client_user = None
         
+        # Get requests awaiting client payment (professional accepted, waiting for payment)
+        awaiting_payment_requests = ServiceRequest.objects.filter(
+            professional=user.email,
+            status='awaiting_payment'
+        ).select_related('transaction', 'conversation').order_by('-updated_at')[:10]
+        
+        # Attach client user objects to awaiting payment requests
+        for req in awaiting_payment_requests:
+            try:
+                req.client_user = CustomUser.objects.get(email=req.client)
+            except CustomUser.DoesNotExist:
+                req.client_user = None
+        
         # Get active work (in progress with escrowed payment - ready to submit)
         active_work = ServiceRequest.objects.filter(
             professional=user.email,
             status='in_progress'
-        ).select_related('transaction').order_by('-created_at')[:10]
+        ).select_related('transaction', 'conversation').order_by('-created_at')[:10]
         
         # Attach client user objects to active work
         for work in active_work:
@@ -87,6 +100,7 @@ def dashboard(request):
         
         context.update({
             'pending_requests': pending_requests,
+            'awaiting_payment_requests': awaiting_payment_requests,
             'active_work': active_work,
             'pending_review': pending_review,
         })
@@ -106,17 +120,23 @@ def dashboard(request):
         recommended_professionals = get_recommended_professionals(user, limit=3)
         
         # Get requests with pending payment
-        from transactions.models import Transaction
-        pending_payments = Transaction.objects.filter(
-            client=user,
-            status='pending_payment'
-        ).select_related('request')[:5]
+        # Legacy pending_payments removed to avoid duplicate banners on dashboard
         
         # Get requests awaiting payment (professional accepted, client needs to pay)
         awaiting_payment_requests = ServiceRequest.objects.filter(
             client=user.email,
             status='awaiting_payment'
-        ).select_related('transaction').order_by('-updated_at')[:5]
+        ).select_related('transaction', 'conversation').order_by('-updated_at')[:5]
+        
+        # Attach professional user objects to awaiting payment requests
+        for req in awaiting_payment_requests:
+            if req.professional:
+                try:
+                    req.professional_user = CustomUser.objects.get(email=req.professional)
+                except CustomUser.DoesNotExist:
+                    req.professional_user = None
+            else:
+                req.professional_user = None
         
         # Get work awaiting review
         pending_reviews = ServiceRequest.objects.filter(
@@ -130,7 +150,6 @@ def dashboard(request):
             'recent_activities': formatted_activities,
             'active_requests_tracking': active_requests_data,
             'recommended_professionals': recommended_professionals,
-            'pending_payments': pending_payments,
             'awaiting_payment_requests': awaiting_payment_requests,
             'pending_reviews': pending_reviews,
         })
@@ -775,9 +794,9 @@ def accept_request(request, request_id):
         from transactions.models import Transaction
         from decimal import Decimal
         
-        # Update request with price (keep status as pending until payment)
+        # Update request with price and set status to 'awaiting_payment' so client sees Pay Now
         service_request.price = Decimal(str(price))
-        service_request.status = 'pending'  # Stays pending until client pays
+        service_request.status = 'awaiting_payment'  # Client needs to pay
         service_request.save()
         
         # Get client user

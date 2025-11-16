@@ -2,8 +2,10 @@
 PayMongo Payment Integration Service
 Handles checkout sessions, payment links, and webhooks
 """
-import requests
 import base64
+import json
+from urllib import request as urlrequest
+from urllib import error as urlerror
 from django.conf import settings
 from decimal import Decimal
 
@@ -75,23 +77,24 @@ class PayMongoService:
         }
         
         try:
-            response = requests.post(
-                f"{self.BASE_URL}/checkout_sessions",
-                json=payload,
+            req = urlrequest.Request(
+                url=f"{self.BASE_URL}/checkout_sessions",
+                data=json.dumps(payload).encode('utf-8'),
                 headers=self.headers,
-                timeout=30
+                method='POST'
             )
-            response.raise_for_status()
-            data = response.json()
-            
+            with urlrequest.urlopen(req, timeout=30) as resp:
+                response_body = resp.read().decode('utf-8')
+                data = json.loads(response_body)
+
             return {
                 'success': True,
                 'checkout_url': data['data']['attributes']['checkout_url'],
                 'checkout_id': data['data']['id'],
                 'data': data
             }
-            
-        except requests.exceptions.RequestException as e:
+
+        except (urlerror.HTTPError, urlerror.URLError, Exception) as e:
             return {
                 'success': False,
                 'error': str(e),
@@ -109,15 +112,17 @@ class PayMongoService:
             dict: Session data including payment status
         """
         try:
-            response = requests.get(
-                f"{self.BASE_URL}/checkout_sessions/{checkout_id}",
+            req = urlrequest.Request(
+                url=f"{self.BASE_URL}/checkout_sessions/{checkout_id}",
                 headers=self.headers,
-                timeout=30
+                method='GET'
             )
-            response.raise_for_status()
-            return response.json()
-            
-        except requests.exceptions.RequestException as e:
+            with urlrequest.urlopen(req, timeout=30) as resp:
+                response_body = resp.read().decode('utf-8')
+                data = json.loads(response_body)
+            return data
+
+        except (urlerror.HTTPError, urlerror.URLError, Exception) as e:
             return {
                 'success': False,
                 'error': str(e)
@@ -131,10 +136,35 @@ class PayMongoService:
             str: 'paid', 'unpaid', or 'expired'
         """
         session = self.retrieve_checkout_session(checkout_id)
-        if session.get('success') is False:
+        # If retrieval failed
+        if isinstance(session, dict) and session.get('success') is False:
             return 'error'
-        
-        return session.get('data', {}).get('attributes', {}).get('payment_status', 'unpaid')
+
+        # Happy path: top-level payment_status field
+        attributes = (session or {}).get('data', {}).get('attributes', {}) if isinstance(session, dict) else {}
+        payment_status = attributes.get('payment_status')
+        if payment_status in ('paid', 'unpaid', 'expired'):
+            return payment_status
+
+        # Fallbacks: inspect payments array if present
+        payments = attributes.get('payments') or []
+        if isinstance(payments, list) and payments:
+            try:
+                first_payment = payments[0]
+                fp_attr = first_payment.get('attributes', {})
+                if fp_attr.get('status') == 'paid' or fp_attr.get('paid_at'):
+                    return 'paid'
+            except Exception:
+                pass
+
+        # Fallback: inspect embedded payment_intent if present
+        payment_intent = attributes.get('payment_intent', {})
+        if isinstance(payment_intent, dict):
+            pi_attr = payment_intent.get('attributes', {})
+            if pi_attr.get('status') == 'succeeded':
+                return 'paid'
+
+        return 'unpaid'
     
     def create_payment_intent(self, amount, description, metadata=None):
         """
@@ -174,16 +204,18 @@ class PayMongoService:
         }
         
         try:
-            response = requests.post(
-                f"{self.BASE_URL}/payment_intents",
-                json=payload,
+            req = urlrequest.Request(
+                url=f"{self.BASE_URL}/payment_intents",
+                data=json.dumps(payload).encode('utf-8'),
                 headers=self.headers,
-                timeout=30
+                method='POST'
             )
-            response.raise_for_status()
-            return response.json()
-            
-        except requests.exceptions.RequestException as e:
+            with urlrequest.urlopen(req, timeout=30) as resp:
+                response_body = resp.read().decode('utf-8')
+                data = json.loads(response_body)
+            return data
+
+        except (urlerror.HTTPError, urlerror.URLError, Exception) as e:
             return {
                 'success': False,
                 'error': str(e)
