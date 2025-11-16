@@ -153,16 +153,17 @@ def submit_work(request, request_id):
             })
         
         try:
-            # Upload files to Supabase
-            from requests.storage_utils import upload_to_supabase
+            # Upload files to Supabase (deliverables folder, separate from request-files roots)
+            from requests.storage_utils import get_storage_manager
+            storage_manager = get_storage_manager()
             uploaded_files = []
             
             for file in deliverable_files:
-                file_url = upload_to_supabase(file, f'deliverables/{service_request.id}_{file.name}')
+                info = storage_manager.upload_file(file, folder=f'deliverables/{service_request.id}')
                 uploaded_files.append({
-                    'name': file.name,
-                    'url': file_url,
-                    'size': file.size
+                    'name': info.get('original_name', file.name),
+                    'url': info.get('public_url'),
+                    'size': info.get('size')
                 })
             
             # Update request
@@ -219,7 +220,7 @@ def approve_work(request, request_id):
     # Ensure work is submitted
     if service_request.status != 'under_review':
         messages.error(request, f'Cannot approve work. Current status: {service_request.get_status_display()}')
-        return redirect('requests:request_detail', request_id=request_id)
+        return redirect('request_detail', request_id=request_id)
     
     # Get transaction
     try:
@@ -231,7 +232,7 @@ def approve_work(request, request_id):
     # Ensure transaction is pending approval
     if transaction.status != 'pending_approval':
         messages.error(request, f'Payment cannot be released. Transaction status: {transaction.get_status_display()}')
-        return redirect('requests:request_detail', request_id=request_id)
+        return redirect('request_detail', request_id=request_id)
     
     if request.method == 'POST':
         try:
@@ -250,11 +251,11 @@ def approve_work(request, request_id):
             # TODO: Add notification system
             
             messages.success(request, f'✅ Work approved! Payment of ₱{transaction.professional_payout:,.2f} has been released to {service_request.professional}.')
-            return redirect('requests:request_detail', request_id=request_id)
+            return redirect('request_detail', request_id=request_id)
             
         except Exception as e:
             messages.error(request, f'Error approving work: {str(e)}')
-            return redirect('requests:request_detail', request_id=request_id)
+            return redirect('request_detail', request_id=request_id)
     
     # GET request - show confirmation page
     context = {
@@ -277,7 +278,7 @@ def request_revision(request, request_id):
     # Ensure work is submitted
     if service_request.status != 'under_review':
         messages.error(request, f'Cannot request revision. Current status: {service_request.get_status_display()}')
-        return redirect('requests:request_detail', request_id=request_id)
+        return redirect('request_detail', request_id=request_id)
     
     # Check revision limit
     if service_request.revision_count >= service_request.max_revisions:
@@ -285,7 +286,7 @@ def request_revision(request, request_id):
             f'Maximum revisions ({service_request.max_revisions}) reached. '
             'You must either approve the work or open a dispute.'
         )
-        return redirect('requests:request_detail', request_id=request_id)
+        return redirect('request_detail', request_id=request_id)
     
     if request.method == 'POST':
         revision_notes = request.POST.get('revision_notes', '').strip()
@@ -320,7 +321,7 @@ def request_revision(request, request_id):
                 f'✅ Revision requested! ({service_request.revision_count}/{service_request.max_revisions} used) '
                 f'The professional has been notified. {revisions_left} revision(s) remaining.'
             )
-            return redirect('requests:request_detail', request_id=request_id)
+            return redirect('request_detail', request_id=request_id)
             
         except Transaction.DoesNotExist:
             messages.error(request, 'No transaction found.')
@@ -359,7 +360,7 @@ def open_dispute(request, request_id):
             f'Cannot open dispute. Transaction must be in escrow or pending approval. '
             f'Current status: {transaction.get_status_display()}'
         )
-        return redirect('requests:request_detail', request_id=request_id)
+        return redirect('request_detail', request_id=request_id)
     
     # Check if dispute already exists
     if hasattr(transaction, 'dispute'):
@@ -424,7 +425,7 @@ def open_dispute(request, request_id):
             
         except Exception as e:
             messages.error(request, f'Error opening dispute: {str(e)}')
-            return redirect('requests:request_detail', request_id=request_id)
+            return redirect('request_detail', request_id=request_id)
     
     # GET request - show dispute form
     context = {

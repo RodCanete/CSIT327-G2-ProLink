@@ -135,6 +135,14 @@ def request_detail(request, request_id):
         except json.JSONDecodeError:
             attached_files = []
     
+    # Parse deliverable files (submitted by professional)
+    deliverable_files = []
+    if getattr(req, 'deliverable_files', None):
+        try:
+            deliverable_files = json.loads(req.deliverable_files)
+        except json.JSONDecodeError:
+            deliverable_files = []
+    
     # Calculate progress based on status
     progress = 0
     if req.status == 'in_progress':
@@ -165,6 +173,7 @@ def request_detail(request, request_id):
     request_data.title = req.title
     request_data.description = req.description
     request_data.professional = req.professional
+    request_data.client = req.client  # Needed for template condition
     request_data.status = req.status
     request_data.price = req.price  # Keep as Decimal for template
     request_data.timeline_days = req.timeline_days
@@ -174,6 +183,13 @@ def request_detail(request, request_id):
     request_data.progress = progress
     request_data.attached_files = attached_files
     request_data.messages = formatted_messages
+    # Include deliverables for client review
+    request_data.deliverable_notes = getattr(req, 'deliverable_notes', '')
+    request_data.deliverable_files = deliverable_files
+    # Include revision fields for template
+    request_data.revision_count = getattr(req, 'revision_count', 0)
+    request_data.max_revisions = getattr(req, 'max_revisions', 3)
+    request_data.revision_notes = getattr(req, 'revision_notes', '')
     
     context = {
         'request': request_data,
@@ -195,8 +211,7 @@ def request_detail(request, request_id):
                 user_review = Review.objects.filter(
                     request=req,
                     reviewer=request.user,
-                    reviewee=reviewee,
-                    is_deleted=False
+                    reviewee=reviewee
                 ).first()
                 context['user_review'] = user_review
             except CustomUser.DoesNotExist:
@@ -317,6 +332,14 @@ def professional_request_detail(request, request_id):
         except json.JSONDecodeError:
             attached_files = []
     
+    # Parse deliverable files (submitted by professional)
+    deliverable_files = []
+    if getattr(req, 'deliverable_files', None):
+        try:
+            deliverable_files = json.loads(req.deliverable_files)
+        except json.JSONDecodeError:
+            deliverable_files = []
+    
     # Calculate progress based on status
     progress = 0
     if req.status == 'in_progress':
@@ -340,6 +363,7 @@ def professional_request_detail(request, request_id):
         'request': req,
         'service_request': req,
         'attached_files': attached_files,
+        'deliverable_files': deliverable_files,
         'progress': progress,
         'transaction': transaction,
         'client': CustomUser.objects.filter(email=req.client).first(),

@@ -117,29 +117,29 @@
 
                         <!-- Work Review Actions (Client) -->
                         {% if request.status == 'under_review' and user.email == request.client %}
-                        <div class="detail-section" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 15px; padding: 25px;">
-                            <h3 style="color: white; margin-bottom: 15px;">
-                                <i class="fas fa-clipboard-check"></i>
+                        <div class="detail-section" style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 25px;">
+                            <h3 style="color: #2e7d32; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-clipboard-check" style="color: #4caf50;"></i>
                                 Review Submitted Work
                             </h3>
-                            <p style="margin-bottom: 20px; opacity: 0.9;">The professional has submitted their deliverables. Please review and choose an action below:</p>
+                            <p style="margin-bottom: 20px; color: #2e7d32;">The professional has submitted their deliverables. Please review and choose an action below:</p>
                             
                             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                                <a href="{% url 'transactions:approve_work' request.id %}" class="btn" style="background: #28a745; color: white; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                                    <i class="fas fa-check-circle"></i><br>
-                                    Approve & Release Payment
+                                <a href="{% url 'transactions:approve_work' request.id %}" class="btn" style="background: #28a745; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-check-circle"></i>
+                                    <span>Approve & Release Payment</span>
                                 </a>
                                 
                                 {% if request.revision_count < request.max_revisions %}
-                                <a href="{% url 'transactions:request_revision' request.id %}" class="btn" style="background: #ffc107; color: #000; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                                    <i class="fas fa-edit"></i><br>
-                                    Request Revision ({{ request.revision_count }}/{{ request.max_revisions }})
+                                <a href="{% url 'transactions:request_revision' request.id %}" class="btn" style="background: #ffc107; color: #000; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Request Revision ({{ request.revision_count }}/{{ request.max_revisions }})</span>
                                 </a>
                                 {% endif %}
                                 
-                                <a href="{% url 'transactions:open_dispute' request.id %}" class="btn" style="background: #dc3545; color: white; padding: 15px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600;">
-                                    <i class="fas fa-gavel"></i><br>
-                                    Open Dispute
+                                <a href="{% url 'transactions:open_dispute' request.id %}" class="btn" style="background: #dc3545; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-gavel"></i>
+                                    <span>Open Dispute</span>
                                 </a>
                             </div>
                         </div>

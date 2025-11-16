@@ -201,8 +201,26 @@
                                 </div>
                                 {% endif %}
                                 <div class="files-list">
-                                    {% for file_url in request.deliverable_files %}
-                                    <a href="{{ file_url }}" target="_blank" class="file-item-display" style="text-decoration: none;">
+                                    {% for file in deliverable_files %}
+                                    {# Support both new dict format and legacy URL string #}
+                                    {% if file.url %}
+                                    <a href="{{ file.url }}" target="_blank" class="file-item-display" style="text-decoration: none;">
+                                        <div class="file-icon-display">
+                                            <i class="fas fa-file" style="color: #667eea;"></i>
+                                        </div>
+                                        <div class="file-info-display">
+                                            <span class="file-name-display">{{ file.name|default:"Deliverable "}}{{ file.name|default:forloop.counter }}</span>
+                                            {% if file.size %}
+                                            <span class="file-size-display">({{ file.size|filesizeformat }})</span>
+                                            {% endif %}
+                                        </div>
+                                        <span class="file-download-btn">
+                                            <i class="fas fa-external-link-alt"></i>
+                                            View
+                                        </span>
+                                    </a>
+                                    {% else %}
+                                    <a href="{{ file }}" target="_blank" class="file-item-display" style="text-decoration: none;">
                                         <div class="file-icon-display">
                                             <i class="fas fa-file" style="color: #667eea;"></i>
                                         </div>
@@ -214,6 +232,7 @@
                                             View
                                         </span>
                                     </a>
+                                    {% endif %}
                                     {% endfor %}
                                 </div>
                                 <p style="margin-top: 15px; color: #666;"><i class="fas fa-clock"></i> Submitted {{ request.submitted_at|timesince }} ago</p>

@@ -325,7 +325,7 @@
                                     <span style="background: #2196F3; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
                                         <i class="fas fa-calendar-alt"></i> {{ work.timeline_days }} days timeline
                                     </span>
-                                    {% if work.transaction.paid_at %}
+                                    {% if work.transaction and work.transaction.paid_at %}
                                     <span style="background: #673AB7; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
                                         <i class="fas fa-clock"></i> Started {{ work.transaction.paid_at|timesince }} ago
                                     </span>

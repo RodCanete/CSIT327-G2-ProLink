@@ -342,6 +342,53 @@ from .models import ProfessionalProfile, Specialization, SavedProfessional, Cust
 
 
 @login_required
+def professionals_api(request):
+    """
+    Lightweight JSON endpoint to list professionals for selection modals.
+    Supports ?q=, ?page=, and returns minimal fields.
+    """
+    q = request.GET.get('q', '').strip()
+    page = int(request.GET.get('page', 1) or 1)
+    per_page = int(request.GET.get('per_page', 12) or 12)
+
+    qs = ProfessionalProfile.objects.filter(
+        user__is_active=True
+    ).select_related('user')
+
+    if q:
+        qs = qs.filter(
+            Q(user__first_name__icontains=q) |
+            Q(user__last_name__icontains=q) |
+            Q(user__email__icontains=q) |
+            Q(specializations__name__icontains=q)
+        ).distinct()
+
+    paginator = Paginator(qs.order_by('-average_rating', '-total_reviews'), per_page)
+    page_obj = paginator.get_page(page)
+
+    data = [{
+        'id': prof.id,
+        'email': prof.user.email,
+        'name': prof.user.get_full_name() or prof.user.username or prof.user.email,
+        'avatar': prof.user.get_profile_picture(),
+        'average_rating': float(prof.average_rating or 0),
+        'total_reviews': prof.total_reviews,
+        'hourly_rate': float(prof.hourly_rate or 0),
+        'consultation_fee': float(prof.consultation_fee or 0),
+        'is_available': prof.is_available,
+    } for prof in page_obj]
+
+    return JsonResponse({
+        'results': data,
+        'page': page_obj.number,
+        'num_pages': paginator.num_pages,
+        'total': paginator.count,
+        'per_page': per_page,
+        'has_next': page_obj.has_next(),
+        'has_previous': page_obj.has_previous(),
+    })
+
+@login_required
 def find_professionals(request):
     """
     Main view for browsing and searching professionals

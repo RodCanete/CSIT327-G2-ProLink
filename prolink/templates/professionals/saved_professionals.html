@@ -5,96 +5,120 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Saved Professionals - PROLINK</title>
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
-    <link rel="stylesheet" href="{% static 'css/professionals.css' %}">
-    <style>
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-        }
-        .empty-state i {
-            font-size: 80px;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-        .empty-state h2 {
-            color: #666;
-            margin-bottom: 10px;
-        }
-        .empty-state p {
-            color: #999;
-            margin-bottom: 30px;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
+    <link rel="stylesheet" href="{% static 'css/professionals.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/saved_professionals.css' %}?v=1">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
+<body class="saved-page">
     {% include 'components/navbar.html' %}
 
-    <div class="container">
-        <div class="content-wrapper">
+    <main class="main-content">
+        <div class="professionals-container">
             <div class="page-header">
-                <h1>Saved Professionals</h1>
-                <p>Your saved professionals for quick access</p>
+                <div class="page-title">
+                    <h1>Saved Professionals</h1>
+                    <p>Your saved professionals for quick access</p>
+                </div>
             </div>
 
             {% if saved_professionals %}
                 <div class="professionals-grid">
                     {% for saved in saved_professionals %}
-                        <div class="professional-card">
+                        {% with professional=saved.professional %}
+                        <div class="professional-card" data-professional-id="{{ professional.id }}">
                             <div class="professional-header">
-                                <img src="{% if saved.professional.profile_picture %}{{ saved.professional.profile_picture }}{% else %}{% static 'images/default_profile.png' %}{% endif %}" 
-                                     alt="{{ saved.professional.get_full_name }}" 
-                                     class="professional-avatar">
-                                <div class="professional-info">
-                                    <h3>{{ saved.professional.get_full_name }}</h3>
-                                    <p class="specialization">{{ saved.professional.specialization.name }}</p>
-                                    <div class="rating">
-                                        <span class="stars">
+                                <div class="professional-avatar-large">
+                                    <img src="{{ professional.user.get_profile_picture }}" alt="{{ professional.user.get_full_name }}">
+                                    {% if professional.is_verified %}
+                                    <span class="verified-badge" title="Verified Professional">
+                                        <i class="fas fa-check-circle"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <div class="professional-basic-info">
+                                    <h3>{{ professional.user.get_full_name|default:professional.user.username }}</h3>
+                                    <div class="professional-specializations">
+                                        {% for spec in professional.specializations.all|slice:":3" %}
+                                        <span class="specialization-tag">{{ spec.name }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    <div class="professional-rating">
+                                        <div class="stars">
                                             {% for i in "12345" %}
-                                                {% if forloop.counter <= saved.professional.rating %}
-                                                    <i class="fas fa-star"></i>
+                                                {% if forloop.counter <= professional.average_rating %}
+                                                <i class="fas fa-star"></i>
+                                                {% elif forloop.counter <= professional.average_rating|add:"0.5" %}
+                                                <i class="fas fa-star-half-alt"></i>
                                                 {% else %}
-                                                    <i class="far fa-star"></i>
+                                                <i class="far fa-star"></i>
                                                 {% endif %}
                                             {% endfor %}
-                                        </span>
-                                        <span class="rating-count">({{ saved.professional.total_reviews }} reviews)</span>
+                                        </div>
+                                        <span class="rating-text">{{ professional.average_rating|floatformat:1 }} ({{ professional.total_reviews }} review{{ professional.total_reviews|pluralize }})</span>
                                     </div>
                                 </div>
+                                <button class="save-btn saved" 
+                                        data-professional-id="{{ professional.id }}"
+                                        title="Remove from saved"
+                                        onclick="unsaveProfessional({{ professional.id }})">
+                                    <i class="fas fa-bookmark"></i>
+                                </button>
                             </div>
 
                             <div class="professional-body">
-                                <p class="bio">{{ saved.professional.bio|truncatewords:30 }}</p>
-                                
-                                <div class="professional-stats">
-                                    <div class="stat">
-                                        <i class="fas fa-briefcase"></i>
-                                        <span>{{ saved.professional.total_jobs_completed }} jobs</span>
-                                    </div>
-                                    <div class="stat">
-                                        <i class="fas fa-clock"></i>
-                                        <span>{{ saved.professional.years_of_experience }} years exp.</span>
-                                    </div>
+                                <div class="professional-bio">
+                                    <p>{{ professional.user.bio|truncatewords:30|default:"No bio available." }}</p>
                                 </div>
 
-                                <div class="professional-skills">
-                                    {% for skill in saved.professional.skills.all|slice:":3" %}
-                                        <span class="skill-tag">{{ skill.name }}</span>
-                                    {% endfor %}
+                                <div class="professional-stats">
+                                    <div class="stat-item">
+                                        <i class="fas fa-briefcase"></i>
+                                        <span>{{ professional.get_experience_level_display }}</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>{{ professional.years_of_experience }} years</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <i class="fas fa-check-double"></i>
+                                        <span>{{ professional.completed_consultations }} completed</span>
+                                    </div>
+                                    {% if professional.is_available %}
+                                    <div class="stat-item available">
+                                        <i class="fas fa-circle"></i>
+                                        <span>Available</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+
+                                <div class="professional-pricing">
+                                    <div class="price-info">
+                                        <span class="price-label">Hourly Rate:</span>
+                                        <span class="price-value">${{ professional.hourly_rate|floatformat:0 }}/hr</span>
+                                    </div>
+                                    {% if professional.consultation_fee > 0 %}
+                                    <div class="price-info">
+                                        <span class="price-label">Consultation:</span>
+                                        <span class="price-value">${{ professional.consultation_fee|floatformat:0 }}</span>
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
 
                             <div class="professional-footer">
-                                <a href="{% url 'professional_detail' saved.professional.id %}" class="btn btn-primary">
+                                <a href="{% url 'professional_detail' professional.id %}" class="btn btn-outline btn-sm">
+                                    <i class="fas fa-user"></i>
                                     View Profile
                                 </a>
-                                <button class="btn btn-secondary unsave-btn" 
-                                        data-professional-id="{{ saved.professional.id }}"
-                                        onclick="unsaveProfessional({{ saved.professional.id }})">
-                                    <i class="fas fa-bookmark"></i> Unsave
-                                </button>
+                                <a href="{% url 'create_request' %}?professional={{ professional.id }}" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-paper-plane"></i>
+                                    Request Consultation
+                                </a>
                             </div>
                         </div>
+                        {% endwith %}
                     {% endfor %}
                 </div>
             {% else %}
@@ -108,24 +132,29 @@
                 </div>
             {% endif %}
         </div>
-    </div>
+    </main>
 
     <script>
+        // CSRF helper for AJAX
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
         function unsaveProfessional(professionalId) {
             fetch(`/professionals/${professionalId}/unsave/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-CSRFToken': getCookie('csrftoken'),
                     'Content-Type': 'application/json',
                 },
             })
             .then(response => response.json())
             .then(data => {
                 if (data.status === 'success') {
-                    // Reload the page to update the list
                     window.location.reload();
                 } else {
-                    alert('Failed to unsave professional');
+                    alert(data.message || 'Failed to unsave professional');
                 }
             })
             .catch(error => {
