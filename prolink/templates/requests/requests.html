@@ -118,14 +118,7 @@
                                 </div>
                             </div>
                             
-                            {% if request.status == 'in_progress' %}
-                            <div class="progress-section">
-                                <div class="progress-bar">
-                                    <div class="progress-fill" style="width: {{ request.progress }}%"></div>
-                                </div>
-                                <span class="progress-text">{{ request.progress }}% Complete</span>
-                            </div>
-                            {% endif %}
+                            {# Progress bar removed from request cards #}
                         </div>
                         
                         <div class="request-actions">
@@ -138,6 +131,12 @@
                                 <i class="fas fa-edit"></i>
                                 Edit
                             </button>
+                            {% endif %}
+                            {% if request.status == 'awaiting_payment' %}
+                            <a href="/requests/{{ request.id }}/pay/" class="btn btn-sm btn-success">
+                                <i class="fas fa-credit-card"></i>
+                                Pay Now
+                            </a>
                             {% endif %}
                             {% if request.professional and request.status != 'completed' and request.status != 'cancelled' %}
                                 {% if request.conversation %}

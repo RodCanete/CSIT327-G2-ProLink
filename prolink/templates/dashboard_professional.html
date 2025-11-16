@@ -231,12 +231,29 @@
                                         {% endif %}
                                         <span class="request-timeline">Timeline: {{ req.timeline_days }} days</span>
                                     </div>
-                                    <div class="request-actions">
-                                        <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary" style="margin-right: 10px;">
-                                            <i class="fas fa-eye"></i> View Details
-                                        </a>
-                                        <a href="{% url 'accept_request' req.id %}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-handshake"></i> Respond to Request
+                                    <div class="request-actions" style="display: flex; gap: 10px;">
+                                        {% if req.price %}
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline;" onsubmit="return confirm('Accept this request for ₱{{ req.price|floatformat:2 }}?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="accept">
+                                            <button type="submit" class="btn btn-sm" style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                                <i class="fas fa-check"></i> Accept
+                                            </button>
+                                        </form>
+                                        {% else %}
+                                        <button disabled class="btn btn-sm" style="background: #ccc; color: #666; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: not-allowed;" title="Client has not set a budget yet">
+                                            <i class="fas fa-check"></i> Accept
+                                        </button>
+                                        {% endif %}
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline;" onsubmit="return confirm('Decline this request?');">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="decline">
+                                            <button type="submit" class="btn btn-sm" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
+                                                <i class="fas fa-times"></i> Decline
+                                            </button>
+                                        </form>
+                                        <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary">
+                                            <i class="fas fa-eye"></i> Details
                                         </a>
                                     </div>
                                 </div>
@@ -251,6 +268,43 @@
                     </div>
                 </div>
 
+                <!-- Awaiting Client Payment -->
+                {% if awaiting_payment_requests %}
+                <div class="panel" style="margin-bottom: 30px;">
+                    <div class="panel-header">
+                        <h3><i class="fas fa-clock"></i> Awaiting Client Payment</h3>
+                        <span class="panel-subtitle">You accepted - waiting for client to pay</span>
+                    </div>
+                    <div class="panel-content">
+                        {% for req in awaiting_payment_requests %}
+                        <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #ff9800;">
+                            <div class="request-info">
+                                <h4>{{ req.title }}</h4>
+                                <p>Client: {% if req.client_user %}{{ req.client_user.get_full_name|default:req.client_user.username }}{% else %}{{ req.client }}{% endif %}</p>
+                                <span style="background: #ff9800; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                    <i class="fas fa-hourglass-half"></i> Waiting for payment: ₱{{ req.price|floatformat:2 }}
+                                </span>
+                                <span class="request-timeline">Timeline: {{ req.timeline_days }} days</span>
+                                <p style="margin-top: 10px; font-size: 14px; color: #666;">
+                                    <i class="fas fa-info-circle"></i> Client has been notified to pay. You'll be able to start work once payment is received.
+                                </p>
+                            </div>
+                            <div class="request-actions">
+                                {% if req.conversation %}
+                                <a href="{% url 'messaging:conversation' req.conversation.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-comments"></i> Message Client
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-eye"></i> View Details
+                                </a>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
                 <!-- Active Work - Ready to Submit -->
                 {% if active_work %}
                 <div class="panel" style="margin-bottom: 30px;">
@@ -260,21 +314,38 @@
                     </div>
                     <div class="panel-content">
                         {% for work in active_work %}
-                        <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #4caf50;">
+                        <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #4caf50; background: linear-gradient(to right, #e8f5e9 0%, #ffffff 100%);">
                             <div class="request-info">
                                 <h4>{{ work.title }}</h4>
                                 <p>Client: {% if work.client_user %}{{ work.client_user.get_full_name|default:work.client_user.username }}{% else %}{{ work.client }}{% endif %}</p>
-                                <span style="background: #4caf50; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                                    <i class="fas fa-shield-alt"></i> ₱{{ work.price|floatformat:2 }} Escrowed
-                                </span>
-                                <span class="request-timeline">Due: {{ work.timeline_days }} days</span>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0;">
+                                    <span style="background: #4caf50; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                        <i class="fas fa-shield-alt"></i> ₱{{ work.price|floatformat:2 }} in Escrow
+                                    </span>
+                                    <span style="background: #2196F3; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                        <i class="fas fa-calendar-alt"></i> {{ work.timeline_days }} days timeline
+                                    </span>
+                                    {% if work.transaction.paid_at %}
+                                    <span style="background: #673AB7; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600;">
+                                        <i class="fas fa-clock"></i> Started {{ work.transaction.paid_at|timesince }} ago
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                <p style="margin-top: 10px; font-size: 14px; color: #2e7d32; font-weight: 600;">
+                                    <i class="fas fa-check-circle"></i> Payment received! You can now submit your work when ready.
+                                </p>
                             </div>
                             <div class="request-actions">
-                                <a href="{% url 'transactions:submit_work' work.id %}" class="btn btn-sm btn-primary">
+                                <a href="{% url 'transactions:submit_work' work.id %}" class="btn btn-sm btn-primary" style="font-weight: 600;">
                                     <i class="fas fa-paper-plane"></i> Submit Work
                                 </a>
+                                {% if work.conversation %}
+                                <a href="{% url 'messaging:conversation' work.conversation.id %}" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-comments"></i> Message
+                                </a>
+                                {% endif %}
                                 <a href="{% url 'professional_request_detail' work.id %}" class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-eye"></i> View Details
+                                    <i class="fas fa-eye"></i> Details
                                 </a>
                             </div>
                         </div>

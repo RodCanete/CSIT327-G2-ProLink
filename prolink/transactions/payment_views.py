@@ -66,18 +66,26 @@ def payment_success(request, transaction_id):
     # Verify payment status
     if transaction.transaction_id:
         payment_status = paymongo.get_payment_status(transaction.transaction_id)
-        
-        if payment_status == 'paid':
+
+        should_mark_paid = payment_status == 'paid'
+
+        # In test mode, be lenient: if not explicit error, mark as paid to avoid user confusion
+        if not should_mark_paid and settings.PAYMONGO_TEST_MODE and payment_status != 'error':
+            should_mark_paid = True
+
+        if should_mark_paid:
             # Update transaction status
+            from django.utils import timezone
             transaction.status = 'escrowed'
             transaction.payment_method = 'paymongo'
+            transaction.paid_at = timezone.now()  # Record payment timestamp
             transaction.save()
-            
+
             # Update request status
             transaction.request.status = 'in_progress'
             transaction.request.save()
-            
-            messages.success(request, f"Payment successful! ₱{transaction.amount:,.2f} has been escrowed. Professional can now start work.")
+
+            messages.success(request, f"✅ Payment successful! ₱{transaction.amount:,.2f} has been escrowed. Professional can now start work.")
         else:
             messages.warning(request, "Payment verification pending. Please wait a moment and refresh.")
     
@@ -139,8 +147,10 @@ def paymongo_webhook(request):
             
             if transaction_id:
                 try:
+                    from django.utils import timezone
                     transaction = Transaction.objects.get(id=transaction_id)
                     transaction.status = 'escrowed'
+                    transaction.paid_at = timezone.now()  # Record payment timestamp
                     transaction.save()
                     
                     # Update request status

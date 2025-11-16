@@ -1,3 +1,17 @@
+from django.urls import reverse
+# Pay Now view for client to pay for accepted request
+def pay_request(request, request_id):
+    if not request.user.is_authenticated:
+        messages.error(request, "Please log in to pay for your request.")
+        return redirect("login")
+    user_email = request.user.email
+    req = get_object_or_404(Request, id=request_id, client=user_email)
+    if req.status != 'awaiting_payment':
+        messages.error(request, "This request is not awaiting payment.")
+        return redirect('requests_list')
+    # For now, just show a placeholder page or redirect to detail
+    # In production, redirect to payment gateway or payment form
+    return render(request, 'requests/pay_request.html', {'request': req})
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login as auth_login
 from django.contrib.auth.models import User
@@ -47,16 +61,19 @@ def requests_list(request):
     
     # Apply filters
     filtered_requests = user_requests
-    
-    if status_filter != 'all':
+    # Show both 'pending' and 'awaiting_payment' in 'pending' tab, and both 'in_progress' and 'awaiting_payment' in 'in_progress' tab
+    if status_filter == 'pending':
+        filtered_requests = filtered_requests.filter(status__in=['pending', 'awaiting_payment'])
+    elif status_filter == 'in_progress':
+        filtered_requests = filtered_requests.filter(status__in=['in_progress'])
+    elif status_filter != 'all':
         filtered_requests = filtered_requests.filter(status=status_filter)
-    
+    # Default (all) shows everything
     if search_query:
         filtered_requests = filtered_requests.filter(
             models.Q(title__icontains=search_query) | 
             models.Q(professional__icontains=search_query)
         )
-    
     # Add progress calculation as annotation
     requests_with_progress = []
     for req in filtered_requests:
@@ -68,7 +85,8 @@ def requests_list(request):
             progress = 100
         elif req.status == 'pending':
             progress = 0
-        
+        elif req.status == 'awaiting_payment':
+            progress = 0
         # Add progress attribute to the request object
         req.progress = progress
         requests_with_progress.append(req)
@@ -755,12 +773,24 @@ def accept_request(request, request_id):
         action = request.POST.get('action')
         
         if action == 'accept':
+            # Validate that request has a price
+            if not req.price or req.price <= 0:
+                messages.error(request, "Cannot accept request: No budget set by client.")
+                return redirect('dashboard')
+            
             # Professional accepts client's budget
             try:
                 from transactions.models import Transaction
+                from messaging.models import Conversation, Message
+                
+                # Get client user
+                client_user = CustomUser.objects.filter(email__iexact=req.client).first()
+                if not client_user:
+                    print(f"❌ accept_request: Client user not found for email '{req.client}' (case-insensitive search)")
+                    messages.error(request, f"Cannot find client user for email {req.client}. Please contact support.")
+                    return redirect('professional_requests_list')
                 
                 # Create transaction with client's set price
-                client_user = CustomUser.objects.get(email=req.client)
                 transaction = Transaction.objects.create(
                     request=req,
                     client=client_user,
@@ -773,21 +803,62 @@ def accept_request(request, request_id):
                 req.status = 'awaiting_payment'
                 req.save()
                 
-                # Send notification to client (you can add email/notification here later)
-                messages.success(request, f"Request accepted! Client will be notified to pay ₱{req.price:,.2f}")
+                # Create or get conversation
+                conversation, created = Conversation.objects.get_or_create(
+                    request=req,
+                    defaults={
+                        'client': client_user,
+                        'professional': request.user,
+                        'is_active': True
+                    }
+                )
                 
-                # Redirect to messaging to start conversation
-                return redirect('messaging:inbox')
+                # Always send a message to client to prompt payment
+                try:
+                    pay_url = reverse('transactions:initiate_payment', args=[transaction.id])
+                except Exception as e:
+                    print(f"⚠️ accept_request: Could not reverse pay URL for transaction {transaction.id}: {e}")
+                    pay_url = None
+                
+                payment_message = (
+                    f"Hello {client_user.first_name}! 👋\n\n"
+                    f"I've accepted your request for '{req.title}'.\n\n"
+                    f"Project Budget: ₱{req.price:,.2f}\n"
+                    f"Timeline: {req.timeline_days} days\n\n"
+                    f"Please proceed with the payment to start the project. "
+                    f"Once payment is confirmed, I'll begin working on your request immediately.\n\n"
+                    f"You can pay by clicking the 'Pay Now' button on your dashboard."
+                    f"{(' Or click here: ' + pay_url) if pay_url else ''}\n\n"
+                    f"Feel free to message me if you have any questions!"
+                )
+                Message.objects.create(
+                    conversation=conversation,
+                    sender=request.user,
+                    content=payment_message
+                )
+                
+                # Send notification to client (you can add email/notification here later)
+                messages.success(
+                    request, 
+                    f"✅ Request accepted! Conversation started with {client_user.first_name}. "
+                    f"Client will be notified to pay ₱{req.price:,.2f}. You can now message them!"
+                )
+                
+                # Redirect to the conversation so professional can start messaging
+                return redirect('messaging:conversation', conversation_id=conversation.id)
                 
             except Exception as e:
+                import traceback
+                error_detail = traceback.format_exc()
+                print(f"❌ Error accepting request: {error_detail}")
                 messages.error(request, f"Error accepting request: {str(e)}")
-                return redirect('professional_request_detail', request_id=req.id)
+                return redirect('professional_requests_list')
         
         elif action == 'decline':
             # Professional declines the request - update status to declined
             req.status = 'declined'
             req.save()
-            messages.info(request, "Request declined.")
+            messages.info(request, "Request declined successfully.")
             return redirect('professional_requests_list')
     
     # GET request - show acceptance form

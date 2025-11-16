@@ -94,7 +94,7 @@ def get_active_requests_tracking(user, limit=5):
         client=user_email
     ).exclude(
         status__in=['cancelled']
-    ).order_by('-updated_at')[:limit]
+    ).select_related('transaction', 'conversation').order_by('-updated_at')[:limit]
     
     tracking_data = []
     for req in requests:

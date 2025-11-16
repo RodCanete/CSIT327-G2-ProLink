@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator
 from users.models import CustomUser
 from requests.models import Request
+from decimal import Decimal
 
 
 class Transaction(models.Model):
@@ -58,8 +59,8 @@ class Transaction(models.Model):
     def save(self, *args, **kwargs):
         # Calculate platform fee (10%) and professional payout (90%)
         if self.amount:
-            self.platform_fee = self.amount * 0.10
-            self.professional_payout = self.amount * 0.90
+            self.platform_fee = (self.amount * Decimal('0.10')).quantize(Decimal('0.01'))
+            self.professional_payout = (self.amount * Decimal('0.90')).quantize(Decimal('0.01'))
         super().save(*args, **kwargs)
 
 
