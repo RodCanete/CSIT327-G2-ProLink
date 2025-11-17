@@ -559,4 +559,21 @@ def transaction_detail(request, transaction_id):
         messages.error(request, 'You do not have permission to view this transaction.')
         return redirect('dashboard')
     
-    return render(request, 'transactions/detail.html', {'transaction': transaction})
+    # Parse deliverable files (submitted by professional)
+    deliverable_files = []
+    if getattr(transaction.request, 'deliverable_files', None):
+        try:
+            deliverable_files = json.loads(transaction.request.deliverable_files)
+        except (json.JSONDecodeError, TypeError):
+            # Handle legacy format where it might be a single URL string
+            if isinstance(transaction.request.deliverable_files, str):
+                deliverable_files = [{'url': transaction.request.deliverable_files}]
+            else:
+                deliverable_files = []
+    
+    context = {
+        'transaction': transaction,
+        'deliverable_files': deliverable_files,
+    }
+    
+    return render(request, 'transactions/detail.html', context)

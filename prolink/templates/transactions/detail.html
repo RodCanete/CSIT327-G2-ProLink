@@ -286,13 +286,23 @@
                         <p>{{ transaction.request.deliverable_notes }}</p>
                     </div>
                     {% endif %}
-                    {% if transaction.request.deliverable_files %}
+                    {% if deliverable_files %}
                     <div style="margin-top: 10px;">
                         <strong>Deliverables:</strong>
-                        {% for file_url in transaction.request.deliverable_files %}
-                        <a href="{{ file_url }}" target="_blank" class="deliverable-link">
+                        {% for file in deliverable_files %}
+                        {# Support both new dict format and legacy URL string #}
+                        {% if file.url %}
+                        <a href="{{ file.url }}" target="_blank" class="deliverable-link">
+                            <i class="fas fa-file"></i> 
+                            {% if file.name %}{{ file.name }}{% else %}View File {{ forloop.counter }}{% endif %}
+                            {% if file.size %} ({{ file.size|filesizeformat }}){% endif %}
+                        </a>
+                        {% elif file %}
+                        {# Legacy format: file is just a URL string #}
+                        <a href="{{ file }}" target="_blank" class="deliverable-link">
                             <i class="fas fa-file"></i> View File {{ forloop.counter }}
                         </a>
+                        {% endif %}
                         {% endfor %}
                     </div>
                     {% endif %}

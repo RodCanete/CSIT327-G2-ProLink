@@ -209,59 +209,74 @@
                 <!-- Client Requests Queue -->
                 <div class="panel requests-panel">
                     <div class="panel-header">
-                        <h3>Client Requests Queue</h3>
+                        <h3><i class="fas fa-inbox"></i> Client Requests Queue</h3>
                         <a href="{% url 'professional_requests_list' %}" class="panel-link">View All</a>
                     </div>
                     <div class="panel-content">
                         <div class="requests-list">
                             {% if pending_requests %}
                                 {% for req in pending_requests %}
-                                <div class="request-item">
+                                <div class="request-card" style="margin-bottom: 15px; border-left: 4px solid #ff9800; background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.12)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 8px rgba(0,0,0,0.08)'">
                                     <div class="request-info">
-                                        <h4>{{ req.title }}</h4>
-                                        <p>Client: {% if req.client_user %}{{ req.client_user.get_full_name|default:req.client_user.username }}{% else %}{{ req.client }}{% endif %}</p>
-                                        {% if req.price %}
-                                        <span class="request-budget" style="background: #2D5016; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                                            <i class="fas fa-tag"></i> Client's Budget: ₱{{ req.price|floatformat:2 }}
-                                        </span>
-                                        {% else %}
-                                        <span class="request-budget" style="background: #7FB069; color: white; padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: 600;">
-                                            <i class="fas fa-question-circle"></i> Budget: To be discussed
-                                        </span>
-                                        {% endif %}
-                                        <span class="request-timeline">Timeline: {{ req.timeline_days }} days</span>
+                                        <h4 style="margin: 0 0 8px 0; color: #111827; font-size: 18px; font-weight: 700;">{{ req.title }}</h4>
+                                        <p style="margin: 0 0 12px 0; color: #6b7280; font-size: 14px; display: flex; align-items: center; gap: 6px;">
+                                            <i class="fas fa-user" style="color: #9ca3af;"></i>
+                                            <span>Client: <strong style="color: #374151;">{% if req.client_user %}{{ req.client_user.get_full_name|default:req.client_user.username }}{% else %}{{ req.client }}{% endif %}</strong></span>
+                                        </p>
+                                        <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                                            {% if req.price %}
+                                            <span style="background: #4caf50; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-tag"></i>
+                                                <span>₱{{ req.price|floatformat:2 }}</span>
+                                            </span>
+                                            {% else %}
+                                            <span style="background: #9ca3af; color: white; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-question-circle"></i>
+                                                <span>Budget: To be discussed</span>
+                                            </span>
+                                            {% endif %}
+                                            <span style="background: #e5e7eb; color: #374151; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                                                <i class="fas fa-calendar-alt"></i>
+                                                <span>{{ req.timeline_days }} days</span>
+                                            </span>
+                                        </div>
                                     </div>
-                                    <div class="request-actions" style="display: flex; gap: 10px;">
+                                    <div class="request-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                                         {% if req.price %}
-                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline;" onsubmit="return confirm('Accept this request for ₱{{ req.price|floatformat:2 }}?');">
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline; margin: 0;" onsubmit="return confirm('Accept this request for ₱{{ req.price|floatformat:2 }}?');">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-sm" style="background: #4caf50; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                                                <i class="fas fa-check"></i> Accept
+                                            <button type="submit" class="btn btn-sm" style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4caf50'">
+                                                <i class="fas fa-check"></i>
+                                                <span>Accept</span>
                                             </button>
                                         </form>
                                         {% else %}
-                                        <button disabled class="btn btn-sm" style="background: #ccc; color: #666; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: not-allowed;" title="Client has not set a budget yet">
-                                            <i class="fas fa-check"></i> Accept
+                                        <button disabled class="btn btn-sm" style="background: #e5e7eb; color: #9ca3af; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;" title="Client has not set a budget yet">
+                                            <i class="fas fa-check"></i>
+                                            <span>Accept</span>
                                         </button>
                                         {% endif %}
-                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline;" onsubmit="return confirm('Decline this request?');">
+                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline; margin: 0;" onsubmit="return confirm('Decline this request?');">
                                             {% csrf_token %}
                                             <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-sm" style="background: #f44336; color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 600; cursor: pointer;">
-                                                <i class="fas fa-times"></i> Decline
+                                            <button type="submit" class="btn btn-sm" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
+                                                <i class="fas fa-times"></i>
+                                                <span>Decline</span>
                                             </button>
                                         </form>
-                                        <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary">
-                                            <i class="fas fa-eye"></i> Details
+                                        <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; transition: all 0.2s;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='#d1d5db'" onmouseout="this.style.background='#f3f4f6'; this.style.borderColor='#e5e7eb'">
+                                            <i class="fas fa-eye"></i>
+                                            <span>Details</span>
                                         </a>
                                     </div>
                                 </div>
                                 {% endfor %}
                             {% else %}
-                                <div class="no-requests">
-                                    <i class="fas fa-inbox"></i>
-                                    <p>No pending requests at the moment</p>
+                                <div class="no-requests" style="text-align: center; padding: 60px 20px; color: #9ca3af;">
+                                    <i class="fas fa-inbox" style="font-size: 64px; margin-bottom: 16px; opacity: 0.3;"></i>
+                                    <p style="font-size: 16px; margin: 0; font-weight: 500;">No pending requests at the moment</p>
+                                    <p style="font-size: 14px; margin: 8px 0 0 0; opacity: 0.7;">New client requests will appear here</p>
                                 </div>
                             {% endif %}
                         </div>
