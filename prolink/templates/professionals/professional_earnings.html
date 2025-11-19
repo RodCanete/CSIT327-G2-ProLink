@@ -1,0 +1,350 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Earnings - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/professional_earnings.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <!-- Top Navigation Bar -->
+    <nav class="top-navbar">
+        <div class="navbar-brand">
+            <i class="fas fa-link"></i>
+            <span>ProLink</span>
+        </div>
+        
+        <div class="navbar-nav">
+            <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <!-- Professional-specific navigation -->
+            <a href="/services/" class="nav-link {% if '/services/' in request.path %}active{% endif %}">
+                <i class="fas fa-briefcase"></i>
+                <span>My Services</span>
+            </a>
+            <a href="{% url 'professional_requests_list' %}" class="nav-link {% if '/requests/professional' in request.path %}active{% endif %}">
+                <i class="fas fa-inbox"></i>
+                <span>Client Requests</span>
+            </a>
+            <a href="/my-clients/" class="nav-link {% if '/my-clients/' in request.path %}active{% endif %}">
+                <i class="fas fa-users"></i>
+                <span>My Clients</span>
+            </a>
+            <a href="/earnings/" class="nav-link {% if '/earnings/' in request.path %}active{% endif %}">
+                <i class="fas fa-chart-line"></i>
+                <span>Earnings</span>
+            </a>
+            <a href="/bookings/" class="nav-link {% if '/bookings/' in request.path %}active{% endif %}">
+                <i class="fas fa-calendar-check"></i>
+                <span>Bookings</span>
+            </a>
+            
+            <!-- Common: Messages -->
+            <a href="{% url 'messaging:inbox' %}" class="nav-link {% if '/messages/' in request.path %}active{% endif %}">
+                <i class="fas fa-envelope"></i>
+                <span>Messages</span>
+                <span class="nav-badge" id="unreadMessageCount" style="display: none;">0</span>
+            </a>
+        </div>
+        
+        <div class="navbar-actions">
+            <!-- Notifications -->
+            <div class="notifications">
+                <i class="fas fa-bell"></i>
+                <span class="notification-badge">2</span>
+            </div>
+            
+            <!-- User Menu -->
+            <div class="user-menu">
+                <div class="user-info">
+                    <img src="{{ user.get_profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="User" class="user-avatar" id="navbarUserAvatar">
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+                </div>
+                <div class="user-dropdown">
+                    <a href="{% url 'profile' %}">
+                        <i class="fas fa-user"></i>
+                        Profile
+                    </a>
+                    <a href="/settings/">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </a>
+                    <a href="/analytics/">
+                        <i class="fas fa-chart-bar"></i>
+                        Analytics
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <form method="post" action="{% url 'logout' %}" class="logout-form">
+                        {% csrf_token %}
+                        <button type="submit" class="logout-btn">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="earnings-container">
+        <div class="earnings-header">
+            <h1>My Earnings</h1>
+            <p>Track your income and payment history</p>
+        </div>
+
+        <!-- Earnings Overview Cards -->
+        <div class="earnings-overview">
+            <div class="earnings-card total-earnings">
+                <div class="card-icon">
+                    <i class="fas fa-wallet"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Total Earnings</h3>
+                    <p class="amount">₱{{ total_earnings|default:"0.00"|floatformat:2 }}</p>
+                    <span class="trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        12% this month
+                    </span>
+                </div>
+            </div>
+
+            <div class="earnings-card available-balance">
+                <div class="card-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Available Balance</h3>
+                    <p class="amount">₱{{ available_balance|default:"0.00"|floatformat:2 }}</p>
+                    <span class="trend">
+                        Ready for withdrawal
+                    </span>
+                </div>
+            </div>
+
+            <div class="earnings-card pending-payments">
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Pending Payments</h3>
+                    <p class="amount">₱{{ pending_payments|default:"0.00"|floatformat:2 }}</p>
+                    <span class="trend">
+                        In escrow
+                    </span>
+                </div>
+            </div>
+
+            <div class="earnings-card completed-jobs">
+                <div class="card-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <div class="card-content">
+                    <h3>Completed Jobs</h3>
+                    <p class="amount">{{ completed_jobs|default:"0" }}</p>
+                    <span class="trend positive">
+                        <i class="fas fa-arrow-up"></i>
+                        5 this month
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Earnings Chart and Stats -->
+        <div class="earnings-dashboard">
+            <!-- Earnings Chart -->
+            <div class="chart-section">
+                <div class="section-header">
+                    <h2>Earnings Overview</h2>
+                    <div class="time-filter">
+                        <button class="filter-btn active">Week</button>
+                        <button class="filter-btn">Month</button>
+                        <button class="filter-btn">Year</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <!-- Chart will be implemented with Chart.js or similar -->
+                    <div class="chart-placeholder">
+                        <i class="fas fa-chart-bar"></i>
+                        <p>Earnings chart will be displayed here</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="stats-section">
+                <div class="section-header">
+                    <h2>Quick Stats</h2>
+                </div>
+                <div class="stats-grid">
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ active_requests|default:"0" }}</span>
+                            <span class="stat-label">Active Requests</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-star"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ average_rating|default:"0.0"|floatformat:1 }}</span>
+                            <span class="stat-label">Average Rating</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-repeat"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ repeat_clients|default:"0" }}%</span>
+                            <span class="stat-label">Repeat Clients</span>
+                        </div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-icon">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value">{{ response_time|default:"0" }}h</span>
+                            <span class="stat-label">Avg. Response Time</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="transactions-section">
+            <div class="section-header">
+                <h2>Recent Transactions</h2>
+                <a href="#" class="view-all-btn">View All</a>
+            </div>
+            
+            <div class="transactions-table-container">
+                <table class="transactions-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Client</th>
+                            <th>Service</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for transaction in recent_transactions %}
+                        <tr>
+                            <td>{{ transaction.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="client-info">
+                                    <img src="{{ transaction.client.get_profile_picture }}" alt="{{ transaction.client.get_full_name }}" class="client-avatar">
+                                    <span>{{ transaction.client.get_full_name }}</span>
+                                </div>
+                            </td>
+                            <td>{{ transaction.request.title }}</td>
+                            <td class="amount">₱{{ transaction.amount|floatformat:2 }}</td>
+                            <td>
+                                <span class="status-badge status-{{ transaction.status }}">
+                                    {{ transaction.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="action-buttons">
+                                    <button class="btn-icon" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    {% if transaction.status == 'completed' %}
+                                    <button class="btn-icon" title="Download Receipt">
+                                        <i class="fas fa-download"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="no-transactions">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                                <p>No transactions yet</p>
+                                <span>Your completed jobs will appear here</span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Withdrawal Section -->
+        <div class="withdrawal-section">
+            <div class="withdrawal-card">
+                <div class="withdrawal-info">
+                    <h3>Ready to Withdraw?</h3>
+                    <p>Transfer your available balance to your bank account or GCash</p>
+                    <div class="balance-display">
+                        <span class="balance-label">Available for withdrawal:</span>
+                        <span class="balance-amount">₱{{ available_balance|default:"0.00"|floatformat:2 }}</span>
+                    </div>
+                </div>
+                <div class="withdrawal-actions">
+                    <button class="btn-primary" {% if not available_balance or available_balance <= 0 %}disabled{% endif %}>
+                        <i class="fas fa-money-bill-wave"></i>
+                        Withdraw Funds
+                    </button>
+                    <button class="btn-secondary">
+                        <i class="fas fa-cog"></i>
+                        Payment Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Update unread message count
+        function updateUnreadCount() {
+            fetch('{% url "messaging:unread_count" %}')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('unreadMessageCount');
+                    if (data.unread_count > 0) {
+                        badge.textContent = data.unread_count;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(error => console.error('Error fetching unread count:', error));
+        }
+        
+        updateUnreadCount();
+        setInterval(updateUnreadCount, 30000);
+
+        // Chart filter buttons
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // Action buttons
+        document.querySelectorAll('.btn-icon').forEach(btn => {
+            btn.addEventListener('click', function() {
+                // Handle action button clicks
+                console.log('Action button clicked');
+            });
+        });
+    </script>
+</body>
+</html>
