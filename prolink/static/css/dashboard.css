@@ -2229,3 +2229,131 @@ a:focus {
         margin-bottom: 12px;
     }
 }
+
+/* System Message Banner Styles */
+.system-banner {
+    position: fixed;
+    top: 64px;
+    left: 0;
+    right: 0;
+    z-index: 9999;
+    padding: 0;
+    animation: slideDownBanner 0.4s ease-out;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-family: 'Inter', sans-serif;
+}
+
+.system-banner-error {
+    background: linear-gradient(135deg, #fee, #fff5f5);
+    border-bottom: 2px solid #f56565;
+}
+
+.system-banner-success {
+    background: linear-gradient(135deg, #f0fff4, #f7fff9);
+    border-bottom: 2px solid #48bb78;
+}
+
+.system-banner-content {
+    display: flex;
+    align-items: flex-start;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 32px;
+    gap: 16px;
+}
+
+.system-banner-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.system-banner-error .system-banner-icon i {
+    color: #e53e3e;
+    font-size: 20px;
+}
+
+.system-banner-success .system-banner-icon i {
+    color: #38a169;
+    font-size: 20px;
+}
+
+.system-banner-text {
+    flex: 1;
+}
+
+.system-banner-text h4 {
+    margin: 0 0 8px 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.system-banner-error .system-banner-text h4 {
+    color: #c53030;
+}
+
+.system-banner-success .system-banner-text h4 {
+    color: #2d5016;
+}
+
+.system-banner-text ul {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.system-banner-error .system-banner-text ul {
+    color: #742a2a;
+}
+
+.system-banner-success .system-banner-text ul {
+    color: #22543d;
+}
+
+.system-banner-text li {
+    margin-bottom: 4px;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.system-banner-close {
+    background: none;
+    border: none;
+    color: #718096;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+    font-size: 16px;
+}
+
+.system-banner-close:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: #2d3748;
+}
+
+@keyframes slideDownBanner {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpBanner {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+}
+
+/* Adjust main content when banner is visible */
+.system-banner + .main-content {
+    margin-top: 120px;
+}
