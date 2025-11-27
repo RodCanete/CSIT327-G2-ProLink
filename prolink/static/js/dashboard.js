@@ -756,3 +756,55 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Modal functionality for client requests
+let currentRequestId = null;
+
+function showAcceptModal(requestId, price) {
+    currentRequestId = requestId;
+    document.getElementById('acceptPrice').textContent = price;
+    document.getElementById('acceptModal').classList.add('active');
+}
+
+function hideAcceptModal() {
+    document.getElementById('acceptModal').classList.remove('active');
+    currentRequestId = null;
+}
+
+function showDeclineModal(requestId) {
+    currentRequestId = requestId;
+    document.getElementById('declineModal').classList.add('active');
+}
+
+function hideDeclineModal() {
+    document.getElementById('declineModal').classList.remove('active');
+    currentRequestId = null;
+}
+
+function submitAcceptForm() {
+    if (currentRequestId) {
+        document.getElementById('accept-form-' + currentRequestId).submit();
+    }
+}
+
+function submitDeclineForm() {
+    if (currentRequestId) {
+        document.getElementById('decline-form-' + currentRequestId).submit();
+    }
+}
+
+// Close modal when clicking outside
+document.addEventListener('click', function(event) {
+    if (event.target.classList.contains('modal')) {
+        hideAcceptModal();
+        hideDeclineModal();
+    }
+});
+
+// Close modal with Escape key
+document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+        hideAcceptModal();
+        hideDeclineModal();
+    }
+});
