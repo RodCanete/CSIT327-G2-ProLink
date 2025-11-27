@@ -243,33 +243,35 @@
                                     </div>
                                     <div class="request-actions" style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
                                         {% if req.price %}
-                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline; margin: 0;" onsubmit="return confirm('Accept this request for ₱{{ req.price|floatformat:2 }}?');">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="accept">
-                                            <button type="submit" class="btn btn-sm" style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4caf50'">
-                                                <i class="fas fa-check"></i>
-                                                <span>Accept</span>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm" style="background: #4caf50; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#45a049'" onmouseout="this.style.background='#4caf50'" onclick="showAcceptModal('{{ req.id }}', '{{ req.price|floatformat:2 }}')">
+                                            <i class="fas fa-check"></i>
+                                            <span>Accept</span>
+                                        </button>
                                         {% else %}
                                         <button disabled class="btn btn-sm" style="background: #e5e7eb; color: #9ca3af; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: not-allowed; display: inline-flex; align-items: center; gap: 6px;" title="Client has not set a budget yet">
                                             <i class="fas fa-check"></i>
                                             <span>Accept</span>
                                         </button>
                                         {% endif %}
-                                        <form method="post" action="{% url 'accept_request' req.id %}" style="display: inline; margin: 0;" onsubmit="return confirm('Decline this request?');">
-                                            {% csrf_token %}
-                                            <input type="hidden" name="action" value="decline">
-                                            <button type="submit" class="btn btn-sm" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'">
-                                                <i class="fas fa-times"></i>
-                                                <span>Decline</span>
-                                            </button>
-                                        </form>
+                                        <button type="button" class="btn btn-sm" style="background: #ef4444; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;" onmouseover="this.style.background='#dc2626'" onmouseout="this.style.background='#ef4444'" onclick="showDeclineModal('{{ req.id }}')">
+                                            <i class="fas fa-times"></i>
+                                            <span>Decline</span>
+                                        </button>
                                         <a href="{% url 'professional_request_detail' req.id %}" class="btn btn-sm btn-secondary" style="display: inline-flex; align-items: center; gap: 6px; padding: 10px 20px; border-radius: 8px; font-weight: 600; text-decoration: none; background: #f3f4f6; color: #374151; border: 1px solid #e5e7eb; transition: all 0.2s;" onmouseover="this.style.background='#e5e7eb'; this.style.borderColor='#d1d5db'" onmouseout="this.style.background='#f3f4f6'; this.style.borderColor='#e5e7eb'">
                                             <i class="fas fa-eye"></i>
                                             <span>Details</span>
                                         </a>
                                     </div>
+
+                                    <!-- Hidden forms for submission -->
+                                    <form id="accept-form-{{ req.id }}" method="post" action="{% url 'accept_request' req.id %}" class="hidden-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="accept">
+                                    </form>
+                                    <form id="decline-form-{{ req.id }}" method="post" action="{% url 'accept_request' req.id %}" class="hidden-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="decline">
+                                    </form>
                                 </div>
                                 {% endfor %}
                             {% else %}
@@ -430,6 +432,32 @@
         </div>
     </main>
 
+    <!-- Accept Confirmation Modal -->
+    <div id="acceptModal" class="modal modal-accept">
+        <div class="modal-content">
+            <i class="fas fa-check-circle modal-icon"></i>
+            <h3>Accept Request</h3>
+            <p id="acceptModalMessage">Accept this request for ₱<span id="acceptPrice">0.00</span>?</p>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="hideAcceptModal()">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-primary" onclick="submitAcceptForm()">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Decline Confirmation Modal -->
+    <div id="declineModal" class="modal modal-decline">
+        <div class="modal-content">
+            <i class="fas fa-times-circle modal-icon"></i>
+            <h3>Decline Request</h3>
+            <p>Are you sure you want to decline this request?</p>
+            <div class="modal-actions">
+                <button type="button" class="modal-btn modal-btn-secondary" onclick="hideDeclineModal()">Cancel</button>
+                <button type="button" class="modal-btn modal-btn-danger" onclick="submitDeclineForm()">Decline</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/static/js/dashboard.js"></script>
     
     <style>
@@ -469,6 +497,178 @@
             margin: 4px 0;
             color: #6b7280;
         }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 420px;
+            width: 90%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .modal-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .modal-accept .modal-icon {
+            color: #2D5016;
+        }
+
+        .modal-decline .modal-icon {
+            color: #dc2626;
+        }
+
+        .modal h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #111827;
+            margin: 0 0 12px 0;
+        }
+
+        .modal p {
+            font-size: 16px;
+            color: #6b7280;
+            line-height: 1.6;
+            margin: 0 0 28px 0;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 100px;
+        }
+
+        .modal-btn-primary {
+            background: linear-gradient(135deg, #2D5016 0%, #4A7C59 100%);
+            color: white;
+        }
+
+        .modal-btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(45, 80, 22, 0.3);
+        }
+
+        .modal-btn-secondary {
+            background: #f3f4f6;
+            color: #374151;
+            border: 1px solid #d1d5db;
+        }
+
+        .modal-btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        .modal-btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+
+        .modal-btn-danger:hover {
+            background: #b91c1c;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+        }
+
+        .hidden-form {
+            display: none;
+        }
     </style>
+
+    <script>
+        let currentRequestId = null;
+
+        function showAcceptModal(requestId, price) {
+            currentRequestId = requestId;
+            document.getElementById('acceptPrice').textContent = price;
+            document.getElementById('acceptModal').classList.add('active');
+        }
+
+        function hideAcceptModal() {
+            document.getElementById('acceptModal').classList.remove('active');
+            currentRequestId = null;
+        }
+
+        function showDeclineModal(requestId) {
+            currentRequestId = requestId;
+            document.getElementById('declineModal').classList.add('active');
+        }
+
+        function hideDeclineModal() {
+            document.getElementById('declineModal').classList.remove('active');
+            currentRequestId = null;
+        }
+
+        function submitAcceptForm() {
+            if (currentRequestId) {
+                document.getElementById('accept-form-' + currentRequestId).submit();
+            }
+        }
+
+        function submitDeclineForm() {
+            if (currentRequestId) {
+                document.getElementById('decline-form-' + currentRequestId).submit();
+            }
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            if (event.target.classList.contains('modal')) {
+                hideAcceptModal();
+                hideDeclineModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                hideAcceptModal();
+                hideDeclineModal();
+            }
+        });
+    </script>
 </body>
 </html>
