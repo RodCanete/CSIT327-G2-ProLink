@@ -33,22 +33,6 @@
             <div class="form-container">
                 <form method="post" enctype="multipart/form-data" class="request-form">
                     {% csrf_token %}
-					
-                    
-                    <!-- Error Messages -->
-                    {% if errors %}
-                    <div class="alert alert-error">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div class="alert-content">
-                            <h4>Please fix the following errors:</h4>
-                            <ul>
-                                {% for error in errors %}
-                                <li>{{ error }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                    </div>
-                    {% endif %}
 
                     <!-- Basic Information Section -->
                     <div class="form-section">
@@ -72,6 +56,7 @@
                             <div class="form-help">
                                 <span id="title-count">0</span>/200 characters
                             </div>
+                            <div class="form-error" id="title-error"></div>
                         </div>
 
                         <div class="form-group">
@@ -88,6 +73,7 @@
                             <div class="form-help">
                                 <span id="description-count">0</span>/5000 characters
                             </div>
+                            <div class="form-error" id="description-error"></div>
                         </div>
 
                         <div class="form-row">
@@ -161,6 +147,7 @@
                                     <span class="input-group-text">days</span>
                                 </div>
                                 <div class="form-help">How many days do you need this completed?</div>
+                                <div class="form-error" id="timeline-error"></div>
                             </div>
                         </div>
                     </div>
@@ -281,6 +268,44 @@
     <script src="/static/js/dashboard.js"></script>
     
     <style>
+        /* Inline Form Error Styles */
+        .form-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .form-error.show {
+            display: flex;
+        }
+
+        .form-error i {
+            font-size: 1rem;
+        }
+
+        .form-input.error,
+        .form-textarea.error,
+        .form-select.error {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.1);
+        }
+
+        .form-input.error:focus,
+        .form-textarea.error:focus,
+        .form-select.error:focus {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         /* Professional Picker Modal (scoped) */
         .picker-modal {
             display: none;
@@ -401,49 +426,113 @@
             text-decoration: none;
             border: none;
         }
-        /* Alert Styles */
-        .alert {
-            padding: 16px;
+
+        /* File Upload Styles */
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
             border-radius: 8px;
-            margin-bottom: 24px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: #f9fafb;
+            position: relative;
+        }
+
+        .file-upload-area:hover,
+        .file-upload-area.drag-over {
+            border-color: #2D5016;
+            background: rgba(45, 80, 22, 0.05);
+        }
+
+        .file-upload-content i {
+            font-size: 48px;
+            color: #9ca3af;
+            margin-bottom: 16px;
+        }
+
+        .file-upload-content h4 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .file-upload-content p {
+            color: #6b7280;
+            margin-bottom: 12px;
+        }
+
+        .file-upload-link {
+            color: #2D5016;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .file-upload-info {
+            color: #9ca3af;
+            font-size: 12px;
+        }
+
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-list {
+            margin-top: 16px;
+            display: none;
+        }
+
+        .file-item {
             display: flex;
-            align-items: flex-start;
-            gap: 12px;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 8px;
         }
 
-        .alert-error {
-            background: #fff5f5;
-            border: 1px solid #feb2b2;
-            color: #c53030;
-        }
-        
-        .alert-success {
-            background: #f0fff4;
-            border: 1px solid #9ae6b4;
-            color: #2f855a;
-        }
-        
-        .alert-info {
-            background: #ebf8ff;
-            border: 1px solid #90cdf4;
-            color: #2c5282;
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .alert i {
-            font-size: 20px;
-            flex-shrink: 0;
+        .file-info i {
+            color: #2D5016;
         }
 
-        .alert-content {
-            flex: 1;
+        .file-name {
+            font-weight: 500;
+            color: #374151;
         }
 
-        .alert-content p {
-            margin: 0;
+        .file-size {
+            color: #6b7280;
+            font-size: 12px;
         }
-        
-        .alert-content ul {
-            margin: 8px 0 0 20px;
+
+        .file-remove {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        .file-remove:hover {
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
         }
 
         /* Upload Progress Modal */
@@ -718,7 +807,7 @@
     </style>
     
     <script>
-        // Character counters
+        // Character counters only (no real-time validation)
         document.addEventListener('DOMContentLoaded', function() {
             // Professional Picker wiring
             const pickerEl = document.getElementById('professionalPicker');
@@ -790,7 +879,6 @@
                 if (btn) selectProfessional(btn.getAttribute('data-select-email'), btn.getAttribute('data-select-name'));
                 const view = e.target.closest('[data-view-email]');
                 if (view) {
-                    // open detail page in a new tab, requires an id normally; fallback to search page
                     const email = view.getAttribute('data-view-email');
                     window.open(`/professionals/?q=${encodeURIComponent(email)}`, '_blank');
                 }
@@ -803,34 +891,47 @@
 
             // Load initial data
             loadData();
+            
+            // Form elements
             const titleInput = document.getElementById('title');
             const descriptionInput = document.getElementById('description');
             const titleCount = document.getElementById('title-count');
             const descriptionCount = document.getElementById('description-count');
 
-            function updateCount(input, counter, max) {
-                const count = input.value.length;
-                counter.textContent = count;
-                if (count > max * 0.9) {
-                    counter.style.color = '#dc3545';
-                } else if (count > max * 0.8) {
-                    counter.style.color = '#ffc107';
+            // Function to update character counts only
+            function updateTitleCount() {
+                const count = titleInput.value.length;
+                titleCount.textContent = count;
+                
+                if (count > 200 * 0.9) {
+                    titleCount.style.color = '#dc3545';
+                } else if (count > 200 * 0.8) {
+                    titleCount.style.color = '#ffc107';
                 } else {
-                    counter.style.color = '#6c757d';
+                    titleCount.style.color = '#6c757d';
                 }
             }
 
-            titleInput.addEventListener('input', function() {
-                updateCount(this, titleCount, 200);
-            });
+            function updateDescriptionCount() {
+                const count = descriptionInput.value.length;
+                descriptionCount.textContent = count;
+                
+                if (count > 5000 * 0.9) {
+                    descriptionCount.style.color = '#dc3545';
+                } else if (count > 5000 * 0.8) {
+                    descriptionCount.style.color = '#ffc107';
+                } else {
+                    descriptionCount.style.color = '#6c757d';
+                }
+            }
 
-            descriptionInput.addEventListener('input', function() {
-                updateCount(this, descriptionCount, 5000);
-            });
+            // Event listeners for character counts only
+            titleInput.addEventListener('input', updateTitleCount);
+            descriptionInput.addEventListener('input', updateDescriptionCount);
 
             // Initialize counts
-            updateCount(titleInput, titleCount, 200);
-            updateCount(descriptionInput, descriptionCount, 5000);
+            updateTitleCount();
+            updateDescriptionCount();
         });
 
         // File upload handling
@@ -840,7 +941,6 @@
 
         // Only trigger file input when clicking the area, not the input itself
         fileUploadArea.addEventListener('click', (e) => {
-            // Prevent double-triggering if clicking the hidden input
             if (e.target !== fileInput) {
                 fileInput.click();
             }
@@ -946,28 +1046,61 @@
         const uploadedFileCount = document.getElementById('uploadedFileCount');
         const uploadedFilesList = document.getElementById('uploadedFilesList');
 
+        // Function to show inline error
+        function showError(element, errorElement, message) {
+            errorElement.innerHTML = `<i class="fas fa-exclamation-circle"></i> ${message}`;
+            errorElement.classList.add('show');
+            element.classList.add('error');
+            
+            // Scroll to the error element
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+
+        // Function to hide inline error
+        function hideError(element, errorElement) {
+            errorElement.classList.remove('show');
+            element.classList.remove('error');
+        }
+
+        // Function to clear all errors
+        function clearAllErrors() {
+            const errorElements = document.querySelectorAll('.form-error');
+            const inputElements = document.querySelectorAll('.form-input, .form-textarea');
+            
+            errorElements.forEach(error => error.classList.remove('show'));
+            inputElements.forEach(input => input.classList.remove('error'));
+        }
+
         requestForm.addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const timeline = document.getElementById('timeline_days').value;
             const files = fileInput.files;
 
-            // Validation
+            let isValid = true;
+
+            // Clear previous errors
+            clearAllErrors();
+
+            // Validation - only on submit
             if (title.length < 5) {
-                e.preventDefault();
-                alert('Title must be at least 5 characters long.');
-                return;
+                showError(document.getElementById('title'), document.getElementById('title-error'), 'Title must be at least 5 characters long.');
+                isValid = false;
             }
 
             if (description.length < 50) {
-                e.preventDefault();
-                alert('Description must be at least 50 characters long.');
-                return;
+                showError(document.getElementById('description'), document.getElementById('description-error'), 'Description must be at least 50 characters long.');
+                isValid = false;
             }
 
             if (!timeline || timeline < 1 || timeline > 365) {
+                showError(document.getElementById('timeline_days'), document.getElementById('timeline-error'), 'Timeline must be between 1 and 365 days.');
+                isValid = false;
+            }
+
+            // If there are validation errors, prevent submission
+            if (!isValid) {
                 e.preventDefault();
-                alert('Timeline must be between 1 and 365 days.');
                 return;
             }
 
