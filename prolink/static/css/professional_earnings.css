@@ -68,84 +68,8 @@ body {
     line-height: 1.6;
 }
 
-/* Navigation Bar Styles (from your existing code) */
-.top-navbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 2rem;
-    height: 70px;
-    background: var(--white);
-    box-shadow: var(--box-shadow);
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-}
-
-.navbar-brand {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    font-size: 1.5rem;
-    color: var(--primary-color);
-}
-
-.navbar-nav {
-    display: flex;
-    align-items: center;
-    gap: 2rem;
-}
-
-.nav-link {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    text-decoration: none;
-    color: var(--gray-600);
-    padding: 0.5rem 1rem;
-    border-radius: var(--border-radius);
-    transition: var(--transition);
-    position: relative;
-}
-
-.nav-link:hover,
-.nav-link.active {
-    color: var(--primary-color);
-    background-color: var(--gray-100);
-}
-
-.nav-badge {
-    background: var(--danger-color);
-    color: var(--white);
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.75rem;
-    position: absolute;
-    top: -5px;
-    right: -5px;
-}
-
-.navbar-actions {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-}
-
-.notifications {
-    position: relative;
-    cursor: pointer;
-    color: var(--gray-600);
-    transition: var(--transition);
-}
-
-.notifications:hover {
-    color: var(--primary-color);
-}
+/* Navigation Bar Styles - Removed to use dashboard.css for uniformity */
+/* All navbar styles are now inherited from dashboard.css */
 
 .notification-badge {
     background: var(--danger-color);
@@ -748,9 +672,7 @@ body {
         justify-content: center;
     }
     
-    .navbar-nav {
-        gap: 1rem;
-    }
+    /* Navbar responsive styles removed - using dashboard.css for uniformity */
     
     .user-name {
         display: none;
