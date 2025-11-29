@@ -1132,3 +1132,220 @@ def earnings_dashboard(request):
     
     # Updated template path to match your folder structure
     return render(request, 'professionals/professional_earnings.html', context)
+
+
+@login_required
+def reviews_page(request):
+    """
+    Reviews page showing reviews received and reviews given
+    """
+    user = request.user
+    from analytics.models import Review
+    from requests.models import Request as ServiceRequest
+    
+    # Get reviews received (where user is the reviewee)
+    # For students: only show reviews from professionals (is_professional_review=False)
+    # For professionals: show all reviews received
+    if user.user_role == 'professional':
+        reviews_received = Review.objects.filter(reviewee=user).order_by('-created_at')
+    else:
+        # Students can only see reviews from professionals (not professional reviews of them)
+        reviews_received = Review.objects.filter(
+            reviewee=user,
+            is_professional_review=False,
+            is_visible_to_client=True
+        ).order_by('-created_at')
+    
+    # Get reviews given (where user is the reviewer)
+    reviews_given = Review.objects.filter(reviewer=user).order_by('-created_at')
+    
+    # Get completed requests that can still be reviewed (within 30 days)
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    
+    # For students: completed requests where they haven't reviewed the professional
+    if user.user_role != 'professional':
+        completed_requests = ServiceRequest.objects.filter(
+            client=user.email,
+            status='completed',
+            completed_at__gte=thirty_days_ago
+        )
+        
+        reviewable_requests = []
+        for req in completed_requests:
+            if req.professional:
+                try:
+                    professional = CustomUser.objects.get(email=req.professional)
+                    # Check if already reviewed
+                    existing_review = Review.objects.filter(
+                        request=req,
+                        reviewer=user,
+                        reviewee=professional,
+                        is_professional_review=False
+                    ).exists()
+                    if not existing_review:
+                        reviewable_requests.append({
+                            'request': req,
+                            'reviewee': professional,
+                            'reviewee_name': professional.get_full_name() or professional.username
+                        })
+                except CustomUser.DoesNotExist:
+                    pass
+    else:
+        # For professionals: completed requests where they haven't reviewed the client
+        completed_requests = ServiceRequest.objects.filter(
+            professional=user.email,
+            status='completed',
+            completed_at__gte=thirty_days_ago
+        )
+        
+        reviewable_requests = []
+        for req in completed_requests:
+            try:
+                client = CustomUser.objects.get(email=req.client)
+                # Check if already reviewed
+                existing_review = Review.objects.filter(
+                    request=req,
+                    reviewer=user,
+                    reviewee=client,
+                    is_professional_review=True
+                ).exists()
+                if not existing_review:
+                    reviewable_requests.append({
+                        'request': req,
+                        'reviewee': client,
+                        'reviewee_name': client.get_full_name() or client.username
+                    })
+            except CustomUser.DoesNotExist:
+                pass
+    
+    context = {
+        'reviews_received': reviews_received,
+        'reviews_given': reviews_given,
+        'reviewable_requests': reviewable_requests,
+        'user': user,
+        'user_role': user.user_role if hasattr(user, 'user_role') else 'client',
+    }
+    
+    return render(request, 'users/reviews.html', context)
+
+
+@login_required
+def submit_review(request, request_id):
+    """
+    Submit a review for a completed request
+    Only allowed if:
+    - Request is completed
+    - Within 30 days of completion
+    - User hasn't already reviewed
+    - User is either client or professional for this request
+    """
+    from analytics.models import Review
+    from requests.models import Request as ServiceRequest
+    from django.utils import timezone
+    from datetime import timedelta
+    
+    user = request.user
+    
+    # Get the request
+    try:
+        req = ServiceRequest.objects.get(id=request_id)
+    except ServiceRequest.DoesNotExist:
+        messages.error(request, "Request not found.")
+        return redirect('dashboard')
+    
+    # Validate user has access to this request
+    if user.email != req.client and user.email != req.professional:
+        messages.error(request, "You don't have permission to review this request.")
+        return redirect('dashboard')
+    
+    # Validate request is completed
+    if req.status != 'completed':
+        messages.error(request, "You can only review completed requests.")
+        return redirect('request_detail', request_id=request_id)
+    
+    # Validate within 30 days
+    if not req.completed_at:
+        messages.error(request, "This request doesn't have a completion date.")
+        return redirect('request_detail', request_id=request_id)
+    
+    thirty_days_ago = timezone.now() - timedelta(days=30)
+    if req.completed_at < thirty_days_ago:
+        messages.error(request, "Review period has expired. Reviews must be submitted within 30 days of completion.")
+        return redirect('request_detail', request_id=request_id)
+    
+    # Determine reviewee
+    if user.email == req.client:
+        # Client reviewing professional
+        try:
+            reviewee = CustomUser.objects.get(email=req.professional)
+            is_professional_review = False
+        except CustomUser.DoesNotExist:
+            messages.error(request, "Professional not found.")
+            return redirect('request_detail', request_id=request_id)
+    else:
+        # Professional reviewing client
+        try:
+            reviewee = CustomUser.objects.get(email=req.client)
+            is_professional_review = True
+        except CustomUser.DoesNotExist:
+            messages.error(request, "Client not found.")
+            return redirect('professional_request_detail', request_id=request_id)
+    
+    # Check if already reviewed
+    existing_review = Review.objects.filter(
+        request=req,
+        reviewer=user,
+        reviewee=reviewee
+    ).first()
+    
+    if existing_review:
+        messages.error(request, "You have already submitted a review for this request.")
+        if user.email == req.client:
+            return redirect('request_detail', request_id=request_id)
+        else:
+            return redirect('professional_request_detail', request_id=request_id)
+    
+    if request.method == 'POST':
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment', '').strip()
+        
+        # Validate rating
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                messages.error(request, "Rating must be between 1 and 5.")
+                return redirect('reviews_page')
+        except (ValueError, TypeError):
+            messages.error(request, "Invalid rating.")
+            return redirect('reviews_page')
+        
+        # Create review
+        review = Review.objects.create(
+            request=req,
+            reviewer=user,
+            reviewee=reviewee,
+            rating=rating,
+            comment=comment,
+            is_professional_review=is_professional_review
+        )
+        
+        messages.success(request, "Review submitted successfully!")
+        
+        # Redirect based on user role
+        if user.email == req.client:
+            return redirect('request_detail', request_id=request_id)
+        else:
+            return redirect('professional_request_detail', request_id=request_id)
+    
+    # GET request - show form
+    context = {
+        'request': req,
+        'reviewee': reviewee,
+        'reviewee_name': reviewee.get_full_name() or reviewee.username,
+        'is_professional_review': is_professional_review,
+    }
+    
+    return render(request, 'users/submit_review.html', context)

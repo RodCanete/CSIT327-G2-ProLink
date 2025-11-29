@@ -177,6 +177,49 @@
                         </div>
                         {% endif %}
 
+                        <!-- Review Section (Completed Requests) -->
+                        {% if request.status == 'completed' and user.email == request.client %}
+                        <div class="detail-section" style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 25px;">
+                            <h3 style="color: #2e7d32; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-star" style="color: #4caf50;"></i>
+                                Review Professional
+                            </h3>
+                            {% if user_review %}
+                            <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div style="color: #ffc107;">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= user_review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span style="font-weight: 600; color: #2e7d32;">{{ user_review.rating }}/5</span>
+                                    <span style="color: #999; font-size: 0.875rem;">• {{ user_review.created_at|date:"M d, Y" }}</span>
+                                </div>
+                                {% if user_review.comment %}
+                                <p style="color: #666; margin: 0;">{{ user_review.comment }}</p>
+                                {% endif %}
+                            </div>
+                            <p style="color: #2e7d32; margin: 0;">You have already submitted a review for this request.</p>
+                            {% else %}
+                            <p style="margin-bottom: 20px; color: #2e7d32;">Share your experience working with the professional:</p>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <a href="{% url 'submit_review' request.id %}" class="btn" style="background: #4caf50; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-star"></i>
+                                    <span>Submit Review</span>
+                                </a>
+                                <a href="{% url 'reviews_page' %}" class="btn" style="background: #6c757d; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-list"></i>
+                                    <span>View All Reviews</span>
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endif %}
+
                         <!-- Deliverables Section (When work submitted) -->
                         {% if request.deliverable_files %}
                         <div class="detail-section">

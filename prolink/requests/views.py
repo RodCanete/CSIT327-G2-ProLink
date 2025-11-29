@@ -305,6 +305,10 @@ def professional_requests_list(request):
 
 def professional_request_detail(request, request_id):
     """Professional view for request details"""
+    from users.models import CustomUser
+    from transactions.models import Transaction
+    from analytics.models import Review
+    
     # Check if user is authenticated
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to view request details.")
@@ -352,7 +356,6 @@ def professional_request_detail(request, request_id):
         progress = 0
     
     # Get transaction if exists
-    from transactions.models import Transaction
     transaction = None
     try:
         transaction = Transaction.objects.get(request_id=req.id)
@@ -369,6 +372,26 @@ def professional_request_detail(request, request_id):
         'client': CustomUser.objects.filter(email=req.client).first(),
         'user': request.user
     }
+    
+    # Check if user has already reviewed (only for completed requests)
+    if req.status == 'completed' and request.user.is_authenticated:
+        
+        # Get reviewee (client)
+        if req.client:
+            try:
+                reviewee = CustomUser.objects.get(email=req.client)
+                user_review = Review.objects.filter(
+                    request=req,
+                    reviewer=request.user,
+                    reviewee=reviewee
+                ).first()
+                context['user_review'] = user_review
+            except CustomUser.DoesNotExist:
+                context['user_review'] = None
+        else:
+            context['user_review'] = None
+    else:
+        context['user_review'] = None
     
     return render(request, 'requests/professional_request_detail.html', context)
 
