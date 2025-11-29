@@ -5,6 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.conf import settings
 import json
+from decimal import Decimal
 from requests.models import Request as ServiceRequest
 from users.models import CustomUser
 from django.utils import timezone
@@ -49,10 +50,91 @@ def dashboard(request):
     # Route to appropriate dashboard based on role
     if user_role == 'professional':
         from transactions.models import Transaction
+        from analytics.models import Review
+        from django.db.models import Q
+        
+        # Calculate date ranges for metrics
+        today = timezone.now()
+        this_month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+        last_month_end = this_month_start - timedelta(seconds=1)
+        
+        # Get all requests for this professional
+        professional_requests = ServiceRequest.objects.filter(professional=user.email)
+        
+        # KPI 1: Total Clients Served (unique clients from completed/accepted requests)
+        completed_requests = professional_requests.filter(
+            Q(status='completed') | Q(status='awaiting_payment') | Q(status='in_progress') | Q(status='under_review')
+        )
+        total_clients_served = completed_requests.values('client').distinct().count()
+        
+        # Clients this month
+        clients_this_month = completed_requests.filter(
+            created_at__gte=this_month_start
+        ).values('client').distinct().count()
+        
+        # Calculate trend for clients
+        clients_last_month = completed_requests.filter(
+            created_at__gte=last_month_start,
+            created_at__lte=last_month_end
+        ).values('client').distinct().count()
+        clients_trend = ((clients_this_month - clients_last_month) / clients_last_month * 100) if clients_last_month > 0 else 0
+        
+        # KPI 2: Active Projects (in_progress requests)
+        active_projects = professional_requests.filter(status='in_progress').count()
+        pending_requests_count = professional_requests.filter(status='pending').count()
+        
+        # Active projects trend
+        active_projects_last_month = professional_requests.filter(
+            status='in_progress',
+            created_at__gte=last_month_start,
+            created_at__lte=last_month_end
+        ).count()
+        active_projects_trend = ((active_projects - active_projects_last_month) / active_projects_last_month * 100) if active_projects_last_month > 0 else 0
+        
+        # KPI 3: Earnings This Month (from released payments)
+        this_month_transactions = Transaction.objects.filter(
+            professional=user,
+            released_at__gte=this_month_start
+        )
+        earnings_this_month_decimal = this_month_transactions.filter(
+            released_at__isnull=False
+        ).aggregate(total=Sum('professional_payout'))['total'] or Decimal('0')
+        earnings_this_month = float(earnings_this_month_decimal)
+        
+        # Earnings last month for trend
+        last_month_transactions = Transaction.objects.filter(
+            professional=user,
+            released_at__gte=last_month_start,
+            released_at__lte=last_month_end
+        )
+        earnings_last_month_decimal = last_month_transactions.filter(
+            released_at__isnull=False
+        ).aggregate(total=Sum('professional_payout'))['total'] or Decimal('0')
+        earnings_last_month = float(earnings_last_month_decimal)
+        
+        # Calculate trend percentage
+        if earnings_last_month > 0:
+            earnings_trend = ((earnings_this_month - earnings_last_month) / earnings_last_month * 100)
+        else:
+            earnings_trend = 100 if earnings_this_month > 0 else 0
+        
+        # Average earning per project this month
+        completed_this_month = this_month_transactions.filter(
+            released_at__isnull=False
+        ).count()
+        avg_earning_per_project = (earnings_this_month / completed_this_month) if completed_this_month > 0 else 0
+        
+        # KPI 4: Average Rating
+        reviews_received = Review.objects.filter(
+            reviewee=user,
+            is_professional_review=False
+        )
+        avg_rating = reviews_received.aggregate(avg=Avg('rating'))['avg'] or 0
+        total_reviews = reviews_received.count()
         
         # Get pending requests for this professional
-        pending_requests = ServiceRequest.objects.filter(
-            professional=user.email,
+        pending_requests = professional_requests.filter(
             status='pending'
         ).order_by('-created_at')[:10]
         
@@ -64,8 +146,7 @@ def dashboard(request):
                 req.client_user = None
         
         # Get requests awaiting client payment (professional accepted, waiting for payment)
-        awaiting_payment_requests = ServiceRequest.objects.filter(
-            professional=user.email,
+        awaiting_payment_requests = professional_requests.filter(
             status='awaiting_payment'
         ).select_related('transaction', 'conversation').order_by('-updated_at')[:10]
         
@@ -77,8 +158,7 @@ def dashboard(request):
                 req.client_user = None
         
         # Get active work (in progress with escrowed payment - ready to submit)
-        active_work = ServiceRequest.objects.filter(
-            professional=user.email,
+        active_work = professional_requests.filter(
             status='in_progress'
         ).select_related('transaction', 'conversation').order_by('-created_at')[:10]
         
@@ -90,8 +170,7 @@ def dashboard(request):
                 work.client_user = None
         
         # Get work awaiting client review
-        pending_review = ServiceRequest.objects.filter(
-            professional=user.email,
+        pending_review = professional_requests.filter(
             status='under_review'
         ).select_related('transaction').order_by('-submitted_at')[:10]
         
@@ -107,6 +186,18 @@ def dashboard(request):
             'awaiting_payment_requests': awaiting_payment_requests,
             'active_work': active_work,
             'pending_review': pending_review,
+            # KPI Metrics
+            'total_clients_served': total_clients_served,
+            'clients_this_month': clients_this_month,
+            'clients_trend': round(clients_trend, 0),
+            'active_projects': active_projects,
+            'pending_requests_count': pending_requests_count,
+            'active_projects_trend': round(active_projects_trend, 0),
+            'earnings_this_month': earnings_this_month,
+            'avg_earning_per_project': avg_earning_per_project,
+            'earnings_trend': round(earnings_trend, 0),
+            'avg_rating': round(avg_rating, 1) if avg_rating > 0 else 0,
+            'total_reviews': total_reviews,
         })
         return render(request, "dashboard_professional.html", context)
     else:  # student, worker, or client

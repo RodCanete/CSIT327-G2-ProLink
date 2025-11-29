@@ -459,6 +459,10 @@ section {
     color: var(--success-color);
 }
 
+.metric-trend.negative {
+    color: var(--danger-color);
+}
+
 .metric-trend.neutral {
     color: var(--gray-500);
 }

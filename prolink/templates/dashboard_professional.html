@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ProLink - Professional Dashboard</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=10">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
@@ -42,15 +42,23 @@
                             <div class="metric-icon">
                                 <i class="fas fa-users"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if clients_trend > 0 %}positive{% elif clients_trend < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if clients_trend > 0 %}
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+18%</span>
+                                <span>+{{ clients_trend|floatformat:0 }}%</span>
+                                {% elif clients_trend < 0 %}
+                                <i class="fas fa-arrow-down"></i>
+                                <span>{{ clients_trend|floatformat:0 }}%</span>
+                                {% else %}
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="42">0</h3>
+                            <h3 class="metric-number" data-target="{{ total_clients_served }}">0</h3>
                             <p class="metric-label">Total Clients Served</p>
-                            <span class="metric-subtitle">5 new this month</span>
+                            <span class="metric-subtitle">{{ clients_this_month }} new this month</span>
                         </div>
                     </div>
                     <div class="metric-card">
@@ -58,15 +66,23 @@
                             <div class="metric-icon">
                                 <i class="fas fa-tasks"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if active_projects_trend > 0 %}positive{% elif active_projects_trend < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if active_projects_trend > 0 %}
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+12%</span>
+                                <span>+{{ active_projects_trend|floatformat:0 }}%</span>
+                                {% elif active_projects_trend < 0 %}
+                                <i class="fas fa-arrow-down"></i>
+                                <span>{{ active_projects_trend|floatformat:0 }}%</span>
+                                {% else %}
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="8">0</h3>
+                            <h3 class="metric-number" data-target="{{ active_projects }}">0</h3>
                             <p class="metric-label">Active Projects</p>
-                            <span class="metric-subtitle">3 pending requests</span>
+                            <span class="metric-subtitle">{{ pending_requests_count }} pending requests</span>
                         </div>
                     </div>
                     <div class="metric-card">
@@ -74,15 +90,23 @@
                             <div class="metric-icon">
                                 <i class="fas fa-dollar-sign"></i>
                             </div>
-                            <div class="metric-trend positive">
+                            <div class="metric-trend {% if earnings_trend > 0 %}positive{% elif earnings_trend < 0 %}negative{% else %}neutral{% endif %}">
+                                {% if earnings_trend > 0 %}
                                 <i class="fas fa-arrow-up"></i>
-                                <span>+25%</span>
+                                <span>+{{ earnings_trend|floatformat:0 }}%</span>
+                                {% elif earnings_trend < 0 %}
+                                <i class="fas fa-arrow-down"></i>
+                                <span>{{ earnings_trend|floatformat:0 }}%</span>
+                                {% else %}
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="2850">0</h3>
+                            <h3 class="metric-number" data-target="{{ earnings_this_month|floatformat:0|default:'0' }}">0</h3>
                             <p class="metric-label">Earnings This Month</p>
-                            <span class="metric-subtitle">$350 average per project</span>
+                            <span class="metric-subtitle">₱{{ avg_earning_per_project|floatformat:2|default:'0.00' }} average per project</span>
                         </div>
                     </div>
                     <div class="metric-card">
@@ -96,9 +120,9 @@
                             </div>
                         </div>
                         <div class="metric-content">
-                            <h3 class="metric-number" data-target="4.8">0</h3>
+                            <h3 class="metric-number" data-target="{{ avg_rating }}">0</h3>
                             <p class="metric-label">Average Rating</p>
-                            <span class="metric-subtitle">Based on 24 reviews</span>
+                            <span class="metric-subtitle">Based on {{ total_reviews }} review{{ total_reviews|pluralize }}</span>
                         </div>
                     </div>
                 </div>

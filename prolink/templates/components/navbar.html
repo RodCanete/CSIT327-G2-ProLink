@@ -15,25 +15,17 @@
         
         {% if user.user_role == 'professional' %}
             <!-- Professional-specific navigation -->
-            <a href="/services/" class="nav-link {% if '/services/' in request.path %}active{% endif %}">
-                <i class="fas fa-briefcase"></i>
-                <span>My Services</span>
-            </a>
             <a href="{% url 'professional_requests_list' %}" class="nav-link {% if '/requests/professional' in request.path %}active{% endif %}">
                 <i class="fas fa-inbox"></i>
                 <span>Client Requests</span>
             </a>
-            <a href="/my-clients/" class="nav-link {% if '/my-clients/' in request.path %}active{% endif %}">
-                <i class="fas fa-users"></i>
-                <span>My Clients</span>
+            <a href="/reviews/" class="nav-link {% if '/reviews/' in request.path %}active{% endif %}">
+                <i class="fas fa-star"></i>
+                <span>Reviews</span>
             </a>
             <a href="/earnings/" class="nav-link {% if '/earnings/' in request.path %}active{% endif %}">
                 <i class="fas fa-chart-line"></i>
                 <span>Earnings</span>
-            </a>
-            <a href="/bookings/" class="nav-link {% if '/bookings/' in request.path %}active{% endif %}">
-                <i class="fas fa-calendar-check"></i>
-                <span>Bookings</span>
             </a>
         {% else %}
             <!-- Client/Student/Worker navigation -->
