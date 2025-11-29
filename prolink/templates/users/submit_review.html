@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Submit Review - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=10">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .rating-input {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+            justify-content: center;
+        }
+        .rating-input input[type="radio"] {
+            display: none;
+        }
+        .rating-input label {
+            font-size: 2rem;
+            color: #ddd;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        /* Hover effect - fill stars on hover (all stars up to and including hovered star) */
+        .rating-input label:hover,
+        .rating-input label:hover ~ label {
+            color: #ffc107;
+        }
+        /* Default: all stars are filled when checked (will be overridden by JS) */
+        .rating-input input[type="radio"]:checked + label,
+        .rating-input input[type="radio"]:checked ~ label {
+            color: #ffc107;
+        }
+        /* Class for filled stars */
+        .rating-input label.filled {
+            color: #ffc107 !important;
+        }
+        /* Class for unfilled stars */
+        .rating-input label.unfilled {
+            color: #ddd !important;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-star"></i> Submit Review</h1>
+                    <p>Request: {{ request.title }}</p>
+                </div>
+                <div class="page-actions">
+                    <a href="{% url 'reviews_page' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Reviews
+                    </a>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="panel">
+                <div class="panel-header">
+                    <h3>Review for {{ reviewee_name }}</h3>
+                    <span class="panel-subtitle">Your review will be visible to others{% if is_professional_review %} (except the student){% endif %}</span>
+                </div>
+                <div class="panel-content">
+                    <form method="post" class="request-form">
+                        {% csrf_token %}
+                        
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="form-label">Rating <span style="color: #d32f2f;">*</span></label>
+                            <div class="rating-input">
+                                <input type="radio" id="rating1" name="rating" value="1" required>
+                                <label for="rating1"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="rating2" name="rating" value="2" required>
+                                <label for="rating2"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="rating3" name="rating" value="3" required>
+                                <label for="rating3"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="rating4" name="rating" value="4" required>
+                                <label for="rating4"><i class="fas fa-star"></i></label>
+                                <input type="radio" id="rating5" name="rating" value="5" required>
+                                <label for="rating5"><i class="fas fa-star"></i></label>
+                            </div>
+                            <p style="text-align: center; margin-top: 0.5rem; color: #666; font-size: 0.875rem;">
+                                <span id="rating-text">Select a rating</span>
+                            </p>
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label class="form-label" for="comment">Comment (Optional)</label>
+                            <textarea id="comment" name="comment" class="form-textarea" rows="6" placeholder="Share your experience working with {{ reviewee_name }}..."></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+                            <a href="{% url 'reviews_page' %}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Submit Review
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ratingInputs = document.querySelectorAll('input[name="rating"]');
+        const ratingText = document.getElementById('rating-text');
+        const ratingLabels = {
+            1: 'Poor',
+            2: 'Fair',
+            3: 'Good',
+            4: 'Very Good',
+            5: 'Excellent'
+        };
+        const allLabels = document.querySelectorAll('.rating-input label');
+
+        function updateStarColors() {
+            const checkedInput = document.querySelector('input[name="rating"]:checked');
+            allLabels.forEach((label, index) => {
+                label.classList.remove('filled', 'unfilled');
+                if (checkedInput) {
+                    const checkedValue = parseInt(checkedInput.value);
+                    const labelValue = index + 1; // Labels are in order 1, 2, 3, 4, 5
+                    if (labelValue <= checkedValue) {
+                        label.classList.add('filled');
+                    } else {
+                        label.classList.add('unfilled');
+                    }
+                }
+            });
+        }
+
+        ratingInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                ratingText.textContent = ratingLabels[this.value] || 'Select a rating';
+                updateStarColors();
+            });
+        });
+
+        // Hover effect
+        allLabels.forEach((label, index) => {
+            label.addEventListener('mouseenter', function() {
+                const labelValue = index + 1;
+                ratingText.textContent = ratingLabels[labelValue] || 'Select a rating';
+                
+                // Fill stars up to and including hovered star
+                allLabels.forEach((l, i) => {
+                    if (i <= index) {
+                        l.style.color = '#ffc107';
+                    } else {
+                        l.style.color = '#ddd';
+                    }
+                });
+            });
+        });
+
+        document.querySelector('.rating-input').addEventListener('mouseleave', function() {
+            const checked = document.querySelector('input[name="rating"]:checked');
+            if (checked) {
+                ratingText.textContent = ratingLabels[checked.value] || 'Select a rating';
+            } else {
+                ratingText.textContent = 'Select a rating';
+            }
+            updateStarColors();
+        });
+
+        // Initialize on page load
+        updateStarColors();
+    </script>
+</body>
+</html>
+

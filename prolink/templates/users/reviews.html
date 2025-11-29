@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reviews - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=10">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div class="page-title">
+                    <h1><i class="fas fa-star"></i> Reviews</h1>
+                    <p>Manage your reviews and ratings</p>
+                </div>
+            </div>
+
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Reviewable Requests Section -->
+            {% if reviewable_requests %}
+            <div class="panel" style="margin-bottom: 2rem;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-clock"></i> Pending Reviews</h3>
+                    <span class="panel-subtitle">You can review these completed requests (within 30 days of completion)</span>
+                </div>
+                <div class="panel-content">
+                    <div class="reviewable-requests-list">
+                        {% for item in reviewable_requests %}
+                        <div class="reviewable-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; background: #f8f9fa; border-radius: 8px; margin-bottom: 0.75rem;">
+                            <div>
+                                <h4 style="margin: 0 0 0.25rem 0; color: #2D5016;">{{ item.request.title }}</h4>
+                                <p style="margin: 0; color: #666; font-size: 0.875rem;">
+                                    Review for: <strong>{{ item.reviewee_name }}</strong>
+                                </p>
+                                <p style="margin: 0.25rem 0 0 0; color: #999; font-size: 0.75rem;">
+                                    Completed: {{ item.request.completed_at|date:"M d, Y" }}
+                                </p>
+                            </div>
+                            <a href="{% url 'submit_review' item.request.id %}" class="btn btn-primary" style="white-space: nowrap;">
+                                <i class="fas fa-star"></i> Submit Review
+                            </a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reviews Received Section -->
+            <div class="panel" style="margin-bottom: 2rem;">
+                <div class="panel-header">
+                    <h3><i class="fas fa-inbox"></i> Reviews Received</h3>
+                    <span class="panel-subtitle">Reviews others have given you</span>
+                </div>
+                <div class="panel-content">
+                    {% if reviews_received %}
+                        <div class="reviews-list">
+                            {% for review in reviews_received %}
+                            <div class="review-card" style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                            <h4 style="margin: 0; color: #2D5016;">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</h4>
+                                            <span style="color: #999; font-size: 0.875rem;">•</span>
+                                            <span style="color: #999; font-size: 0.875rem;">{{ review.created_at|date:"M d, Y" }}</span>
+                                        </div>
+                                        <div class="rating-stars" style="color: #ffc107;">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span style="margin-left: 0.5rem; color: #666; font-weight: 600;">{{ review.rating }}/5</span>
+                                        </div>
+                                    </div>
+                                    <a href="{% url 'request_detail' review.request.id %}" class="btn btn-sm btn-secondary" style="white-space: nowrap;">
+                                        View Request
+                                    </a>
+                                </div>
+                                {% if review.comment %}
+                                <p style="margin: 0; color: #666; line-height: 1.6;">{{ review.comment }}</p>
+                                {% else %}
+                                <p style="margin: 0; color: #999; font-style: italic;">No comment provided</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 3rem; color: #999;">
+                            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p>No reviews received yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reviews Given Section -->
+            <div class="panel">
+                <div class="panel-header">
+                    <h3><i class="fas fa-paper-plane"></i> Reviews Given</h3>
+                    <span class="panel-subtitle">Reviews you have submitted</span>
+                </div>
+                <div class="panel-content">
+                    {% if reviews_given %}
+                        <div class="reviews-list">
+                            {% for review in reviews_given %}
+                            <div class="review-card" style="padding: 1.5rem; background: #fff; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 1rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                            <h4 style="margin: 0; color: #2D5016;">{{ review.reviewee.get_full_name|default:review.reviewee.username }}</h4>
+                                            <span style="color: #999; font-size: 0.875rem;">•</span>
+                                            <span style="color: #999; font-size: 0.875rem;">{{ review.created_at|date:"M d, Y" }}</span>
+                                            {% if review.is_professional_review %}
+                                            <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                                Professional Review
+                                            </span>
+                                            {% endif %}
+                                        </div>
+                                        <div class="rating-stars" style="color: #ffc107;">
+                                            {% for i in "12345" %}
+                                                {% if forloop.counter <= review.rating %}
+                                                    <i class="fas fa-star"></i>
+                                                {% else %}
+                                                    <i class="far fa-star"></i>
+                                                {% endif %}
+                                            {% endfor %}
+                                            <span style="margin-left: 0.5rem; color: #666; font-weight: 600;">{{ review.rating }}/5</span>
+                                        </div>
+                                    </div>
+                                    <a href="{% if user_role == 'professional' %}{% url 'professional_request_detail' review.request.id %}{% else %}{% url 'request_detail' review.request.id %}{% endif %}" class="btn btn-sm btn-secondary" style="white-space: nowrap;">
+                                        View Request
+                                    </a>
+                                </div>
+                                {% if review.comment %}
+                                <p style="margin: 0; color: #666; line-height: 1.6;">{{ review.comment }}</p>
+                                {% else %}
+                                <p style="margin: 0; color: #999; font-style: italic;">No comment provided</p>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 3rem; color: #999;">
+                            <i class="fas fa-paper-plane" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                            <p>You haven't submitted any reviews yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>
+

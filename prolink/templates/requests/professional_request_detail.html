@@ -255,6 +255,53 @@
                             </div>
                         </div>
                         {% endif %}
+
+                        <!-- Review Section (Completed Requests - Professional) -->
+                        {% if request.status == 'completed' %}
+                        <div class="detail-section" style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 25px;">
+                            <h3 style="color: #2e7d32; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
+                                <i class="fas fa-star" style="color: #4caf50;"></i>
+                                Review Client
+                            </h3>
+                            {% if user_review %}
+                            <div style="background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                                <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 10px;">
+                                    <div style="color: #ffc107;">
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= user_review.rating %}
+                                                <i class="fas fa-star"></i>
+                                            {% else %}
+                                                <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                    <span style="font-weight: 600; color: #2e7d32;">{{ user_review.rating }}/5</span>
+                                    <span style="color: #999; font-size: 0.875rem;">• {{ user_review.created_at|date:"M d, Y" }}</span>
+                                    <span style="background: #e3f2fd; color: #1976d2; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                        Professional Review
+                                    </span>
+                                </div>
+                                {% if user_review.comment %}
+                                <p style="color: #666; margin: 0;">{{ user_review.comment }}</p>
+                                {% endif %}
+                            </div>
+                            <p style="color: #2e7d32; margin: 0;">You have already submitted a review for this request. (This review is hidden from the client)</p>
+                            {% else %}
+                            <p style="margin-bottom: 20px; color: #2e7d32;">Share your experience working with the client:</p>
+                            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                                <a href="{% url 'submit_review' request.id %}" class="btn" style="background: #4caf50; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-star"></i>
+                                    <span>Submit Review</span>
+                                </a>
+                                <a href="{% url 'reviews_page' %}" class="btn" style="background: #6c757d; color: white; padding: 15px 20px; text-align: center; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; transition: transform 0.2s;">
+                                    <i class="fas fa-list"></i>
+                                    <span>View All Reviews</span>
+                                </a>
+                            </div>
+                            <p style="margin-top: 15px; color: #856404; font-size: 0.875rem;"><i class="fas fa-info-circle"></i> Note: Your review will be visible to other professionals but hidden from the client.</p>
+                            {% endif %}
+                        </div>
+                        {% endif %}
                     </div>
 
                     <!-- Sidebar -->

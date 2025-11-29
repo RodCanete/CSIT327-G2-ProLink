@@ -25,6 +25,10 @@ urlpatterns = [
     path('professionals/<int:pk>/unsave/', views.unsave_professional, name='unsave_professional'),
     path('saved/', views.saved_professionals_list, name='saved_professionals'),
     path('earnings/', views.earnings_dashboard, name='professional_earnings'),
+    
+    # Reviews
+    path('reviews/', views.reviews_page, name='reviews_page'),
+    path('reviews/submit/<int:request_id>/', views.submit_review, name='submit_review'),
 
     # API
     path('api/professionals/', views.professionals_api, name='professionals_api'),

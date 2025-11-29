@@ -31,6 +31,11 @@ class Review(models.Model):
         help_text="Professional reviews of clients are hidden from clients"
     )
     
+    edit_count = models.IntegerField(
+        default=0,
+        help_text="Number of times this review has been edited"
+    )
+    
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -45,6 +50,7 @@ class Review(models.Model):
     
     def save(self, *args, **kwargs):
         # Set visibility based on review type
+        # Professional reviews of clients are hidden from clients
         if self.is_professional_review:
             self.is_visible_to_client = False
         else:
