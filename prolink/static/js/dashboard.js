@@ -644,6 +644,13 @@ function initRequestActions() {
         `;
         
         modal.style.display = 'block';
+
+        const copyBtn = document.getElementById('copyRequestId');
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(requestId)
+            .then(() => alert(`Request ID #${requestId} copied to clipboard!`))
+            .catch(err => console.error('Failed to copy: ', err));
+    });
     };
     
     window.closeRequestModal = function() {
