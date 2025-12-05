@@ -13,7 +13,7 @@ from requests.models import Request
 @login_required
 def inbox(request):
     """
-    Display all conversations for the logged-in user
+    Display all conversations for the logged-in user with Facebook-style split view
     """
     user = request.user
     
@@ -44,9 +44,42 @@ def inbox(request):
     # Sort by most recent activity
     conversation_list.sort(key=lambda x: x['updated_at'], reverse=True)
     
+    # Check if a conversation is selected (for split view)
+    selected_conversation = None
+    selected_messages = None
+    selected_other_party = None
+    selected_last_message_id = 0
+    
+    conversation_id = request.GET.get('conversation_id')
+    if conversation_id:
+        try:
+            selected_conv = Conversation.objects.select_related('client', 'professional', 'request').get(
+                id=conversation_id,
+                is_active=True
+            )
+            # Check if user has access
+            if user == selected_conv.client or user == selected_conv.professional:
+                selected_conversation = selected_conv
+                # Mark messages as read
+                Message.objects.filter(
+                    conversation=selected_conv,
+                    is_read=False
+                ).exclude(sender=user).update(is_read=True)
+                # Get messages
+                selected_messages = selected_conv.messages.select_related('sender').all()
+                selected_last_message_id = selected_messages.last().id if selected_messages.exists() else 0
+                # Get other party
+                selected_other_party = selected_conv.professional if user == selected_conv.client else selected_conv.client
+        except Conversation.DoesNotExist:
+            pass
+    
     context = {
         'conversations': conversation_list,
         'user': user,
+        'selected_conversation': selected_conversation,
+        'selected_messages': selected_messages,
+        'selected_other_party': selected_other_party,
+        'selected_last_message_id': selected_last_message_id,
     }
     
     return render(request, 'messaging/inbox.html', context)
@@ -55,7 +88,7 @@ def inbox(request):
 @login_required
 def conversation_detail(request, conversation_id):
     """
-    Display a specific conversation and handle sending messages
+    Redirect to inbox with selected conversation (for backward compatibility)
     """
     user = request.user
     
@@ -70,31 +103,8 @@ def conversation_detail(request, conversation_id):
         django_messages.error(request, "You don't have permission to view this conversation.")
         return redirect('messaging:inbox')
     
-    # Mark all unread messages as read for the current user
-    Message.objects.filter(
-        conversation=conversation,
-        is_read=False
-    ).exclude(sender=user).update(is_read=True)
-    
-    # Get all messages
-    messages_list = conversation.messages.select_related('sender').all()
-    
-    # Get last message ID for polling
-    last_message_id = messages_list.last().id if messages_list.exists() else 0
-    
-    # Determine the other party
-    other_party = conversation.professional if user == conversation.client else conversation.client
-    
-    context = {
-        'conversation': conversation,
-        'messages': messages_list,
-        'other_party': other_party,
-        'user': user,
-        'is_client': user == conversation.client,
-        'last_message_id': last_message_id,
-    }
-    
-    return render(request, 'messaging/conversation.html', context)
+    # Redirect to inbox with conversation_id parameter
+    return redirect('messaging:inbox?conversation_id=' + str(conversation_id))
 
 
 @login_required
