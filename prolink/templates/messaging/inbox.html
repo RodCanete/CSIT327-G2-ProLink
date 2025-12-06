@@ -40,7 +40,7 @@
                                 <div class="fb-conv-content">
                                     <div class="fb-conv-header">
                                         <span class="fb-conv-name">{{ conv.other_party.get_full_name|default:conv.other_party.email }}</span>
-                                        <span class="fb-conv-time">{{ conv.updated_at|timesince }} ago</span>
+                                        <span class="fb-conv-time">{{ conv.formatted_updated_at }}</span>
                                     </div>
                                     <div class="fb-conv-preview">
                                         {% if conv.last_message %}
@@ -99,7 +99,7 @@
                                     {% endif %}
                                     <div class="fb-message-bubble">
                                         <div class="fb-message-content">{{ message.content }}</div>
-                                        <div class="fb-message-time">{{ message.created_at|date:"g:i A" }}</div>
+                                        <div class="fb-message-time">{{ message.formatted_time }}</div>
                                     </div>
                                 </div>
                                 {% endfor %}
@@ -749,9 +749,30 @@
                 return div.innerHTML;
             }
 
-            // Poll for new messages every 5 seconds
-            setInterval(function() {
-                fetch('{% url "messaging:new_messages" selected_conversation.id %}?last_message_id=' + lastMessageId)
+            // Optimized polling with exponential backoff and request cancellation
+            let pollInterval = 3000; // Start with 3 seconds
+            const maxInterval = 10000; // Max 10 seconds
+            const minInterval = 2000; // Min 2 seconds
+            let pollTimeout;
+            let abortController = null;
+            let isPolling = false;
+            let consecutiveEmptyPolls = 0;
+
+            function pollForMessages() {
+                if (isPolling) return; // Prevent overlapping requests
+                
+                isPolling = true;
+                
+                // Cancel previous request if still pending
+                if (abortController) {
+                    abortController.abort();
+                }
+                abortController = new AbortController();
+                
+                fetch('{% url "messaging:new_messages" selected_conversation.id %}?last_message_id=' + lastMessageId, {
+                    signal: abortController.signal,
+                    cache: 'no-cache'
+                })
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.messages.length > 0) {
@@ -760,10 +781,38 @@
                             lastMessageId = message.id;
                         });
                         scrollToBottom();
+                        consecutiveEmptyPolls = 0;
+                        pollInterval = minInterval; // Reset to fast polling
+                    } else {
+                        consecutiveEmptyPolls++;
+                        // Increase interval if no messages (exponential backoff)
+                        if (consecutiveEmptyPolls > 3) {
+                            pollInterval = Math.min(pollInterval * 1.5, maxInterval);
+                        }
                     }
                 })
-                .catch(error => console.error('Error polling messages:', error));
-            }, 5000);
+                .catch(error => {
+                    if (error.name !== 'AbortError') {
+                        console.error('Error polling messages:', error);
+                        // Increase interval on error
+                        pollInterval = Math.min(pollInterval * 2, maxInterval);
+                    }
+                })
+                .finally(() => {
+                    isPolling = false;
+                    // Schedule next poll
+                    pollTimeout = setTimeout(pollForMessages, pollInterval);
+                });
+            }
+
+            // Start polling
+            pollForMessages();
+
+            // Cleanup on page unload
+            window.addEventListener('beforeunload', function() {
+                if (pollTimeout) clearTimeout(pollTimeout);
+                if (abortController) abortController.abort();
+            });
 
             // Enter to send (Shift+Enter for new line)
             messageInput.addEventListener('keydown', function(e) {
