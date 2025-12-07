@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: var(--border-radius-lg);
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-professional {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        .badge-student {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-client {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-worker {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        .pagination a,
+        .pagination span {
+            padding: 0.5rem 1rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            text-decoration: none;
+            color: var(--gray-700);
+        }
+        .pagination .current {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/admin_navbar.html' %}
+    
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem; font-weight: 700;">User Management</h1>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Total Users: {{ total_users }}</p>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <form method="get" class="filter-row">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Username, email, name...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Role</label>
+                        <select name="role">
+                            <option value="">All Roles</option>
+                            <option value="client" {% if role_filter == 'client' %}selected{% endif %}>Client</option>
+                            <option value="student" {% if role_filter == 'student' %}selected{% endif %}>Student</option>
+                            <option value="worker" {% if role_filter == 'worker' %}selected{% endif %}>Worker</option>
+                            <option value="professional" {% if role_filter == 'professional' %}selected{% endif %}>Professional</option>
+                            <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select name="status">
+                            <option value="">All</option>
+                            <option value="active" {% if status_filter == 'active' %}selected{% endif %}>Active</option>
+                            <option value="inactive" {% if status_filter == 'inactive' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Users Table -->
+            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>#{{ user.id }}</td>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.email }}</td>
+                            <td>{{ user.get_full_name|default:"—" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if user.user_role == 'admin' %}badge-danger
+                                    {% elif user.user_role == 'professional' %}badge-professional
+                                    {% elif user.user_role == 'student' %}badge-student
+                                    {% elif user.user_role == 'worker' %}badge-worker
+                                    {% else %}badge-client{% endif %}">
+                                    {{ user.get_user_role_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if user.is_active %}badge-success{% else %}badge-danger{% endif %}">
+                                    {% if user.is_active %}Active{% else %}Inactive{% endif %}
+                                </span>
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>
+                                <form method="post" action="{% url 'admin_dashboard:toggle_user_status' user.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn {% if user.is_active %}btn-danger{% else %}btn-success{% endif %}" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                                        {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-600);">
+                                No users found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if users.has_other_pages %}
+            <div class="pagination">
+                {% if users.has_previous %}
+                <a href="?page={{ users.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Previous</a>
+                {% endif %}
+                
+                <span class="current">Page {{ users.number }} of {{ users.paginator.num_pages }}</span>
+                
+                {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+

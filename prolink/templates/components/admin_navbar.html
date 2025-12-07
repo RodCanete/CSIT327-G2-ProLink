@@ -1,0 +1,118 @@
+{% load static %}
+<!-- Admin Navigation Bar -->
+<link rel="stylesheet" href="{% static 'css/colors.css' %}">
+<nav class="top-navbar" style="background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-color) 100%); border-bottom: 2px solid var(--primary-dark);">
+    <div class="navbar-brand" style="color: white;">
+        <i class="fas fa-shield-alt"></i>
+        <span>ProLink Admin</span>
+    </div>
+    
+    <div class="navbar-nav">
+        <a href="{% url 'admin_dashboard:dashboard' %}" class="nav-link {% if request.path == '/admin-dashboard/' %}active{% endif %}" style="color: white;">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+        </a>
+        
+        <a href="{% url 'admin_dashboard:users' %}" class="nav-link {% if '/admin-dashboard/users' in request.path %}active{% endif %}" style="color: white;">
+            <i class="fas fa-users"></i>
+            <span>Users</span>
+        </a>
+        
+        <a href="{% url 'admin_dashboard:requests' %}" class="nav-link {% if '/admin-dashboard/requests' in request.path %}active{% endif %}" style="color: white;">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Requests</span>
+        </a>
+        
+        <a href="{% url 'admin_dashboard:transactions' %}" class="nav-link {% if '/admin-dashboard/transactions' in request.path %}active{% endif %}" style="color: white;">
+            <i class="fas fa-money-bill-wave"></i>
+            <span>Transactions</span>
+        </a>
+        
+            <a href="{% url 'admin_dashboard:disputes' %}" class="nav-link {% if '/admin-dashboard/disputes' in request.path %}active{% endif %}" style="color: white;">
+                <i class="fas fa-gavel"></i>
+                <span>Disputes</span>
+                {% if open_disputes_count|default:0 > 0 %}
+                <span class="nav-badge" style="background: var(--danger-color);">{{ open_disputes_count }}</span>
+                {% endif %}
+            </a>
+        
+        <a href="{% url 'admin_dashboard:professionals' %}" class="nav-link {% if '/admin-dashboard/professionals' in request.path %}active{% endif %}" style="color: white;">
+            <i class="fas fa-user-tie"></i>
+            <span>Professionals</span>
+        </a>
+    </div>
+    
+    <div class="navbar-actions">
+        <!-- Notifications -->
+        <div class="notifications">
+            <i class="fas fa-bell" style="color: white;"></i>
+            <span class="notification-badge" style="display: none;">0</span>
+        </div>
+        
+        <!-- User Menu -->
+        <div class="user-menu">
+            <div class="user-info">
+                <img src="{{ user.get_profile_picture }}?v={{ user.updated_at.timestamp|default:'1' }}" alt="Admin" class="user-avatar" id="navbarUserAvatar">
+                <span class="user-name" style="color: white;">{{ user.get_full_name|default:user.username }}</span>
+            </div>
+            <div class="user-dropdown">
+                <a href="{% url 'profile' %}">
+                    <i class="fas fa-user"></i>
+                    Profile
+                </a>
+                <a href="/settings/">
+                    <i class="fas fa-cog"></i>
+                    Settings
+                </a>
+                <a href="/admin/" target="_blank">
+                    <i class="fas fa-cog"></i>
+                    Django Admin
+                </a>
+                <div class="dropdown-divider"></div>
+                <form method="post" action="{% url 'logout' %}" class="logout-form">
+                    {% csrf_token %}
+                    <button type="submit" class="logout-btn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .top-navbar .nav-link.active {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+    }
+    .top-navbar .nav-link:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-radius: 6px;
+    }
+</style>
+
+<script>
+    // Poll for unread message count
+    function updateUnreadCount() {
+        fetch('{% url "messaging:unread_count" %}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.querySelector('.notification-badge');
+                if (badge && data.unread_count > 0) {
+                    badge.textContent = data.unread_count;
+                    badge.style.display = 'block';
+                } else if (badge) {
+                    badge.style.display = 'none';
+                }
+            })
+            .catch(error => console.error('Error fetching unread count:', error));
+    }
+    
+    // Update immediately on load
+    updateUnreadCount();
+    
+    // Poll every 30 seconds
+    setInterval(updateUnreadCount, 30000);
+</script>
+

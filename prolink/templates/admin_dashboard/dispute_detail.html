@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dispute Resolution - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .dispute-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .dispute-header {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        .info-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .evidence-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .resolution-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .form-group select,
+        .form-group textarea,
+        .form-group input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .form-group textarea {
+            min-height: 150px;
+            resize: vertical;
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        .badge {
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/admin_navbar.html' %}
+    
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="dispute-container">
+                <!-- Header -->
+                <div class="dispute-header">
+                    <h1 style="margin: 0; font-size: 2rem;"><i class="fas fa-gavel"></i> Dispute #{{ dispute.id }}</h1>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">Status: <span class="badge badge-danger">{{ dispute.get_status_display }}</span></p>
+                </div>
+                
+                <!-- Request Info -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600); font-size: 0.875rem;">Request</h4>
+                        <p style="margin: 0; font-size: 1.125rem; font-weight: 600;"><a href="{% url 'request_detail' request_obj.id %}" style="color: var(--primary-color);">{{ request_obj.title }}</a></p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600); font-size: 0.875rem;">Transaction Amount</h4>
+                        <p style="margin: 0; font-size: 1.125rem; font-weight: 600;">₱{{ transaction.amount|floatformat:2 }}</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600); font-size: 0.875rem;">Opened By</h4>
+                        <p style="margin: 0; font-size: 1.125rem; font-weight: 600;">{{ dispute.opened_by.get_full_name|default:dispute.opened_by.username }}</p>
+                    </div>
+                    <div class="info-card">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600); font-size: 0.875rem;">Created</h4>
+                        <p style="margin: 0; font-size: 1.125rem; font-weight: 600;">{{ dispute.created_at|date:"M d, Y H:i" }}</p>
+                    </div>
+                </div>
+                
+                <!-- Client Evidence -->
+                <div class="evidence-section">
+                    <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-user"></i> Client's Evidence</h3>
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Reason</h4>
+                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.reason }}</p>
+                    </div>
+                    {% if dispute.client_evidence %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Evidence</h4>
+                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.client_evidence }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Professional Evidence -->
+                {% if dispute.professional_evidence %}
+                <div class="evidence-section">
+                    <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-user-tie"></i> Professional's Response</h3>
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.professional_evidence }}</p>
+                    </div>
+                </div>
+                {% endif %}
+                
+                <!-- Resolution Form -->
+                {% if dispute.status in 'open,under_review' %}
+                <div class="resolution-form">
+                    <h3 style="margin: 0 0 1.5rem 0;"><i class="fas fa-check-circle"></i> Resolve Dispute</h3>
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="resolve">
+                        
+                        <div class="form-group">
+                            <label>Resolution Type *</label>
+                            <select name="resolution_type" required>
+                                <option value="">Select resolution...</option>
+                                <option value="resolved_client">Resolve in favor of Client (Full Refund)</option>
+                                <option value="resolved_professional">Resolve in favor of Professional (Release Payment)</option>
+                                <option value="resolved_partial">Partial Refund</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Refund Amount (if applicable)</label>
+                            <input type="number" name="refund_amount" step="0.01" min="0" max="{{ transaction.amount }}" value="0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Resolution Notes * (Minimum 20 characters)</label>
+                            <textarea name="resolution_notes" required placeholder="Provide detailed explanation of your decision..."></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: 1rem;">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Resolve Dispute
+                            </button>
+                            <a href="{% url 'admin_dashboard:disputes' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Disputes
+                            </a>
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="evidence-section">
+                    <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-check-circle"></i> Resolution</h3>
+                    <div style="background: #d1fae5; padding: 1.5rem; border-radius: 8px; border-left: 4px solid #10b981;">
+                        <p style="margin: 0 0 0.5rem 0;"><strong>Status:</strong> {{ dispute.get_status_display }}</p>
+                        <p style="margin: 0 0 0.5rem 0;"><strong>Resolved by:</strong> {{ dispute.resolved_by.get_full_name|default:dispute.resolved_by.username }}</p>
+                        <p style="margin: 0 0 0.5rem 0;"><strong>Resolved at:</strong> {{ dispute.resolved_at|date:"M d, Y H:i" }}</p>
+                        {% if dispute.refund_amount > 0 %}
+                        <p style="margin: 0 0 0.5rem 0;"><strong>Refund Amount:</strong> ₱{{ dispute.refund_amount|floatformat:2 }}</p>
+                        {% endif %}
+                        <p style="margin: 1rem 0 0 0;"><strong>Notes:</strong></p>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--gray-700);">{{ dispute.resolution_notes }}</p>
+                    </div>
+                    <div style="margin-top: 1.5rem;">
+                        <a href="{% url 'admin_dashboard:disputes' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Disputes
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+
