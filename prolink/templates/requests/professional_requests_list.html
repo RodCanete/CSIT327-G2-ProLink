@@ -624,9 +624,9 @@
                     </div>
                     <div class="sort-dropdown">
                         <select class="sort-select" onchange="window.location.href='?status={{ current_status }}&search={{ search_query }}&sort=' + this.value">
-                            <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>📅 Latest First</option>
-                            <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>💰 Price: High to Low</option>
-                            <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>💵 Price: Low to High</option>
+                            <option value="latest" {% if sort_by == 'latest' %}selected{% endif %}>⏰ Latest First</option>
+                            <option value="price_high" {% if sort_by == 'price_high' %}selected{% endif %}>↓ Price: High to Low</option>
+                            <option value="price_low" {% if sort_by == 'price_low' %}selected{% endif %}>↑ Price: Low to High</option>
                         </select>
                     </div>
                     <form method="GET" class="search-box">
