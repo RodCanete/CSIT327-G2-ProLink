@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Q, Count, Max, Prefetch
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.urls import reverse
 from django.core.paginator import Paginator
 from .models import Conversation, Message
 from users.models import CustomUser
@@ -154,7 +155,8 @@ def conversation_detail(request, conversation_id):
         return redirect('messaging:inbox')
     
     # Redirect to inbox with conversation_id parameter
-    return redirect('messaging:inbox?conversation_id=' + str(conversation_id))
+    inbox_url = reverse('messaging:inbox')
+    return redirect(f'{inbox_url}?conversation_id={conversation_id}')
 
 
 @login_required
@@ -222,7 +224,7 @@ def send_message(request, conversation_id):
             'content': message.content,
             'sender_email': message.sender.email,
             'sender_name': message.sender.get_full_name(),
-            'created_at': formatted_time,
+            'created_at': message.created_at.strftime('%I:%M %p').lstrip('0'),
             'is_own_message': True
         }
     })
@@ -276,36 +278,14 @@ def get_new_messages(request, conversation_id):
     # Mark new messages as read if they're not from current user
     new_messages.exclude(sender=user).update(is_read=True)
     
-    # Format timestamps - convert to local timezone and format smartly
-    now = timezone.now()
-    now_local = timezone.localtime(now)
-    
-    messages_data = []
-    for msg in new_messages:
-        msg_time = timezone.localtime(msg.created_at)
-        
-        # Smart timestamp formatting: time only for today, date+time for older
-        if msg_time.date() == now_local.date():
-            # Today: show only time
-            formatted_time = msg_time.strftime('%I:%M %p').lstrip('0')
-        elif (now_local.date() - msg_time.date()).days == 1:
-            # Yesterday
-            formatted_time = f"Yesterday {msg_time.strftime('%I:%M %p').lstrip('0')}"
-        elif (now_local.date() - msg_time.date()).days < 7:
-            # This week: show day name and time
-            formatted_time = f"{msg_time.strftime('%A')} {msg_time.strftime('%I:%M %p').lstrip('0')}"
-        else:
-            # Older: show date and time
-            formatted_time = msg_time.strftime('%b %d, %I:%M %p').lstrip('0')
-        
-        messages_data.append({
-            'id': msg.id,
-            'content': msg.content,
-            'sender_email': msg.sender.email,
-            'sender_name': msg.sender.get_full_name(),
-            'created_at': formatted_time,
-            'is_own_message': msg.sender == user
-        })
+    messages_data = [{
+        'id': msg.id,
+        'content': msg.content,
+        'sender_email': msg.sender.email,
+        'sender_name': msg.sender.get_full_name(),
+        'created_at': msg.created_at.strftime('%I:%M %p').lstrip('0'),
+        'is_own_message': msg.sender == user
+    } for msg in new_messages]
     
     return JsonResponse({
         'success': True,
