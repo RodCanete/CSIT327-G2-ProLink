@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Request Management - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    {% include 'components/admin_navbar.html' %}
+    
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem; font-weight: 700;">Request Management</h1>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Total Requests: {{ total_requests }}</p>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <form method="get" class="filter-row">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Title, description, client...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select name="status">
+                            <option value="">All Statuses</option>
+                            <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                            <option value="in_progress" {% if status_filter == 'in_progress' %}selected{% endif %}>In Progress</option>
+                            <option value="under_review" {% if status_filter == 'under_review' %}selected{% endif %}>Under Review</option>
+                            <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                            <option value="disputed" {% if status_filter == 'disputed' %}selected{% endif %}>Disputed</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Requests Table -->
+            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Title</th>
+                            <th>Client</th>
+                            <th>Professional</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in requests %}
+                        <tr>
+                            <td>#{{ req.id }}</td>
+                            <td><a href="{% url 'request_detail' req.id %}" style="color: var(--primary-color);">{{ req.title|truncatewords:8 }}</a></td>
+                            <td>{{ req.client|truncatewords:2 }}</td>
+                            <td>{{ req.professional|truncatewords:2|default:"—" }}</td>
+                            <td>
+                                <span class="badge 
+                                    {% if req.status == 'completed' %}badge-success
+                                    {% elif req.status == 'disputed' or req.status == 'declined' %}badge-danger
+                                    {% elif req.status == 'in_progress' %}badge-info
+                                    {% else %}badge-warning{% endif %}">
+                                    {{ req.get_status_display }}
+                                </span>
+                            </td>
+                            <td>₱{{ req.price|floatformat:2 }}</td>
+                            <td>{{ req.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                <a href="{% url 'request_detail' req.id %}" class="btn btn-primary" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                                    View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-600);">
+                                No requests found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if requests.has_other_pages %}
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+                {% if requests.has_previous %}
+                <a href="?page={{ requests.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: 6px; text-decoration: none; color: var(--gray-700);">Previous</a>
+                {% endif %}
+                <span style="padding: 0.5rem 1rem; border: 1px solid var(--primary-color); border-radius: 6px; background: var(--primary-color); color: white;">Page {{ requests.number }} of {{ requests.paginator.num_pages }}</span>
+                {% if requests.has_next %}
+                <a href="?page={{ requests.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: 6px; text-decoration: none; color: var(--gray-700);">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+

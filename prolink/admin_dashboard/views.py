@@ -1,0 +1,458 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.db.models import Count, Q, Sum, Avg
+from django.utils import timezone
+from datetime import timedelta
+from .decorators import admin_required
+from users.models import CustomUser, ProfessionalProfile
+from requests.models import Request
+from transactions.models import Transaction, Dispute
+from analytics.models import Review, Notification
+from messaging.models import Conversation, Message
+
+
+def get_open_disputes_count():
+    """Helper function to get count of open disputes"""
+    return Dispute.objects.filter(status__in=['open', 'under_review']).count()
+
+
+@login_required
+@admin_required
+def admin_dashboard(request):
+    """
+    Main admin dashboard with platform statistics and overview
+    """
+    # Calculate date ranges
+    today = timezone.now()
+    this_month_start = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    last_month_start = (this_month_start - timedelta(days=1)).replace(day=1)
+    last_30_days = today - timedelta(days=30)
+    last_7_days = today - timedelta(days=7)
+    
+    # User Statistics
+    total_users = CustomUser.objects.count()
+    new_users_this_month = CustomUser.objects.filter(
+        date_joined__gte=this_month_start
+    ).count()
+    active_users = CustomUser.objects.filter(is_active=True).count()
+    users_by_role = CustomUser.objects.values('user_role').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    # Request Statistics
+    total_requests = Request.objects.count()
+    active_requests = Request.objects.filter(
+        status__in=['pending', 'in_progress', 'under_review', 'revision_requested']
+    ).count()
+    completed_requests = Request.objects.filter(status='completed').count()
+    disputed_requests = Request.objects.filter(status='disputed').count()
+    requests_this_month = Request.objects.filter(created_at__gte=this_month_start).count()
+    
+    # Transaction Statistics
+    total_transactions = Transaction.objects.count()
+    total_revenue = Transaction.objects.filter(
+        status='completed'
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    platform_fees = Transaction.objects.filter(
+        status='completed'
+    ).aggregate(total=Sum('platform_fee'))['total'] or 0
+    escrowed_amount = Transaction.objects.filter(
+        status__in=['escrowed', 'pending_approval', 'disputed']
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    # Professional Statistics
+    total_professionals = ProfessionalProfile.objects.count()
+    active_professionals = ProfessionalProfile.objects.filter(
+        is_available=True, user__is_active=True
+    ).count()
+    verified_professionals = ProfessionalProfile.objects.filter(is_verified=True).count()
+    
+    # Review Statistics
+    total_reviews = Review.objects.count()
+    average_rating = Review.objects.aggregate(
+        avg=Avg('rating')
+    )['avg'] or 0
+    
+    # Dispute Statistics
+    open_disputes = Dispute.objects.filter(
+        status__in=['open', 'under_review']
+    ).count()
+    resolved_disputes = Dispute.objects.filter(
+        status__in=['resolved_client', 'resolved_professional', 'resolved_partial']
+    ).count()
+    
+    # Recent Activity
+    recent_requests = Request.objects.select_related(
+        'transaction'
+    ).order_by('-created_at')[:10]
+    
+    recent_disputes = Dispute.objects.select_related(
+        'transaction', 'opened_by', 'transaction__request'
+    ).order_by('-created_at')[:5]
+    
+    # Pass open disputes count for navbar
+    open_disputes_count = open_disputes
+    
+    # Status breakdown
+    request_status_breakdown = Request.objects.values('status').annotate(
+        count=Count('id')
+    ).order_by('-count')
+    
+    transaction_status_breakdown = Transaction.objects.values('status').annotate(
+        count=Count('id'),
+        total_amount=Sum('amount')
+    ).order_by('-count')
+    
+    context = {
+        'user': request.user,
+        'display_name': request.user.get_full_name() or request.user.username,
+        
+        # User Stats
+        'total_users': total_users,
+        'new_users_this_month': new_users_this_month,
+        'active_users': active_users,
+        'users_by_role': users_by_role,
+        
+        # Request Stats
+        'total_requests': total_requests,
+        'active_requests': active_requests,
+        'completed_requests': completed_requests,
+        'disputed_requests': disputed_requests,
+        'requests_this_month': requests_this_month,
+        'request_status_breakdown': request_status_breakdown,
+        
+        # Transaction Stats
+        'total_transactions': total_transactions,
+        'total_revenue': total_revenue,
+        'platform_fees': platform_fees,
+        'escrowed_amount': escrowed_amount,
+        'transaction_status_breakdown': transaction_status_breakdown,
+        
+        # Professional Stats
+        'total_professionals': total_professionals,
+        'active_professionals': active_professionals,
+        'verified_professionals': verified_professionals,
+        
+        # Review Stats
+        'total_reviews': total_reviews,
+        'average_rating': round(average_rating, 2),
+        
+        # Dispute Stats
+        'open_disputes': open_disputes,
+        'resolved_disputes': resolved_disputes,
+        
+        # Recent Activity
+        'recent_requests': recent_requests,
+        'recent_disputes': recent_disputes,
+        'open_disputes_count': open_disputes_count,
+    }
+    
+    return render(request, 'admin_dashboard/dashboard.html', context)
+
+
+@login_required
+@admin_required
+def admin_users(request):
+    """
+    User management page
+    """
+    search_query = request.GET.get('q', '').strip()
+    role_filter = request.GET.get('role', '')
+    status_filter = request.GET.get('status', '')
+    
+    users = CustomUser.objects.all()
+    
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(email__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query)
+        )
+    
+    if role_filter:
+        users = users.filter(user_role=role_filter)
+    
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(users.order_by('-date_joined'), 50)
+    page_number = request.GET.get('page')
+    users_page = paginator.get_page(page_number)
+    
+    context = {
+        'users': users_page,
+        'search_query': search_query,
+        'role_filter': role_filter,
+        'status_filter': status_filter,
+        'total_users': users.count(),
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/users.html', context)
+
+
+@login_required
+@admin_required
+def admin_requests(request):
+    """
+    Request management page
+    """
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('q', '').strip()
+    
+    requests = Request.objects.select_related('transaction').all()
+    
+    if status_filter:
+        requests = requests.filter(status=status_filter)
+    
+    if search_query:
+        requests = requests.filter(
+            Q(title__icontains=search_query) |
+            Q(description__icontains=search_query) |
+            Q(client__icontains=search_query) |
+            Q(professional__icontains=search_query)
+        )
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(requests.order_by('-created_at'), 25)
+    page_number = request.GET.get('page')
+    requests_page = paginator.get_page(page_number)
+    
+    context = {
+        'requests': requests_page,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'total_requests': requests.count(),
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/requests.html', context)
+
+
+@login_required
+@admin_required
+def admin_disputes(request):
+    """
+    Dispute management page
+    """
+    status_filter = request.GET.get('status', '')
+    
+    disputes = Dispute.objects.select_related(
+        'transaction', 'opened_by', 'resolved_by', 'transaction__request'
+    ).all()
+    
+    if status_filter:
+        disputes = disputes.filter(status=status_filter)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(disputes.order_by('-created_at'), 20)
+    page_number = request.GET.get('page')
+    disputes_page = paginator.get_page(page_number)
+    
+    context = {
+        'disputes': disputes_page,
+        'status_filter': status_filter,
+        'total_disputes': disputes.count(),
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/disputes.html', context)
+
+
+@login_required
+@admin_required
+def admin_dispute_detail(request, dispute_id):
+    """
+    View and resolve disputes
+    """
+    dispute = get_object_or_404(
+        Dispute.objects.select_related(
+            'transaction', 'opened_by', 'resolved_by',
+            'transaction__request', 'transaction__client', 'transaction__professional'
+        ),
+        id=dispute_id
+    )
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        resolution_notes = request.POST.get('resolution_notes', '').strip()
+        refund_amount = request.POST.get('refund_amount', '0')
+        
+        if action == 'resolve':
+            if not resolution_notes or len(resolution_notes) < 20:
+                messages.error(request, 'Please provide detailed resolution notes (minimum 20 characters).')
+                return redirect('admin_dashboard:dispute_detail', dispute_id=dispute_id)
+            
+            resolution_type = request.POST.get('resolution_type')
+            
+            try:
+                refund_amount = float(refund_amount) if refund_amount else 0
+            except ValueError:
+                refund_amount = 0
+            
+            # Update dispute
+            dispute.status = resolution_type
+            dispute.resolution_notes = resolution_notes
+            dispute.refund_amount = refund_amount
+            dispute.resolved_by = request.user
+            dispute.resolved_at = timezone.now()
+            dispute.save()
+            
+            # Update transaction based on resolution
+            transaction = dispute.transaction
+            if resolution_type in ['resolved_client', 'resolved_partial']:
+                transaction.status = 'refunded'
+                transaction.save()
+            elif resolution_type == 'resolved_professional':
+                transaction.status = 'completed'
+                transaction.released_at = timezone.now()
+                transaction.save()
+            
+            # Update request status
+            request_obj = transaction.request
+            request_obj.status = 'completed'
+            request_obj.save()
+            
+            messages.success(request, f'Dispute resolved successfully. Status: {dispute.get_status_display()}')
+            return redirect('admin_dashboard:disputes')
+    
+    context = {
+        'dispute': dispute,
+        'transaction': dispute.transaction,
+        'request_obj': dispute.transaction.request,
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/dispute_detail.html', context)
+
+
+@login_required
+@admin_required
+def admin_transactions(request):
+    """
+    Transaction management page
+    """
+    status_filter = request.GET.get('status', '')
+    search_query = request.GET.get('q', '').strip()
+    
+    transactions = Transaction.objects.select_related(
+        'request', 'client', 'professional'
+    ).all()
+    
+    if status_filter:
+        transactions = transactions.filter(status=status_filter)
+    
+    if search_query:
+        transactions = transactions.filter(
+            Q(id__icontains=search_query) |
+            Q(request__title__icontains=search_query) |
+            Q(client__email__icontains=search_query) |
+            Q(professional__email__icontains=search_query)
+        )
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(transactions.order_by('-created_at'), 25)
+    page_number = request.GET.get('page')
+    transactions_page = paginator.get_page(page_number)
+    
+    context = {
+        'transactions': transactions_page,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'total_transactions': transactions.count(),
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/transactions.html', context)
+
+
+@login_required
+@admin_required
+def admin_professionals(request):
+    """
+    Professional management page
+    """
+    search_query = request.GET.get('q', '').strip()
+    verified_filter = request.GET.get('verified', '')
+    available_filter = request.GET.get('available', '')
+    
+    professionals = ProfessionalProfile.objects.select_related('user').all()
+    
+    if search_query:
+        professionals = professionals.filter(
+            Q(user__username__icontains=search_query) |
+            Q(user__email__icontains=search_query) |
+            Q(user__first_name__icontains=search_query) |
+            Q(user__last_name__icontains=search_query)
+        )
+    
+    if verified_filter == 'verified':
+        professionals = professionals.filter(is_verified=True)
+    elif verified_filter == 'unverified':
+        professionals = professionals.filter(is_verified=False)
+    
+    if available_filter == 'available':
+        professionals = professionals.filter(is_available=True)
+    elif available_filter == 'unavailable':
+        professionals = professionals.filter(is_available=False)
+    
+    # Pagination
+    from django.core.paginator import Paginator
+    paginator = Paginator(professionals.order_by('-average_rating'), 25)
+    page_number = request.GET.get('page')
+    professionals_page = paginator.get_page(page_number)
+    
+    context = {
+        'professionals': professionals_page,
+        'search_query': search_query,
+        'verified_filter': verified_filter,
+        'available_filter': available_filter,
+        'total_professionals': professionals.count(),
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/professionals.html', context)
+
+
+@login_required
+@admin_required
+def toggle_user_status(request, user_id):
+    """
+    Toggle user active/inactive status
+    """
+    if request.method == 'POST':
+        user = get_object_or_404(CustomUser, id=user_id)
+        user.is_active = not user.is_active
+        user.save()
+        
+        status = 'activated' if user.is_active else 'deactivated'
+        messages.success(request, f'User {user.username} has been {status}.')
+    
+    return redirect('admin_dashboard:users')
+
+
+@login_required
+@admin_required
+def toggle_professional_verification(request, professional_id):
+    """
+    Toggle professional verification status
+    """
+    if request.method == 'POST':
+        professional = get_object_or_404(ProfessionalProfile, id=professional_id)
+        professional.is_verified = not professional.is_verified
+        professional.save()
+        
+        status = 'verified' if professional.is_verified else 'unverified'
+        messages.success(request, f'Professional {professional.user.username} has been {status}.')
+    
+    return redirect('admin_dashboard:professionals')
+

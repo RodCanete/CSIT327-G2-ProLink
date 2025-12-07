@@ -48,7 +48,9 @@ def dashboard(request):
     }
     
     # Route to appropriate dashboard based on role
-    if user_role == 'professional':
+    if user_role == 'admin':
+        return redirect('admin_dashboard:dashboard')
+    elif user_role == 'professional':
         from transactions.models import Transaction
         from analytics.models import Review
         from django.db.models import Q
@@ -308,6 +310,11 @@ def signup(request):
         password2 = request.POST.get("password2")
         role = request.POST.get("role", "client")
         terms = request.POST.get("terms")
+        
+        # Security: Prevent admin role creation through signup
+        if role == 'admin':
+            error = "Admin accounts cannot be created through registration. Please contact support."
+            return render(request, "users/signup.html", {"error": error})
         
         # Get role-specific data
         profession = request.POST.get("profession", "")

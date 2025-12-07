@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Professional Management - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" href="/static/css/dashboard.css?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .filter-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--gray-700);
+        }
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid var(--gray-300);
+            border-radius: 6px;
+            font-size: 0.875rem;
+        }
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        .table th {
+            background: #f9fafb;
+            font-weight: 600;
+            color: var(--gray-700);
+        }
+        .table tr:hover {
+            background: #f9fafb;
+        }
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .badge-success { background: #d1fae5; color: #065f46; }
+        .badge-warning { background: #fef3c7; color: #92400e; }
+        .badge-danger { background: #fee2e2; color: #991b1b; }
+    </style>
+</head>
+<body>
+    {% include 'components/admin_navbar.html' %}
+    
+    <main class="main-content">
+        <div class="dashboard-content">
+            <div class="page-header">
+                <div>
+                    <h1 style="margin: 0; font-size: 2rem; font-weight: 700;">Professional Management</h1>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--gray-600);">Total Professionals: {{ total_professionals }}</p>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="filters">
+                <form method="get" class="filter-row">
+                    <div class="filter-group">
+                        <label>Search</label>
+                        <input type="text" name="q" value="{{ search_query }}" placeholder="Name, email, username...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Verification</label>
+                        <select name="verified">
+                            <option value="">All</option>
+                            <option value="verified" {% if verified_filter == 'verified' %}selected{% endif %}>Verified</option>
+                            <option value="unverified" {% if verified_filter == 'unverified' %}selected{% endif %}>Unverified</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Availability</label>
+                        <select name="available">
+                            <option value="">All</option>
+                            <option value="available" {% if available_filter == 'available' %}selected{% endif %}>Available</option>
+                            <option value="unavailable" {% if available_filter == 'unavailable' %}selected{% endif %}>Unavailable</option>
+                        </select>
+                    </div>
+                    <div class="filter-group" style="align-self: flex-end;">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Professionals Table -->
+            <div style="background: white; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Rating</th>
+                            <th>Reviews</th>
+                            <th>Verified</th>
+                            <th>Available</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prof in professionals %}
+                        <tr>
+                            <td>#{{ prof.id }}</td>
+                            <td><a href="{% url 'professional_detail' prof.user.id %}" style="color: var(--primary-color);">{{ prof.user.get_full_name|default:prof.user.username }}</a></td>
+                            <td>{{ prof.user.email }}</td>
+                            <td>
+                                <span style="color: #f59e0b;">
+                                    <i class="fas fa-star"></i> {{ prof.average_rating|floatformat:1 }}
+                                </span>
+                            </td>
+                            <td>{{ prof.total_reviews }}</td>
+                            <td>
+                                <span class="badge {% if prof.is_verified %}badge-success{% else %}badge-warning{% endif %}">
+                                    {% if prof.is_verified %}Verified{% else %}Unverified{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if prof.is_available %}badge-success{% else %}badge-danger{% endif %}">
+                                    {% if prof.is_available %}Available{% else %}Unavailable{% endif %}
+                                </span>
+                            </td>
+                            <td>
+                                <form method="post" action="{% url 'admin_dashboard:toggle_verification' prof.id %}" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn {% if prof.is_verified %}btn-warning{% else %}btn-success{% endif %}" style="padding: 0.375rem 0.75rem; font-size: 0.875rem;">
+                                        {% if prof.is_verified %}Unverify{% else %}Verify{% endif %}
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-600);">
+                                No professionals found
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            {% if professionals.has_other_pages %}
+            <div style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem;">
+                {% if professionals.has_previous %}
+                <a href="?page={{ professionals.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if verified_filter %}&verified={{ verified_filter }}{% endif %}{% if available_filter %}&available={{ available_filter }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: 6px; text-decoration: none; color: var(--gray-700);">Previous</a>
+                {% endif %}
+                <span style="padding: 0.5rem 1rem; border: 1px solid var(--primary-color); border-radius: 6px; background: var(--primary-color); color: white;">Page {{ professionals.number }} of {{ professionals.paginator.num_pages }}</span>
+                {% if professionals.has_next %}
+                <a href="?page={{ professionals.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if verified_filter %}&verified={{ verified_filter }}{% endif %}{% if available_filter %}&available={{ available_filter }}{% endif %}" style="padding: 0.5rem 1rem; border: 1px solid var(--gray-300); border-radius: 6px; text-decoration: none; color: var(--gray-700);">Next</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>
+

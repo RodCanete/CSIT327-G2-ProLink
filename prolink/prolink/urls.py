@@ -26,6 +26,7 @@ urlpatterns = [
     path('messages/', include('messaging.urls')),
     path('transactions/', include('transactions.urls')),
     path('notifications/', include('analytics.urls')),
+    path('admin-dashboard/', include('admin_dashboard.urls')),
 ]
 
 # Serve static files during development
