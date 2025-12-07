@@ -91,10 +91,10 @@
                         <i class="fas fa-search"></i>
                         Find Professional
                     </a>
-                    <button class="btn btn-secondary" onclick="createNewRequest()">
+                    <a href="{% url 'create_request' %}" class="btn btn-secondary">
                         <i class="fas fa-plus"></i>
                         New Request
-                    </button>
+                    </a>
                 </div>
             </div>
 
@@ -464,5 +464,11 @@
     </main>
 
     <script src="/static/js/dashboard.js"></script>
+    <script>
+        // Function to redirect to create request page (kept for backward compatibility)
+        function createNewRequest() {
+            window.location.href = "{% url 'create_request' %}";
+        }
+    </script>
 </body>
 </html>
