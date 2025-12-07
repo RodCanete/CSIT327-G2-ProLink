@@ -49,6 +49,7 @@ class Message(models.Model):
         indexes = [
             models.Index(fields=['conversation', 'created_at']),
             models.Index(fields=['is_read']),
+            models.Index(fields=['conversation', 'is_read', 'sender']),  # Optimize unread count queries
         ]
     
     def __str__(self):
