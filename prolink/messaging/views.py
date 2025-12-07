@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.db.models import Q, Count, Max
 from django.views.decorators.http import require_POST
 from django.utils import timezone
+from django.urls import reverse
 from .models import Conversation, Message
 from users.models import CustomUser
 from requests.models import Request
@@ -104,7 +105,8 @@ def conversation_detail(request, conversation_id):
         return redirect('messaging:inbox')
     
     # Redirect to inbox with conversation_id parameter
-    return redirect('messaging:inbox?conversation_id=' + str(conversation_id))
+    inbox_url = reverse('messaging:inbox')
+    return redirect(f'{inbox_url}?conversation_id={conversation_id}')
 
 
 @login_required
@@ -153,7 +155,7 @@ def send_message(request, conversation_id):
             'content': message.content,
             'sender_email': message.sender.email,
             'sender_name': message.sender.get_full_name(),
-            'created_at': message.created_at.strftime('%b %d, %Y at %I:%M %p'),
+            'created_at': message.created_at.strftime('%I:%M %p').lstrip('0'),
             'is_own_message': True
         }
     })
@@ -213,7 +215,7 @@ def get_new_messages(request, conversation_id):
         'content': msg.content,
         'sender_email': msg.sender.email,
         'sender_name': msg.sender.get_full_name(),
-        'created_at': msg.created_at.strftime('%b %d, %Y at %I:%M %p'),
+        'created_at': msg.created_at.strftime('%I:%M %p').lstrip('0'),
         'is_own_message': msg.sender == user
     } for msg in new_messages]
     

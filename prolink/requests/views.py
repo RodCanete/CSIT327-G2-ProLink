@@ -861,12 +861,6 @@ def accept_request(request, request_id):
                 )
                 
                 # Always send a message to client to prompt payment
-                try:
-                    pay_url = reverse('transactions:initiate_payment', args=[transaction.id])
-                except Exception as e:
-                    print(f"⚠️ accept_request: Could not reverse pay URL for transaction {transaction.id}: {e}")
-                    pay_url = None
-                
                 payment_message = (
                     f"Hello {client_user.first_name}! 👋\n\n"
                     f"I've accepted your request for '{req.title}'.\n\n"
@@ -874,8 +868,6 @@ def accept_request(request, request_id):
                     f"Timeline: {req.timeline_days} days\n\n"
                     f"Please proceed with the payment to start the project. "
                     f"Once payment is confirmed, I'll begin working on your request immediately.\n\n"
-                    f"You can pay by clicking the 'Pay Now' button on your dashboard."
-                    f"{(' Or click here: ' + pay_url) if pay_url else ''}\n\n"
                     f"Feel free to message me if you have any questions!"
                 )
                 Message.objects.create(
