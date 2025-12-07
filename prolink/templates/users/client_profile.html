@@ -11,6 +11,138 @@
     <link rel="stylesheet" href="/static/css/dashboard.css?v=3">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .status-active, .status-verified, .status-strong, .status-enabled {
+            font-weight: 700 !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+
+        /* Custom Success Banner Styles */
+        .custom-banner {
+            position: fixed;
+            top: 100px;
+            right: 30px;
+            background: linear-gradient(135deg, #10b981, #34d399);
+            color: white;
+            padding: 1.25rem 1.75rem;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-xl);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            z-index: 9999;
+            max-width: 400px;
+            transform: translateX(120%);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            border-left: 6px solid #059669;
+            backdrop-filter: blur(10px);
+        }
+
+        .custom-banner.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+
+        .banner-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .banner-content {
+            flex: 1;
+        }
+
+        .banner-title {
+            font-weight: 700;
+            font-size: 1.125rem;
+            margin-bottom: 0.25rem;
+            letter-spacing: 0.5px;
+        }
+
+        .banner-message {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .banner-close {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.3s;
+            padding: 0.5rem;
+            border-radius: var(--radius-md);
+            flex-shrink: 0;
+        }
+
+        .banner-close:hover {
+            opacity: 1;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Progress bar animation */
+        .banner-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+            overflow: hidden;
+        }
+
+        .banner-progress::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: white;
+            animation: progressBar 5s linear forwards;
+            border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+        }
+
+        @keyframes progressBar {
+            from { transform: translateX(-100%); }
+            to { transform: translateX(0); }
+        }
+
+        /* Banner types */
+        .banner-success {
+            background: linear-gradient(135deg, #10b981, #34d399);
+            border-left: 6px solid #059669;
+        }
+
+        .banner-error {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+            border-left: 6px solid #dc2626;
+        }
+
+        .banner-info {
+            background: linear-gradient(135deg, #3b82f6, #60a5fa);
+            border-left: 6px solid #2563eb;
+        }
+
+        .banner-warning {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            border-left: 6px solid #d97706;
+        }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
@@ -51,6 +183,55 @@
                     </div>
 
                     <script>
+                    // Function to show custom banner
+                    function showBanner(type, title, message) {
+                        // Remove any existing banner
+                        const existingBanner = document.querySelector('.custom-banner');
+                        if (existingBanner) {
+                            existingBanner.remove();
+                        }
+                        
+                        // Create banner HTML
+                        const bannerHTML = `
+                            <div class="custom-banner banner-${type} show">
+                                <div class="banner-icon">
+                                    ${type === 'success' ? '<i class="fas fa-check-circle"></i>' : 
+                                      type === 'error' ? '<i class="fas fa-exclamation-circle"></i>' :
+                                      type === 'warning' ? '<i class="fas fa-exclamation-triangle"></i>' :
+                                      '<i class="fas fa-info-circle"></i>'}
+                                </div>
+                                <div class="banner-content">
+                                    <div class="banner-title">${title}</div>
+                                    <div class="banner-message">${message}</div>
+                                </div>
+                                <button class="banner-close">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                                <div class="banner-progress"></div>
+                            </div>
+                        `;
+                        
+                        // Add banner to body
+                        document.body.insertAdjacentHTML('beforeend', bannerHTML);
+                        
+                        // Add event listener to close button
+                        const banner = document.querySelector('.custom-banner');
+                        const closeBtn = banner.querySelector('.banner-close');
+                        
+                        closeBtn.addEventListener('click', () => {
+                            banner.classList.remove('show');
+                            setTimeout(() => banner.remove(), 500);
+                        });
+                        
+                        // Auto-remove after 5 seconds
+                        setTimeout(() => {
+                            if (banner.parentNode) {
+                                banner.classList.remove('show');
+                                setTimeout(() => banner.remove(), 500);
+                            }
+                        }, 5000);
+                    }
+
                     document.addEventListener('DOMContentLoaded', function() {
                         const profilePictureInput = document.getElementById('profilePictureInput');
                         const profilePictureForm = document.getElementById('profilePictureForm');
@@ -66,6 +247,9 @@
                                 // Show loading state
                                 const originalProfileSrc = profileImage.src;
                                 const originalNavbarSrc = navbarUserAvatar ? navbarUserAvatar.src : null;
+                                
+                                // Show loading banner
+                                showBanner('info', 'Uploading', 'Please wait while we upload your profile picture...');
                                 
                                 const formData = new FormData(profilePictureForm);
 
@@ -84,13 +268,16 @@
                                 .then(data => {
                                     console.log('Data received:', data);
                                     if (data.success && data.image_url) {
-                                        // Show success message
-                                        alert('Profile picture updated successfully!');
+                                        // Show success banner
+                                        showBanner('success', 'Success', 'Profile picture updated successfully!');
                                         
                                         // Reload the page to get fresh data from database
-                                        window.location.reload();
+                                        setTimeout(() => {
+                                            window.location.reload();
+                                        }, 1500);
                                     } else if (data.error) {
-                                        alert('Error: ' + data.error);
+                                        // Show error banner
+                                        showBanner('error', 'Error', data.error || 'Failed to update profile picture');
                                         profileImage.src = originalProfileSrc;
                                         if (navbarUserAvatar && originalNavbarSrc) {
                                             navbarUserAvatar.src = originalNavbarSrc;
@@ -99,7 +286,8 @@
                                 })
                                 .catch(error => {
                                     console.error('Upload failed:', error);
-                                    alert('Upload failed. Please try again.');
+                                    // Show error banner
+                                    showBanner('error', 'Upload Failed', 'Please try again.');
                                     profileImage.src = originalProfileSrc;
                                     if (navbarUserAvatar && originalNavbarSrc) {
                                         navbarUserAvatar.src = originalNavbarSrc;
@@ -176,10 +364,6 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h3>Personal Information</h3>
-                            <button class="btn btn-sm btn-primary">
-                                <i class="fas fa-edit"></i>
-                                Edit Information
-                            </button>
                         </div>
                         <div class="panel-content">
                             <div class="info-grid">
@@ -246,7 +430,6 @@
                     <div class="panel">
                         <div class="panel-header">
                             <h3>Recent Activity</h3>
-                            <a href="/activity/" class="panel-link">View All</a>
                         </div>
                         <div class="panel-content">
                             <div class="activity-list">
