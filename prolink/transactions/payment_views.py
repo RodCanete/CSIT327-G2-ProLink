@@ -85,6 +85,24 @@ def payment_success(request, transaction_id):
             transaction.request.status = 'in_progress'
             transaction.request.save()
 
+            # Notify professional that payment was received
+            from analytics.models import Notification
+            from django.urls import reverse
+            try:
+                request_url = reverse('professional_request_detail', args=[transaction.request.id])
+            except:
+                request_url = f'/requests/professional/{transaction.request.id}/'
+            
+            Notification.create_notification(
+                user=transaction.professional,
+                notification_type='payment_received',
+                title='Payment Received!',
+                message=f'Payment of ₱{transaction.amount:,.2f} has been received for "{transaction.request.title}". You can now start working!',
+                request=transaction.request,
+                related_user=transaction.client,
+                link_url=request_url
+            )
+
             messages.success(request, f"✅ Payment successful! ₱{transaction.amount:,.2f} has been escrowed. Professional can now start work.")
         else:
             messages.warning(request, "Payment verification pending. Please wait a moment and refresh.")
@@ -156,6 +174,24 @@ def paymongo_webhook(request):
                     # Update request status
                     transaction.request.status = 'in_progress'
                     transaction.request.save()
+                    
+                    # Notify professional that payment was received (via webhook)
+                    from analytics.models import Notification
+                    from django.urls import reverse
+                    try:
+                        request_url = reverse('professional_request_detail', args=[transaction.request.id])
+                    except:
+                        request_url = f'/requests/professional/{transaction.request.id}/'
+                    
+                    Notification.create_notification(
+                        user=transaction.professional,
+                        notification_type='payment_received',
+                        title='Payment Received!',
+                        message=f'Payment of ₱{transaction.amount:,.2f} has been received for "{transaction.request.title}". You can now start working!',
+                        request=transaction.request,
+                        related_user=transaction.client,
+                        link_url=request_url
+                    )
                 except Transaction.DoesNotExist:
                     pass
         

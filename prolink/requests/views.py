@@ -884,7 +884,24 @@ def accept_request(request, request_id):
                     content=payment_message
                 )
                 
-                # Send notification to client (you can add email/notification here later)
+                # Send notification to client
+                from analytics.models import Notification
+                from django.urls import reverse
+                try:
+                    pay_url = reverse('transactions:initiate_payment', args=[transaction.id])
+                except:
+                    pay_url = None
+                
+                Notification.create_notification(
+                    user=client_user,
+                    notification_type='request_accepted',
+                    title='Request Accepted!',
+                    message=f'{request.user.get_full_name()} accepted your request "{req.title}". Please proceed with payment to start work.',
+                    request=req,
+                    related_user=request.user,
+                    link_url=pay_url or f'/requests/{req.id}/'
+                )
+                
                 messages.success(
                     request, 
                     f"✅ Request accepted! Conversation started with {client_user.first_name}. "
@@ -905,6 +922,21 @@ def accept_request(request, request_id):
             # Professional declines the request - update status to declined
             req.status = 'declined'
             req.save()
+            
+            # Notify client
+            from analytics.models import Notification
+            client_user = CustomUser.objects.filter(email__iexact=req.client).first()
+            if client_user:
+                Notification.create_notification(
+                    user=client_user,
+                    notification_type='request_updated',
+                    title='Request Declined',
+                    message=f'{request.user.get_full_name()} declined your request "{req.title}".',
+                    request=req,
+                    related_user=request.user,
+                    link_url=f'/requests/{req.id}/'
+                )
+            
             messages.info(request, "Request declined successfully.")
             return redirect('professional_requests_list')
     

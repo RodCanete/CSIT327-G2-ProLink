@@ -154,7 +154,9 @@ def conversation_detail(request, conversation_id):
         return redirect('messaging:inbox')
     
     # Redirect to inbox with conversation_id parameter
-    return redirect('messaging:inbox?conversation_id=' + str(conversation_id))
+    from django.urls import reverse
+    inbox_url = reverse('messaging:inbox')
+    return redirect(f'{inbox_url}?conversation_id={conversation_id}')
 
 
 @login_required
@@ -195,6 +197,26 @@ def send_message(request, conversation_id):
     # Update conversation timestamp
     conversation.updated_at = timezone.now()
     conversation.save(update_fields=['updated_at'])
+    
+    # Notify the recipient of the new message
+    recipient = conversation.client if user == conversation.professional else conversation.professional
+    from analytics.models import Notification
+    from django.urls import reverse
+    
+    try:
+        conversation_url = reverse('messaging:conversation', args=[conversation_id])
+    except:
+        conversation_url = f'/messages/{conversation_id}/'
+    
+    Notification.create_notification(
+        user=recipient,
+        notification_type='message_received',
+        title='New Message',
+        message=f'You have a new message from {user.get_full_name()} in "{conversation.request.title}".',
+        request=conversation.request,
+        related_user=user,
+        link_url=conversation_url
+    )
     
     # Format timestamp - convert to local timezone and format smartly
     now = timezone.now()
@@ -268,13 +290,17 @@ def get_new_messages(request, conversation_id):
         return JsonResponse({'success': False, 'error': 'Permission denied'}, status=403)
     
     # Get new messages - limit to 50 to avoid large responses
+    # First, mark messages as read (before slicing)
+    Message.objects.filter(
+        conversation=conversation,
+        id__gt=last_message_id
+    ).exclude(sender=user).update(is_read=True)
+    
+    # Then get the messages for response (with slice)
     new_messages = Message.objects.filter(
         conversation=conversation,
         id__gt=last_message_id
     ).select_related('sender').order_by('created_at')[:50]
-    
-    # Mark new messages as read if they're not from current user
-    new_messages.exclude(sender=user).update(is_read=True)
     
     # Format timestamps - convert to local timezone and format smartly
     now = timezone.now()

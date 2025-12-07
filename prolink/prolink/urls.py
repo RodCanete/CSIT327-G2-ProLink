@@ -25,6 +25,7 @@ urlpatterns = [
     path('requests/', include('requests.urls')),
     path('messages/', include('messaging.urls')),
     path('transactions/', include('transactions.urls')),
+    path('notifications/', include('analytics.urls')),
 ]
 
 # Serve static files during development
