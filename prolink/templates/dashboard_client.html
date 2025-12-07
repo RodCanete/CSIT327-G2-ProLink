@@ -147,14 +147,10 @@
                             </p>
                             <p style="margin: 5px 0 0 0; font-size: 14px; opacity: 0.85;">
                                 <i class="fas fa-user-check"></i> {{ req.professional_user.get_full_name|default:"Professional" }} accepted your request
-                                • <i class="fas fa-peso-sign"></i>₱{{ req.price|floatformat:2 }}
+                                • <i class="fas fa-peso-sign"></i>{{ req.price|floatformat:2 }}
                                 • <i class="fas fa-clock"></i> Pay now to start work
                             </p>
-                            {% if req.conversation %}
-                            <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9;">
-                                <i class="fas fa-comments"></i> <a href="{% url 'messaging:conversation' req.conversation.id %}" style="color: white; text-decoration: underline;">Chat is now available - Click here to message</a>
-                            </p>
-                            {% endif %}
+                          
                         </div>
                         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
                             {% if req.conversation %}
@@ -463,6 +459,6 @@
         </div>
     </main>
 
-    <script src="/static/js/dashboard.js"></script>
+    <script src="/static/js/dashboard.js?v=2"></script>
 </body>
 </html>

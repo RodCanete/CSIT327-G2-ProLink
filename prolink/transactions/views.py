@@ -177,6 +177,28 @@ def submit_work(request, request_id):
             transaction.status = 'pending_approval'
             transaction.save()
             
+            # Notify client that work has been submitted
+            from analytics.models import Notification
+            from django.urls import reverse
+            from users.models import CustomUser
+            
+            client_user = CustomUser.objects.filter(email__iexact=service_request.client).first()
+            if client_user:
+                try:
+                    review_url = reverse('request_detail', args=[service_request.id])
+                except:
+                    review_url = f'/requests/{service_request.id}/'
+                
+                Notification.create_notification(
+                    user=client_user,
+                    notification_type='work_submitted',
+                    title='Work Submitted for Review',
+                    message=f'{request.user.get_full_name()} has submitted work for "{service_request.title}". Please review and approve.',
+                    request=service_request,
+                    related_user=request.user,
+                    link_url=review_url
+                )
+            
             messages.success(request, 'Work submitted successfully! The client will review and approve.')
             return redirect('transactions:submission_success', request_id=service_request.id)
             
@@ -247,8 +269,27 @@ def approve_work(request, request_id):
             transaction.released_at = timezone.now()
             transaction.save()
             
-            # Create notification for professional
-            # TODO: Add notification system
+            # Notify professional that work was approved and payment released
+            from analytics.models import Notification
+            from django.urls import reverse
+            from users.models import CustomUser
+            
+            professional_user = CustomUser.objects.filter(email__iexact=service_request.professional).first()
+            if professional_user:
+                try:
+                    request_url = reverse('professional_request_detail', args=[service_request.id])
+                except:
+                    request_url = f'/requests/professional/{service_request.id}/'
+                
+                Notification.create_notification(
+                    user=professional_user,
+                    notification_type='work_approved',
+                    title='Work Approved! Payment Released',
+                    message=f'Your work for "{service_request.title}" has been approved! Payment of ₱{transaction.professional_payout:,.2f} has been released to you.',
+                    request=service_request,
+                    related_user=request.user,
+                    link_url=request_url
+                )
             
             messages.success(request, f'✅ Work approved! Payment of ₱{transaction.professional_payout:,.2f} has been released to {service_request.professional}.')
             return redirect('request_detail', request_id=request_id)
@@ -312,8 +353,28 @@ def request_revision(request, request_id):
             
             # Transaction stays in 'pending_approval' - money still in escrow
             
-            # Create notification for professional
-            # TODO: Add notification system
+            # Notify professional that revision was requested
+            from analytics.models import Notification
+            from django.urls import reverse
+            from users.models import CustomUser
+            
+            professional_user = CustomUser.objects.filter(email__iexact=service_request.professional).first()
+            if professional_user:
+                try:
+                    request_url = reverse('professional_request_detail', args=[service_request.id])
+                except:
+                    request_url = f'/requests/professional/{service_request.id}/'
+                
+                revisions_left = service_request.max_revisions - service_request.revision_count
+                Notification.create_notification(
+                    user=professional_user,
+                    notification_type='revision_requested',
+                    title='Revision Requested',
+                    message=f'Client requested a revision for "{service_request.title}". {revisions_left} revision{"s" if revisions_left != 1 else ""} remaining.',
+                    request=service_request,
+                    related_user=request.user,
+                    link_url=request_url
+                )
             
             revisions_left = service_request.max_revisions - service_request.revision_count
             
@@ -414,8 +475,27 @@ def open_dispute(request, request_id):
             service_request.status = 'disputed'
             service_request.save()
             
-            # Notify admin and professional
-            # TODO: Add notification system
+            # Notify professional about the dispute
+            from analytics.models import Notification
+            from django.urls import reverse
+            from users.models import CustomUser
+            
+            professional_user = CustomUser.objects.filter(email__iexact=service_request.professional).first()
+            if professional_user:
+                try:
+                    dispute_url = reverse('transactions:dispute_detail', args=[dispute.id])
+                except:
+                    dispute_url = f'/transactions/dispute/{dispute.id}/'
+                
+                Notification.create_notification(
+                    user=professional_user,
+                    notification_type='dispute_opened',
+                    title='Dispute Opened',
+                    message=f'A dispute has been opened for "{service_request.title}". Please respond with your evidence.',
+                    request=service_request,
+                    related_user=request.user,
+                    link_url=dispute_url
+                )
             
             messages.success(request, 
                 '⚠️ Dispute opened successfully. An administrator will review your case within 24-48 hours. '

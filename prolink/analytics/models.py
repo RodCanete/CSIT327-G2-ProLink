@@ -147,4 +147,84 @@ class ActivityLog(models.Model):
         )
 
 
+class Notification(models.Model):
+    """
+    User notifications for various events in the system
+    """
+    NOTIFICATION_TYPES = (
+        ('request_created', 'New Request'),
+        ('request_accepted', 'Request Accepted'),
+        ('request_updated', 'Request Updated'),
+        ('payment_received', 'Payment Received'),
+        ('work_submitted', 'Work Submitted'),
+        ('revision_requested', 'Revision Requested'),
+        ('work_approved', 'Work Approved'),
+        ('dispute_opened', 'Dispute Opened'),
+        ('dispute_resolved', 'Dispute Resolved'),
+        ('message_received', 'New Message'),
+        ('review_received', 'New Review'),
+        ('price_proposed', 'Price Proposal'),
+        ('price_accepted', 'Price Accepted'),
+        ('price_rejected', 'Price Rejected'),
+    )
+    
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='notifications')
+    notification_type = models.CharField(max_length=30, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    
+    # Related objects
+    request = models.ForeignKey(Request, on_delete=models.CASCADE, null=True, blank=True, related_name='notifications')
+    related_user = models.ForeignKey(
+        CustomUser,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='sent_notifications'
+    )
+    
+    # Notification metadata
+    is_read = models.BooleanField(default=False)
+    read_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    # Optional link URL
+    link_url = models.CharField(max_length=500, blank=True, null=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        indexes = [
+            models.Index(fields=['user', '-created_at']),
+            models.Index(fields=['user', 'is_read', '-created_at']),
+        ]
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_notification_type_display()} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
+    
+    def mark_as_read(self):
+        """Mark this notification as read"""
+        if not self.is_read:
+            from django.utils import timezone
+            self.is_read = True
+            self.read_at = timezone.now()
+            self.save(update_fields=['is_read', 'read_at'])
+    
+    @classmethod
+    def create_notification(cls, user, notification_type, title, message, request=None, related_user=None, link_url=None):
+        """
+        Helper method to create notifications
+        """
+        return cls.objects.create(
+            user=user,
+            notification_type=notification_type,
+            title=title,
+            message=message,
+            request=request,
+            related_user=related_user,
+            link_url=link_url
+        )
+
+
 # Transaction and Dispute models have been moved to the transactions app

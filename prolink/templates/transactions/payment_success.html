@@ -23,13 +23,14 @@
         .success-icon {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 30px;
             animation: scaleIn 0.5s ease;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
         }
         .success-icon i {
             font-size: 50px;
@@ -44,9 +45,10 @@
             }
         }
         .success-card h1 {
-            color: #333;
+            color: #059669;
             margin-bottom: 15px;
             font-size: 32px;
+            font-weight: 700;
         }
         .success-card p {
             color: #666;
@@ -55,11 +57,12 @@
             line-height: 1.6;
         }
         .transaction-details {
-            background: #f8f9ff;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
             border-radius: 12px;
             padding: 25px;
             margin: 30px 0;
             text-align: left;
+            border: 1px solid #bbf7d0;
         }
         .detail-row {
             display: flex;
@@ -99,13 +102,23 @@
             transform: translateY(-2px);
         }
         .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
             color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
         .btn-secondary {
             background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
+            color: #10b981;
+            border: 2px solid #10b981;
+        }
+        .btn-secondary:hover {
+            background: #f0fdf4;
+            border-color: #059669;
+            color: #059669;
         }
     </style>
 </head>
@@ -136,7 +149,7 @@
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status:</span>
-                    <span class="detail-value" style="color: #4caf50; font-weight: bold;">
+                    <span class="detail-value" style="color: #059669; font-weight: bold;">
                         <i class="fas fa-shield-alt"></i> Escrowed (Protected)
                     </span>
                 </div>
