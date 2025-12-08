@@ -362,6 +362,19 @@ def professional_request_detail(request, request_id):
     except Transaction.DoesNotExist:
         pass
     
+    # Get client user object
+    client_user = CustomUser.objects.filter(email=req.client).first()
+    
+    # Get reviews from other professionals about this client (visible to professionals only)
+    other_professional_reviews = []
+    if client_user:
+        other_professional_reviews = Review.objects.filter(
+            reviewee=client_user,
+            is_professional_review=True
+        ).exclude(
+            reviewer=request.user  # Exclude current professional's own review
+        ).select_related('reviewer', 'request').order_by('-created_at')[:5]  # Show latest 5 reviews
+    
     context = {
         'request': req,
         'service_request': req,
@@ -369,7 +382,8 @@ def professional_request_detail(request, request_id):
         'deliverable_files': deliverable_files,
         'progress': progress,
         'transaction': transaction,
-        'client': CustomUser.objects.filter(email=req.client).first(),
+        'client': client_user,
+        'other_professional_reviews': other_professional_reviews,  # Reviews from other professionals about this client
         'user': request.user
     }
     

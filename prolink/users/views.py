@@ -1177,12 +1177,13 @@ def reviews_page(request):
         completed_requests = ServiceRequest.objects.filter(
             client=user.email,
             status='completed',
+            completed_at__isnull=False,  # Only include requests with completion date
             completed_at__gte=thirty_days_ago
         )
         
         reviewable_requests = []
         for req in completed_requests:
-            if req.professional:
+            if req.professional and req.completed_at:  # Double check completion date exists
                 try:
                     professional = CustomUser.objects.get(email=req.professional)
                     # Check if already reviewed
@@ -1205,28 +1206,30 @@ def reviews_page(request):
         completed_requests = ServiceRequest.objects.filter(
             professional=user.email,
             status='completed',
+            completed_at__isnull=False,  # Only include requests with completion date
             completed_at__gte=thirty_days_ago
         )
         
         reviewable_requests = []
         for req in completed_requests:
-            try:
-                client = CustomUser.objects.get(email=req.client)
-                # Check if already reviewed
-                existing_review = Review.objects.filter(
-                    request=req,
-                    reviewer=user,
-                    reviewee=client,
-                    is_professional_review=True
-                ).exists()
-                if not existing_review:
-                    reviewable_requests.append({
-                        'request': req,
-                        'reviewee': client,
-                        'reviewee_name': client.get_full_name() or client.username
-                    })
-            except CustomUser.DoesNotExist:
-                pass
+            if req.completed_at:  # Double check completion date exists
+                try:
+                    client = CustomUser.objects.get(email=req.client)
+                    # Check if already reviewed
+                    existing_review = Review.objects.filter(
+                        request=req,
+                        reviewer=user,
+                        reviewee=client,
+                        is_professional_review=True
+                    ).exists()
+                    if not existing_review:
+                        reviewable_requests.append({
+                            'request': req,
+                            'reviewee': client,
+                            'reviewee_name': client.get_full_name() or client.username
+                        })
+                except CustomUser.DoesNotExist:
+                    pass
     
     context = {
         'reviews_received': reviews_received,
@@ -1273,10 +1276,13 @@ def submit_review(request, request_id):
         messages.error(request, "You can only review completed requests.")
         return redirect('request_detail', request_id=request_id)
     
-    # Validate within 30 days
+    # Validate within 30 days - silently redirect if no completion date
     if not req.completed_at:
-        messages.error(request, "This request doesn't have a completion date.")
-        return redirect('request_detail', request_id=request_id)
+        # Silently redirect without error message
+        if user.email == req.client:
+            return redirect('request_detail', request_id=request_id)
+        else:
+            return redirect('professional_request_detail', request_id=request_id)
     
     thirty_days_ago = timezone.now() - timedelta(days=30)
     if req.completed_at < thirty_days_ago:

@@ -220,7 +220,7 @@
                         </div>
                         
                         <div class="request-actions">
-                            <a href="/requests/{{ request.id }}/" class="btn btn-sm btn-outline">
+                            <a href="{% url 'request_detail' request.id %}" class="btn btn-sm btn-outline">
                                 <i class="fas fa-eye"></i>
                                 View Details
                             </a>
@@ -231,7 +231,7 @@
                             </button>
                             {% endif %}
                             {% if request.status == 'awaiting_payment' %}
-                            <a href="/requests/{{ request.id }}/pay/" class="btn btn-sm btn-success">
+                            <a href="{% url 'pay_request' request.id %}" class="btn btn-sm btn-success">
                                 <i class="fas fa-credit-card"></i>
                                 Pay Now
                             </a>

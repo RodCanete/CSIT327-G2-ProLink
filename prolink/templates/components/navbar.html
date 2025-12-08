@@ -19,11 +19,11 @@
                 <i class="fas fa-inbox"></i>
                 <span>Client Requests</span>
             </a>
-            <a href="/reviews/" class="nav-link {% if '/reviews/' in request.path %}active{% endif %}">
+            <a href="{% url 'reviews_page' %}" class="nav-link {% if '/reviews/' in request.path %}active{% endif %}">
                 <i class="fas fa-star"></i>
                 <span>Reviews</span>
             </a>
-            <a href="/earnings/" class="nav-link {% if '/earnings/' in request.path %}active{% endif %}">
+            <a href="{% url 'professional_earnings' %}" class="nav-link {% if '/earnings/' in request.path %}active{% endif %}">
                 <i class="fas fa-chart-line"></i>
                 <span>Earnings</span>
             </a>
@@ -40,6 +40,10 @@
             <a href="{% url 'saved_professionals' %}" class="nav-link {% if '/saved/' in request.path %}active{% endif %}">
                 <i class="fas fa-bookmark"></i>
                 <span>Saved</span>
+            </a>
+            <a href="{% url 'reviews_page' %}" class="nav-link {% if '/reviews/' in request.path %}active{% endif %}">
+                <i class="fas fa-star"></i>
+                <span>Reviews</span>
             </a>
         {% endif %}
         
@@ -71,16 +75,10 @@
                     <i class="fas fa-user"></i>
                     Profile
                 </a>
-                <a href="/settings/">
+                <a href="{% url 'settings' %}">
                     <i class="fas fa-cog"></i>
                     Settings
                 </a>
-                {% if user.user_role == 'professional' %}
-                <a href="/analytics/">
-                    <i class="fas fa-chart-bar"></i>
-                    Analytics
-                </a>
-                {% endif %}
                 <div class="dropdown-divider"></div>
                 <form method="post" action="{% url 'logout' %}" class="logout-form">
                     {% csrf_token %}

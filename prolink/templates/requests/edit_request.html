@@ -22,7 +22,7 @@
                     <p>Update your request details and manage attachments.</p>
                 </div>
                 <div class="page-actions">
-                    <a href="/requests/{{ request.id }}/" class="btn btn-secondary">
+                    <a href="{% url 'request_detail' request.id %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back to Request
                     </a>
@@ -237,7 +237,7 @@
 
                     <!-- Form Actions -->
                     <div class="form-actions">
-                        <a href="/requests/{{ request.id }}/" class="btn btn-secondary">
+                        <a href="{% url 'request_detail' request.id %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i>
                             Cancel
                         </a>
@@ -251,7 +251,7 @@
         </div>
     </main>
 
-    <script src="/static/js/dashboard.js"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
     <script>
         // Character counters
         document.addEventListener('DOMContentLoaded', function() {
