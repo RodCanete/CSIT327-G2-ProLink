@@ -51,11 +51,12 @@
             </div>
             {% endif %}
 
-            <!-- Reviews Received Section -->
+            <!-- Reviews Received Section (Professionals Only) -->
+            {% if user_role == 'professional' %}
             <div class="panel" style="margin-bottom: 2rem;">
                 <div class="panel-header">
                     <h3><i class="fas fa-inbox"></i> Reviews Received</h3>
-                    <span class="panel-subtitle">Reviews others have given you</span>
+                    <span class="panel-subtitle">Reviews clients have given you</span>
                 </div>
                 <div class="panel-content">
                     {% if reviews_received %}
@@ -80,7 +81,7 @@
                                             <span style="margin-left: 0.5rem; color: #666; font-weight: 600;">{{ review.rating }}/5</span>
                                         </div>
                                     </div>
-                                    <a href="{% url 'request_detail' review.request.id %}" class="btn btn-sm btn-secondary" style="white-space: nowrap;">
+                                    <a href="{% url 'professional_request_detail' review.request.id %}" class="btn btn-sm btn-secondary" style="white-space: nowrap;">
                                         View Request
                                     </a>
                                 </div>
@@ -100,6 +101,7 @@
                     {% endif %}
                 </div>
             </div>
+            {% endif %}
 
             <!-- Reviews Given Section -->
             <div class="panel">

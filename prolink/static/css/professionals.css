@@ -8,11 +8,11 @@
 
 /* Search & Filter Section */
 .search-filter-section {
-    background: white;
-    border-radius: 12px;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--box-shadow);
 }
 
 .search-bar-container {
@@ -31,22 +31,22 @@
     left: 1rem;
     top: 50%;
     transform: translateY(-50%);
-    color: #6c757d;
+    color: var(--gray-500);
 }
 
 .search-input {
     width: 100%;
     padding: 0.875rem 1rem 0.875rem 3rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius);
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: var(--transition);
 }
 
 .search-input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
 }
 
 /* Filters */
@@ -65,25 +65,25 @@
 .filter-group label {
     font-size: 0.875rem;
     font-weight: 500;
-    color: #495057;
+    color: var(--dark-color);
     margin-bottom: 0.5rem;
 }
 
 .filter-select,
 .filter-input {
     padding: 0.625rem 0.875rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius);
     font-size: 0.875rem;
-    transition: all 0.3s ease;
-    background: white;
+    transition: var(--transition);
+    background: var(--white);
 }
 
 .filter-select:focus,
 .filter-input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
 }
 
 .filter-actions {
@@ -100,7 +100,7 @@
 
 .results-summary p {
     font-size: 1rem;
-    color: #6c757d;
+    color: var(--gray-500);
 }
 
 /* Professionals Grid */
@@ -113,18 +113,18 @@
 
 /* Professional Card */
 .professional-card {
-    background: white;
-    border-radius: 12px;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
     overflow: hidden;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow-lg);
+    transition: var(--transition);
     display: flex;
     flex-direction: column;
 }
 
 .professional-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--box-shadow-xl);
 }
 
 .professional-header {
@@ -132,13 +132,13 @@
     display: flex;
     gap: 1rem;
     position: relative;
-    border-bottom: 1px solid #f1f3f5;
+    border-bottom: 1px solid var(--gray-200);
 }
 
 .professional-avatar-large {
     width: 80px;
     height: 80px;
-    border-radius: 12px;
+    border-radius: var(--border-radius-lg);
     overflow: hidden;
     flex-shrink: 0;
     position: relative;
@@ -154,8 +154,8 @@
     position: absolute;
     bottom: -4px;
     right: -4px;
-    background: #28a745;
-    color: white;
+    background: var(--success-color);
+    color: var(--white);
     width: 24px;
     height: 24px;
     border-radius: 50%;
@@ -163,7 +163,7 @@
     align-items: center;
     justify-content: center;
     font-size: 0.75rem;
-    border: 2px solid white;
+    border: 2px solid var(--white);
 }
 
 .professional-basic-info {
@@ -174,7 +174,7 @@
 .professional-basic-info h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    color: #212529;
+    color: var(--dark-color);
     margin: 0 0 0.5rem 0;
     white-space: nowrap;
     overflow: hidden;
@@ -191,8 +191,8 @@
 .specialization-tag {
     display: inline-block;
     padding: 0.25rem 0.75rem;
-    background: #e7f3ff;
-    color: #0066cc;
+    background: var(--gray-100);
+    color: var(--primary-color);
     border-radius: 20px;
     font-size: 0.75rem;
     font-weight: 500;
@@ -216,37 +216,37 @@
 
 .rating-text {
     font-size: 0.875rem;
-    color: #6c757d;
+    color: var(--gray-500);
 }
 
 .save-btn {
     position: absolute;
     top: 1rem;
     right: 1rem;
-    background: white;
-    border: 2px solid #e9ecef;
+    background: var(--white);
+    border: 2px solid var(--gray-200);
     width: 40px;
     height: 40px;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: var(--transition);
     font-size: 1.125rem;
-    color: #6c757d;
+    color: var(--gray-500);
 }
 
 .save-btn:hover {
-    border-color: #007bff;
-    color: #007bff;
-    background: #f8f9fa;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
+    background: var(--gray-50);
 }
 
 .save-btn.saved {
-    background: #007bff;
-    border-color: #007bff;
-    color: white;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white);
 }
 
 /* Professional Body */
@@ -261,7 +261,7 @@
 
 .professional-bio p {
     font-size: 0.9375rem;
-    color: #6c757d;
+    color: var(--gray-500);
     line-height: 1.6;
     margin: 0;
 }
@@ -278,27 +278,27 @@
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
-    color: #495057;
+    color: var(--dark-color);
 }
 
 .stat-item i {
-    color: #007bff;
+    color: var(--primary-color);
     width: 16px;
 }
 
 .stat-item.available {
-    color: #28a745;
+    color: var(--success-color);
 }
 
 .stat-item.available i {
-    color: #28a745;
+    color: var(--success-color);
     font-size: 0.5rem;
 }
 
 .professional-pricing {
-    background: #f8f9fa;
+    background: var(--gray-50);
     padding: 1rem;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     display: flex;
     justify-content: space-between;
     gap: 1rem;
@@ -311,20 +311,20 @@
 
 .price-label {
     font-size: 0.75rem;
-    color: #6c757d;
+    color: var(--gray-500);
     margin-bottom: 0.25rem;
 }
 
 .price-value {
     font-size: 1.125rem;
     font-weight: 600;
-    color: #212529;
+    color: var(--dark-color);
 }
 
 /* Professional Footer */
 .professional-footer {
     padding: 1.5rem;
-    border-top: 1px solid #f1f3f5;
+    border-top: 1px solid var(--gray-200);
     display: flex;
     gap: 0.75rem;
 }
@@ -339,24 +339,24 @@
     grid-column: 1 / -1;
     text-align: center;
     padding: 4rem 2rem;
-    background: white;
-    border-radius: 12px;
+    background: var(--white);
+    border-radius: var(--border-radius-lg);
 }
 
 .no-results i {
     font-size: 4rem;
-    color: #e9ecef;
+    color: var(--gray-200);
     margin-bottom: 1rem;
 }
 
 .no-results h3 {
     font-size: 1.5rem;
-    color: #495057;
+    color: var(--dark-color);
     margin: 0 0 0.5rem 0;
 }
 
 .no-results p {
-    color: #6c757d;
+    color: var(--gray-500);
     margin-bottom: 1.5rem;
 }
 
@@ -372,29 +372,29 @@
 .pagination-btn,
 .pagination-number {
     padding: 0.625rem 1rem;
-    border: 2px solid #e9ecef;
-    border-radius: 8px;
-    background: white;
-    color: #495057;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--border-radius);
+    background: var(--white);
+    color: var(--dark-color);
     text-decoration: none;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     font-size: 0.875rem;
     font-weight: 500;
-    transition: all 0.3s ease;
+    transition: var(--transition);
 }
 
 .pagination-btn:hover,
 .pagination-number:hover {
-    border-color: #007bff;
-    color: #007bff;
+    border-color: var(--primary-color);
+    color: var(--primary-color);
 }
 
 .pagination-number.active {
-    background: #007bff;
-    border-color: #007bff;
-    color: white;
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--white);
 }
 
 .pagination-numbers {
