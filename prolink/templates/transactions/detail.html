@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transaction #{{ transaction.id }} - PROLINK</title>
     {% load static %}
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -14,13 +15,28 @@
             padding: 0 20px;
         }
         .back-link {
-            color: #667eea;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--gray-100);
+            color: var(--gray-700);
+            border: 1px solid var(--gray-200);
+            border-radius: var(--border-radius);
             text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            cursor: pointer;
             margin-bottom: 20px;
-            display: inline-block;
         }
         .back-link:hover {
-            text-decoration: underline;
+            background: var(--gray-200);
+            color: var(--primary-color);
+            transform: translateX(-3px);
+            text-decoration: none;
+        }
+        .back-link i {
+            font-size: 14px;
         }
         .detail-header {
             background: white;
@@ -38,15 +54,15 @@
             gap: 15px;
         }
         .status-banner.completed {
-            background: linear-gradient(135deg, #4caf50, #45a049);
+            background: linear-gradient(135deg, var(--success-color), var(--primary-color));
             color: white;
         }
         .status-banner.pending {
-            background: linear-gradient(135deg, #ff9800, #f57c00);
+            background: linear-gradient(135deg, var(--warning-color), var(--gray-700));
             color: white;
         }
         .status-banner.escrowed {
-            background: linear-gradient(135deg, #2196f3, #1976d2);
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
         }
         .status-banner i {
@@ -74,36 +90,36 @@
         .card-title {
             font-size: 18px;
             font-weight: 600;
-            color: #333;
+            color: var(--gray-900);
             margin-bottom: 20px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .card-title i {
-            color: #667eea;
+            color: var(--primary-color);
         }
         .info-row {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--gray-200);
         }
         .info-row:last-child {
             border-bottom: none;
         }
         .info-label {
-            color: #666;
+            color: var(--gray-600);
             font-size: 14px;
         }
         .info-value {
             font-weight: 600;
-            color: #333;
+            color: var(--gray-900);
             text-align: right;
         }
         .amount-large {
             font-size: 32px;
-            color: #4caf50;
+            color: var(--success-color);
         }
         .timeline {
             background: white;
@@ -115,7 +131,7 @@
             display: flex;
             gap: 20px;
             padding: 20px 0;
-            border-left: 2px solid #e0e0e0;
+            border-left: 2px solid var(--gray-200);
             padding-left: 30px;
             position: relative;
         }
@@ -127,21 +143,21 @@
             width: 14px;
             height: 14px;
             border-radius: 50%;
-            background: #667eea;
+            background: var(--primary-color);
         }
         .timeline-item.completed::before {
-            background: #4caf50;
+            background: var(--success-color);
         }
         .timeline-content {
             flex: 1;
         }
         .timeline-title {
             font-weight: 600;
-            color: #333;
+            color: var(--gray-900);
             margin-bottom: 5px;
         }
         .timeline-date {
-            color: #999;
+            color: var(--gray-500);
             font-size: 13px;
         }
         .payment-proof {
@@ -152,20 +168,20 @@
         .deliverable-link {
             display: block;
             padding: 10px;
-            background: #f5f5f5;
+            background: var(--gray-50);
             border-radius: 6px;
             margin-top: 10px;
             text-decoration: none;
-            color: #667eea;
+            color: var(--primary-color);
         }
         .deliverable-link:hover {
-            background: #e8e8e8;
+            background: var(--gray-100);
         }
         .notes-box {
-            background: #f9f9f9;
+            background: var(--gray-50);
             padding: 15px;
             border-radius: 8px;
-            border-left: 4px solid #667eea;
+            border-left: 4px solid var(--primary-color);
             margin-top: 10px;
         }
     </style>
@@ -188,7 +204,7 @@
         
         <div class="detail-header">
             <h1>{{ transaction.request.title }}</h1>
-            <p style="color: #666;">{{ transaction.request.description }}</p>
+            <p style="color: var(--gray-600);">{{ transaction.request.description }}</p>
         </div>
         
         <div class="detail-grid">
@@ -258,7 +274,7 @@
                 <div class="timeline-content">
                     <div class="timeline-title">Transaction Created</div>
                     <div class="timeline-date">{{ transaction.created_at|date:"M d, Y g:i A" }}</div>
-                    <p style="color: #666; margin-top: 5px;">Professional accepted the request</p>
+                    <p style="color: var(--gray-600); margin-top: 5px;">Professional accepted the request</p>
                 </div>
             </div>
             
@@ -267,7 +283,7 @@
                 <div class="timeline-content">
                     <div class="timeline-title">Payment Received</div>
                     <div class="timeline-date">{{ transaction.paid_at|date:"M d, Y g:i A" }}</div>
-                    <p style="color: #666; margin-top: 5px;">Payment verified and held in escrow</p>
+                    <p style="color: var(--gray-600); margin-top: 5px;">Payment verified and held in escrow</p>
                     {% if transaction.gcash_screenshot %}
                     <img src="{{ transaction.gcash_screenshot }}" alt="Payment Proof" class="payment-proof">
                     {% endif %}
@@ -330,7 +346,7 @@
                 <div class="timeline-content">
                     <div class="timeline-title">Payment Released</div>
                     <div class="timeline-date">{{ transaction.released_at|date:"M d, Y g:i A" }}</div>
-                    <p style="color: #666; margin-top: 5px;">Client approved work and payment was released</p>
+                    <p style="color: var(--gray-600); margin-top: 5px;">Client approved work and payment was released</p>
                 </div>
             </div>
             {% endif %}

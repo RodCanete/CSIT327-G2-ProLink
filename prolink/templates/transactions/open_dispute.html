@@ -5,289 +5,351 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Open Dispute - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-    .dispute-container {
-        max-width: 900px;
-        margin: 40px auto;
+    .file-upload-area {
+        border: 2px dashed var(--gray-300);
+        border-radius: var(--border-radius);
         padding: 20px;
-    }
-    
-    .dispute-card {
-        background: white;
-        border-radius: 15px;
-        padding: 30px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-    }
-    
-    .dispute-header {
         text-align: center;
-        padding: 30px;
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-        border-radius: 15px;
-        margin-bottom: 30px;
+        background: var(--gray-50);
+        cursor: pointer;
+        transition: var(--transition-fast);
     }
     
-    .dispute-header h2 {
-        color: white;
+    .file-upload-area:hover {
+        border-color: var(--primary-color);
+        background: var(--gray-100);
+    }
+    
+    .file-upload-area i {
+        font-size: 36px;
+        color: var(--primary-color);
         margin-bottom: 10px;
-    }
-    
-    .warning-box {
-        background: #fff3cd;
-        border-left: 4px solid #ffc107;
-        padding: 20px;
-        border-radius: 8px;
-        margin: 20px 0;
-    }
-    
-    .warning-box h4 {
-        color: #856404;
-        margin-bottom: 10px;
-    }
-    
-    .info-section {
-        background: #f8f9fa;
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px 0;
-    }
-    
-    .info-section h4 {
-        color: #2c3e50;
-        margin-bottom: 15px;
     }
     
     .form-group {
-        margin-bottom: 25px;
+        margin-bottom: 20px;
     }
     
     .form-group label {
         display: block;
         font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 10px;
-        font-size: 16px;
-    }
-    
-    .form-group textarea,
-    .form-group input[type="file"] {
-        width: 100%;
-        padding: 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
-        font-size: 15px;
-        font-family: inherit;
+        color: var(--gray-900);
+        margin-bottom: 8px;
+        font-size: 14px;
     }
     
     .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid var(--gray-300);
+        border-radius: var(--border-radius);
+        font-size: 14px;
+        font-family: inherit;
         resize: vertical;
+        min-height: 120px;
     }
     
     .form-group textarea:focus {
         outline: none;
-        border-color: #667eea;
-    }
-    
-    .file-upload-area {
-        border: 2px dashed #ccc;
-        border-radius: 10px;
-        padding: 30px;
-        text-align: center;
-        background: #f8f9fa;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-    
-    .file-upload-area:hover {
-        border-color: #667eea;
-        background: #e3f2fd;
-    }
-    
-    .file-upload-area i {
-        font-size: 48px;
-        color: #667eea;
-        margin-bottom: 15px;
+        border-color: var(--primary-color);
     }
     
     .action-buttons {
         display: flex;
-        gap: 15px;
-        margin-top: 30px;
+        gap: 12px;
+        margin-top: 20px;
     }
     
     .btn-submit-dispute {
         flex: 1;
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
         color: white;
         border: none;
-        padding: 15px;
-        border-radius: 10px;
-        font-size: 18px;
+        padding: 12px 20px;
+        border-radius: var(--border-radius);
+        font-size: 16px;
         font-weight: 600;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: var(--transition-fast);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
     
     .btn-submit-dispute:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(245, 87, 108, 0.3);
+        box-shadow: var(--box-shadow);
     }
     
-    .btn-cancel {
-        flex: 1;
-        background: #e0e0e0;
-        color: #666;
-        border: none;
+    .warning-box {
+        background: #fff3cd;
+        border-left: 4px solid var(--warning-color);
         padding: 15px;
-        border-radius: 10px;
-        font-size: 18px;
-        font-weight: 600;
-        cursor: pointer;
-        text-decoration: none;
+        border-radius: var(--border-radius);
+        margin-bottom: 15px;
+    }
+    
+    .warning-box h4 {
+        color: var(--warning-color);
+        margin-bottom: 10px;
+        font-size: 15px;
         display: flex;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
     }
-</style>
+    
+    .warning-box ul {
+        margin: 8px 0 0 20px;
+        font-size: 13px;
+        line-height: 1.6;
+        color: var(--gray-700);
+    }
+    
+    .info-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .info-item:last-child {
+        border-bottom: none;
+    }
+    
+    .info-item .info-label {
+        font-weight: 600;
+        color: var(--gray-700);
+    }
+    
+    .info-item .info-value {
+        color: var(--gray-600);
+        text-align: right;
+    }
+    </style>
 </head>
 <body>
     {% include 'components/navbar.html' %}
 
     <main class="main-content">
         <div class="dashboard-content">
-<div class="dispute-container">
-    <div class="dispute-card">
-        <div class="dispute-header">
-            <h2><i class="fas fa-gavel"></i> Open a Dispute</h2>
-            <p style="margin: 0;">Request: {{ service_request.title }}</p>
-        </div>
-
-        <div class="warning-box">
-            <h4><i class="fas fa-exclamation-triangle"></i> Important Notice</h4>
-            <ul style="margin: 10px 0 0 20px;">
-                <li>Opening a dispute will freeze the transaction immediately</li>
-                <li>An administrator will review your case within 24-48 hours</li>
-                <li>Provide detailed evidence to support your claim</li>
-                <li>The admin's decision is final</li>
-                <li>Possible outcomes: Full refund to you OR Full payment to professional</li>
-            </ul>
-        </div>
-
-        <div class="info-section">
-            <h4><i class="fas fa-info-circle"></i> Transaction Details</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <strong>Professional:</strong><br>
-                    {{ service_request.professional }}
+            <!-- Page Header -->
+            <div class="page-header">
+                <div class="page-title">
+                    <h1>Open a Dispute</h1>
+                    <p>File a dispute for request: {{ service_request.title }}</p>
                 </div>
-                <div>
-                    <strong>Amount:</strong><br>
-                    ₱{{ transaction.amount|floatformat:2 }}
-                </div>
-                <div>
-                    <strong>Status:</strong><br>
-                    {{ transaction.get_status_display }}
-                </div>
-                <div>
-                    <strong>Payment Date:</strong><br>
-                    {{ transaction.paid_at|date:"M d, Y" }}
+                <div class="page-actions">
+                    <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i>
+                        Back to Request
+                    </a>
                 </div>
             </div>
-        </div>
 
-        <form method="POST" enctype="multipart/form-data" id="disputeForm">
-            {% csrf_token %}
-            
-            <div class="form-group">
-                <label for="reason">
-                    <i class="fas fa-clipboard-list"></i> Reason for Dispute *
-                    <small style="font-weight: normal; color: #666;">(Minimum 50 characters)</small>
-                </label>
-                <textarea 
-                    name="reason" 
-                    id="reason" 
-                    rows="6" 
-                    required 
-                    minlength="50"
-                    placeholder="Please provide a detailed explanation of why you're opening this dispute...&#10;&#10;Examples:&#10;- Work does not match the requirements&#10;- Professional not responding to revision requests&#10;- Quality is significantly below expectations&#10;- Deliverables are incomplete or missing"
-                ></textarea>
-            </div>
+            <!-- Dispute Form Container -->
+            <div class="request-detail-container">
+                <div class="request-detail-grid">
+                    <!-- Main Content -->
+                    <div class="request-detail-main">
+                        <!-- Important Notice -->
+                        <div class="detail-section">
+                            <h3 class="detail-section-title">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Important Notice
+                            </h3>
+                            <div class="detail-content">
+                                <div class="warning-box">
+                                    <ul>
+                                        <li>Opening a dispute will freeze the transaction immediately</li>
+                                        <li>An administrator will review your case within 24-48 hours</li>
+                                        <li>Provide detailed evidence to support your claim</li>
+                                        <li>The admin's decision is final</li>
+                                        <li>Possible outcomes: Full refund to you OR Full payment to professional</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
 
-            <div class="form-group">
-                <label for="client_evidence">
-                    <i class="fas fa-file-alt"></i> Additional Evidence
-                    <small style="font-weight: normal; color: #666;">(Optional - provide more context)</small>
-                </label>
-                <textarea 
-                    name="client_evidence" 
-                    id="client_evidence" 
-                    rows="4"
-                    placeholder="Additional details, timeline of events, previous communication, etc."
-                ></textarea>
-            </div>
+                        <!-- Dispute Form -->
+                        <form method="POST" enctype="multipart/form-data" id="disputeForm">
+                            {% csrf_token %}
+                            
+                            <!-- Reason for Dispute -->
+                            <div class="detail-section">
+                                <h3 class="detail-section-title">
+                                    <i class="fas fa-clipboard-list"></i>
+                                    Reason for Dispute *
+                                </h3>
+                                <div class="detail-content">
+                                    <div class="form-group">
+                                        <label for="reason">
+                                            Please provide a detailed explanation of why you're opening this dispute
+                                            <small style="font-weight: normal; color: var(--gray-600); display: block; margin-top: 4px;">(Minimum 50 characters)</small>
+                                        </label>
+                                        <textarea 
+                                            name="reason" 
+                                            id="reason" 
+                                            rows="6" 
+                                            required 
+                                            minlength="50"
+                                            placeholder="Please provide a detailed explanation of why you're opening this dispute...&#10;&#10;Examples:&#10;- Work does not match the requirements&#10;- Professional not responding to revision requests&#10;- Quality is significantly below expectations&#10;- Deliverables are incomplete or missing"
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
 
-            <div class="form-group">
-                <label>
-                    <i class="fas fa-paperclip"></i> Upload Evidence Files
-                    <small style="font-weight: normal; color: #666;">(Optional - screenshots, documents, etc.)</small>
-                </label>
-                <div class="file-upload-area" onclick="document.getElementById('evidence_files').click()">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p style="margin: 0;"><strong>Click to upload files</strong></p>
-                    <p style="margin: 5px 0 0 0; color: #666;">PDF, PNG, JPG, DOC (Max 10MB each)</p>
+                            <!-- Additional Evidence -->
+                            <div class="detail-section">
+                                <h3 class="detail-section-title">
+                                    <i class="fas fa-file-alt"></i>
+                                    Additional Evidence
+                                </h3>
+                                <div class="detail-content">
+                                    <div class="form-group">
+                                        <label for="client_evidence">
+                                            Additional details, timeline of events, previous communication, etc.
+                                            <small style="font-weight: normal; color: var(--gray-600); display: block; margin-top: 4px;">(Optional - provide more context)</small>
+                                        </label>
+                                        <textarea 
+                                            name="client_evidence" 
+                                            id="client_evidence" 
+                                            rows="5"
+                                            placeholder="Additional details, timeline of events, previous communication, etc."
+                                        ></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Evidence Files -->
+                            <div class="detail-section">
+                                <h3 class="detail-section-title">
+                                    <i class="fas fa-paperclip"></i>
+                                    Upload Evidence Files
+                                </h3>
+                                <div class="detail-content">
+                                    <div class="form-group">
+                                        <label>
+                                            Upload supporting documents, screenshots, or other evidence
+                                            <small style="font-weight: normal; color: var(--gray-600); display: block; margin-top: 4px;">(Optional - screenshots, documents, etc.)</small>
+                                        </label>
+                                        <div class="file-upload-area" onclick="document.getElementById('evidence_files').click()">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <p style="margin: 5px 0; font-size: 13px;"><strong>Click to upload files</strong></p>
+                                            <p style="margin: 0; color: var(--gray-600); font-size: 12px;">PDF, PNG, JPG, DOC (Max 10MB each)</p>
+                                        </div>
+                                        <input 
+                                            type="file" 
+                                            name="evidence_files" 
+                                            id="evidence_files" 
+                                            multiple 
+                                            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                            style="display: none;"
+                                            onchange="showFileNames()"
+                                        >
+                                        <div id="fileNames" style="margin-top: 8px; color: var(--gray-600); font-size: 12px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Before Submitting -->
+                            <div class="detail-section">
+                                <h3 class="detail-section-title">
+                                    <i class="fas fa-check-circle"></i>
+                                    Before Submitting
+                                </h3>
+                                <div class="detail-content">
+                                    <div class="warning-box">
+                                        <ul>
+                                            <li>Have you tried requesting revisions? (You can request up to {{ service_request.max_revisions }})</li>
+                                            <li>Have you communicated clearly with the professional?</li>
+                                            <li>Do you have sufficient evidence to support your claim?</li>
+                                            <li>Are you prepared for the dispute process (24-48 hours)?</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="action-buttons">
+                                <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary" style="flex: 1;">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn-submit-dispute" onclick="return confirm('Are you sure you want to open a dispute? This action cannot be undone.')">
+                                    <i class="fas fa-gavel"></i> Open Dispute
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Sidebar -->
+                    <div class="request-detail-sidebar">
+                        <!-- Transaction Details -->
+                        <div class="detail-card">
+                            <h4>Transaction Details</h4>
+                            <div class="info-item">
+                                <span class="info-label">Professional</span>
+                                <span class="info-value">{{ service_request.professional }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Amount</span>
+                                <span class="info-value">₱{{ transaction.amount|floatformat:2 }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Status</span>
+                                <span class="info-value">{{ transaction.get_status_display }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Payment Date</span>
+                                <span class="info-value">{{ transaction.paid_at|date:"M d, Y" }}</span>
+                            </div>
+                        </div>
+
+                        <!-- Request Information -->
+                        <div class="detail-card">
+                            <h4>Request Information</h4>
+                            <div class="info-item">
+                                <span class="info-label">Request ID</span>
+                                <span class="info-value">#{{ service_request.id }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Title</span>
+                                <span class="info-value" style="text-align: right; word-break: break-word;">{{ service_request.title|truncatewords:10 }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Status</span>
+                                <span class="info-value">{{ service_request.get_status_display }}</span>
+                            </div>
+                            {% if service_request.max_revisions %}
+                            <div class="info-item">
+                                <span class="info-label">Max Revisions</span>
+                                <span class="info-value">{{ service_request.max_revisions }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
-                <input 
-                    type="file" 
-                    name="evidence_files" 
-                    id="evidence_files" 
-                    multiple 
-                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                    style="display: none;"
-                    onchange="showFileNames()"
-                >
-                <div id="fileNames" style="margin-top: 10px; color: #666; font-size: 14px;"></div>
             </div>
-
-            <div class="warning-box">
-                <h4><i class="fas fa-check-circle"></i> Before Submitting</h4>
-                <ul style="margin: 10px 0 0 20px;">
-                    <li>Have you tried requesting revisions? (You can request up to {{ service_request.max_revisions }})</li>
-                    <li>Have you communicated clearly with the professional?</li>
-                    <li>Do you have sufficient evidence to support your claim?</li>
-                    <li>Are you prepared for the dispute process (24-48 hours)?</li>
-                </ul>
-            </div>
-
-            <div class="action-buttons">
-                <a href="{% url 'requests:request_detail' service_request.id %}" class="btn-cancel">
-                    <i class="fas fa-times"></i> Cancel
-                </a>
-                <button type="submit" class="btn-submit-dispute" onclick="return confirm('Are you sure you want to open a dispute? This action cannot be undone.')">
-                    <i class="fas fa-gavel"></i> Open Dispute
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-function showFileNames() {
-    const input = document.getElementById('evidence_files');
-    const fileNamesDiv = document.getElementById('fileNames');
-    
-    if (input.files.length > 0) {
-        const fileList = Array.from(input.files).map(f => `📎 ${f.name}`).join('<br>');
-        fileNamesDiv.innerHTML = `<strong>Selected files:</strong><br>${fileList}`;
-    } else {
-        fileNamesDiv.innerHTML = '';
-    }
-}
-</script>
         </div>
     </main>
+
+    <script>
+    function showFileNames() {
+        const input = document.getElementById('evidence_files');
+        const fileNamesDiv = document.getElementById('fileNames');
+        
+        if (input.files.length > 0) {
+            const fileList = Array.from(input.files).map(f => `📎 ${f.name}`).join('<br>');
+            fileNamesDiv.innerHTML = `<strong>Selected files:</strong><br>${fileList}`;
+        } else {
+            fileNamesDiv.innerHTML = '';
+        }
+    }
+    </script>
 </body>
 </html>
