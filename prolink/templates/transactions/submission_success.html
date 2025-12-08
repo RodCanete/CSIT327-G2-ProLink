@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Submission Sent - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -14,8 +15,8 @@
     
     <style>
         .success-container {
-            max-width: 700px;
-            margin: 80px auto;
+            max-width: 1000px;
+            margin: 30px auto;
             padding: 0 20px;
         }
         .success-card {
@@ -26,70 +27,98 @@
             text-align: center;
         }
         .success-header {
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
             color: white;
-            padding: 50px 30px;
+            padding: 30px;
         }
         .success-icon {
-            width: 100px;
-            height: 100px;
+            width: 80px;
+            height: 80px;
             background: rgba(255,255,255,0.2);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
+            margin: 0 auto 15px;
         }
-        .success-icon i { font-size: 50px; }
-        .success-header h1 { margin: 0 0 10px 0; font-size: 32px; }
-        .success-header p { margin: 0; font-size: 18px; opacity: 0.95; }
-        .success-body { padding: 40px 30px; }
+        .success-icon i { font-size: 40px; }
+        .success-header h1 { margin: 0 0 8px 0; font-size: 28px; }
+        .success-header p { margin: 0; font-size: 16px; opacity: 0.95; }
+        .success-body { 
+            padding: 30px; 
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        @media (max-width: 768px) {
+            .success-body {
+                grid-template-columns: 1fr;
+            }
+        }
         .info-box {
-            background: #f8f9ff;
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 30px;
+            background: var(--gray-50);
+            border-radius: var(--border-radius-lg);
+            padding: 20px;
             text-align: left;
         }
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #e0e0e0;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--gray-200);
         }
         .info-row:last-child { border-bottom: none; }
-        .info-label { color: #666; font-weight: 500; }
-        .info-value { font-weight: 600; color: #333; }
+        .info-label { color: var(--gray-600); font-weight: 500; }
+        .info-value { font-weight: 600; color: var(--gray-900); }
         .payout-highlight {
-            background: linear-gradient(135deg, #4caf50 0%, #45a049 100%);
+            background: linear-gradient(135deg, var(--success-color) 0%, var(--primary-color) 100%);
             color: white;
             padding: 20px;
-            border-radius: 12px;
-            margin: 30px 0;
+            border-radius: var(--border-radius-lg);
+            text-align: center;
         }
         .payout-amount { font-size: 36px; font-weight: bold; margin: 0; }
         .action-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-top: 20px;
+            grid-column: 1 / -1;
+        }
+        @media (max-width: 768px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
+            }
         }
         .btn {
-            flex: 1;
-            padding: 15px 30px;
-            border-radius: 8px;
-            font-size: 16px;
+            padding: 12px 20px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
             font-weight: 600;
             text-decoration: none;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            transition: all 0.3s;
+            transition: var(--transition-fast);
         }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4); }
-        .btn-secondary { background: #f0f0f0; color: #333; }
-        .btn-secondary:hover { background: #e0e0e0; }
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: var(--box-shadow); 
+        }
+        .btn-secondary { 
+            background: var(--gray-100); 
+            color: var(--gray-700); 
+            border: 1px solid var(--gray-200);
+        }
+        .btn-secondary:hover { 
+            background: var(--gray-200); 
+            color: var(--primary-color);
+        }
     </style>
 
     <div class="success-container">
@@ -104,7 +133,7 @@
             
             <div class="success-body">
                 <div class="info-box">
-                    <h3 style="margin: 0 0 15px 0; color: #667eea;">
+                    <h3 style="margin: 0 0 15px 0; color: var(--primary-color);">
                         <i class="fas fa-briefcase"></i> Project Details
                     </h3>
                     <div class="info-row">
@@ -121,7 +150,7 @@
                     </div>
                     <div class="info-row">
                         <span class="info-label">Status:</span>
-                        <span class="info-value" style="color: #ff9800;">
+                        <span class="info-value" style="color: var(--warning-color);">
                             <i class="fas fa-hourglass-half"></i> Under Review
                         </span>
                     </div>
@@ -150,9 +179,9 @@
                     </a>
                 </div>
                 
-                <p style="margin-top: 30px; color: #999; font-size: 14px;">
+                <p style="margin-top: 20px; color: var(--gray-500); font-size: 14px; text-align: center; grid-column: 1 / -1;">
                     <i class="fas fa-receipt"></i>
-                    <a href="{% url 'transactions:detail' transaction.id %}" style="color: #667eea; text-decoration: none;">
+                    <a href="{% url 'transactions:detail' transaction.id %}" style="color: var(--primary-color); text-decoration: none;">
                         View Transaction Details
                     </a>
                 </p>

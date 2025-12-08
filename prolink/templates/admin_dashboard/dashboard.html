@@ -347,10 +347,12 @@
                 <div class="panel-content">
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
                         {% for role_data in users_by_role %}
-                        <div style="text-align: center; padding: 1rem; background: #f9fafb; border-radius: 8px;">
-                            <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">{{ role_data.count }}</div>
-                            <div style="color: var(--gray-600); font-size: 0.875rem; margin-top: 0.5rem;">{{ role_data.user_role|title }}</div>
-                        </div>
+                            {% if role_data.user_role != 'client' %}
+                            <div style="text-align: center; padding: 1rem; background: #f9fafb; border-radius: 8px;">
+                                <div style="font-size: 2rem; font-weight: 700; color: var(--primary-color);">{{ role_data.count }}</div>
+                                <div style="color: var(--gray-600); font-size: 0.875rem; margin-top: 0.5rem;">{{ role_data.user_role|title }}</div>
+                            </div>
+                            {% endif %}
                         {% endfor %}
                     </div>
                 </div>
