@@ -24,6 +24,7 @@ urlpatterns = [
     
     # Dispute management
     path('open-dispute/<int:request_id>/', views.open_dispute, name='open_dispute'),
+    path('dispute-submitted/<int:dispute_id>/', views.dispute_submitted, name='dispute_submitted'),
     path('dispute/<int:dispute_id>/', views.dispute_detail, name='dispute_detail'),
     path('submit-evidence/<int:dispute_id>/', views.submit_evidence, name='submit_evidence'),
     

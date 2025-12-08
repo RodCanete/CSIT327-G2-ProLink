@@ -497,11 +497,29 @@ def open_dispute(request, request_id):
                     link_url=dispute_url
                 )
             
+            # Notify all admins about the dispute
+            admin_users = CustomUser.objects.filter(is_staff=True, is_superuser=True)
+            for admin in admin_users:
+                try:
+                    dispute_url = reverse('transactions:dispute_detail', args=[dispute.id])
+                except:
+                    dispute_url = f'/transactions/dispute/{dispute.id}/'
+                
+                Notification.create_notification(
+                    user=admin,
+                    notification_type='dispute_admin_review',
+                    title='New Dispute Requires Review',
+                    message=f'A dispute has been opened for "{service_request.title}" (Transaction #{transaction.id}). Client: {request.user.get_full_name() or request.user.email}',
+                    request=service_request,
+                    related_user=request.user,
+                    link_url=dispute_url
+                )
+            
             messages.success(request, 
                 '⚠️ Dispute opened successfully. An administrator will review your case within 24-48 hours. '
                 'Transaction funds are now frozen.'
             )
-            return redirect('transactions:dispute_detail', dispute_id=dispute.id)
+            return redirect('transactions:dispute_submitted', dispute_id=dispute.id)
             
         except Exception as e:
             messages.error(request, f'Error opening dispute: {str(e)}')
@@ -513,6 +531,22 @@ def open_dispute(request, request_id):
         'transaction': transaction,
     }
     return render(request, 'transactions/open_dispute.html', context)
+
+
+@login_required
+def dispute_submitted(request, dispute_id):
+    """Dispute submission confirmation page"""
+    dispute = get_object_or_404(Dispute, id=dispute_id)
+    
+    # Ensure user is the one who opened the dispute
+    if request.user != dispute.opened_by:
+        messages.error(request, 'You do not have permission to view this page.')
+        return redirect('dashboard')
+    
+    context = {
+        'dispute': dispute,
+    }
+    return render(request, 'transactions/dispute_submitted.html', context)
 
 
 @login_required

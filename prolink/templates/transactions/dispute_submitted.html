@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful - PROLINK</title>
+    <title>Dispute Submitted - PROLINK</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
@@ -34,14 +34,14 @@
         .success-icon {
             width: 70px;
             height: 70px;
-            background: linear-gradient(135deg, var(--secondary-color, #7FB069) 0%, var(--accent-color, #5A8A47) 100%);
+            background: linear-gradient(135deg, var(--warning-color, #8B7355) 0%, var(--danger-color, #B85450) 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 15px;
             animation: scaleIn 0.5s ease;
-            box-shadow: 0 4px 15px rgba(127, 176, 105, 0.4);
+            box-shadow: 0 4px 15px rgba(185, 84, 80, 0.4);
         }
         .success-icon i {
             font-size: 36px;
@@ -56,7 +56,7 @@
             }
         }
         .success-card h1 {
-            color: var(--primary-color, #2D5016);
+            color: var(--danger-color, #B85450);
             margin-bottom: 10px;
             font-size: 26px;
             font-weight: 700;
@@ -67,19 +67,19 @@
             margin-bottom: 18px;
             line-height: 1.5;
         }
-        .transaction-details {
-            background: linear-gradient(135deg, var(--gray-50, #F7F9F5) 0%, var(--gray-100, #E8F0E3) 100%);
+        .dispute-details {
+            background: linear-gradient(135deg, #fff3cd 0%, #ffe9a3 100%);
             border-radius: var(--border-radius-lg, 12px);
             padding: 18px 20px;
             margin: 18px 0;
             text-align: left;
-            border: 1px solid var(--gray-200, #D4E4CC);
+            border: 1px solid #ffd966;
         }
         .detail-row {
             display: flex;
             justify-content: space-between;
             padding: 8px 0;
-            border-bottom: 1px solid var(--gray-200, #D4E4CC);
+            border-bottom: 1px solid #ffd966;
         }
         .detail-row:last-child {
             border-bottom: none;
@@ -99,6 +99,29 @@
             color: #666;
             margin-top: 15px;
             line-height: 1.4;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid var(--warning-color, #8B7355);
+            padding: 12px 15px;
+            border-radius: var(--border-radius, 8px);
+            margin: 15px 0;
+            text-align: left;
+        }
+        .warning-box h4 {
+            color: var(--gray-900);
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .warning-box ul {
+            margin: 0;
+            padding-left: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+        .warning-box li {
+            margin-bottom: 4px;
         }
         .actions {
             display: flex;
@@ -123,13 +146,13 @@
             transform: translateY(-2px);
         }
         .btn-primary {
-            background: linear-gradient(135deg, var(--secondary-color, #7FB069) 0%, var(--accent-color, #5A8A47) 100%);
+            background: linear-gradient(135deg, var(--danger-color, #B85450) 0%, #dc2626 100%);
             color: white;
-            box-shadow: 0 3px 12px rgba(127, 176, 105, 0.3);
+            box-shadow: 0 3px 12px rgba(185, 84, 80, 0.3);
         }
         .btn-primary:hover {
-            background: linear-gradient(135deg, var(--accent-color, #5A8A47) 0%, var(--primary-color, #2D5016) 100%);
-            box-shadow: 0 4px 15px rgba(127, 176, 105, 0.4);
+            background: linear-gradient(135deg, #dc2626 0%, #991b1b 100%);
+            box-shadow: 0 4px 15px rgba(185, 84, 80, 0.4);
         }
         .btn-secondary {
             background: white;
@@ -152,7 +175,7 @@
             color: var(--accent-color, #5A8A47);
         }
         .status-badge {
-            color: var(--primary-color, #2D5016);
+            color: var(--danger-color, #B85450);
             font-weight: bold;
         }
     </style>
@@ -163,41 +186,49 @@
     <div class="success-container">
         <div class="success-card">
             <div class="success-icon">
-                <i class="fas fa-check"></i>
+                <i class="fas fa-gavel"></i>
             </div>
             
-            <h1>Payment Submitted!</h1>
-            <p>Your payment has been successfully submitted and is now in escrow. The professional has been notified and will begin working on your request.</p>
+            <h1>Dispute Submitted!</h1>
+            <p>Your dispute has been successfully submitted. An administrator will review your case within 24-48 hours. The transaction funds are now frozen until the dispute is resolved.</p>
             
-            <div class="transaction-details">
+            <div class="dispute-details">
+                <div class="detail-row">
+                    <span class="detail-label">Dispute ID:</span>
+                    <span class="detail-value">#{{ dispute.id }}</span>
+                </div>
                 <div class="detail-row">
                     <span class="detail-label">Transaction ID:</span>
-                    <span class="detail-value">#{{ transaction.id }}</span>
+                    <span class="detail-value">#{{ dispute.transaction.id }}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Amount Paid:</span>
-                    <span class="detail-value">₱{{ transaction.amount|floatformat:2 }}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">GCash Reference:</span>
-                    <span class="detail-value">{{ transaction.transaction_id }}</span>
+                    <span class="detail-label">Amount in Escrow:</span>
+                    <span class="detail-value">₱{{ dispute.transaction.amount|floatformat:2 }}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Status:</span>
                     <span class="detail-value status-badge">
-                        <i class="fas fa-shield-alt"></i> Escrowed (Protected)
+                        <i class="fas fa-clock"></i> Under Review
                     </span>
                 </div>
             </div>
             
+            <div class="warning-box">
+                <h4><i class="fas fa-info-circle"></i> What Happens Next?</h4>
+                <ul>
+                    <li>An admin will review all evidence from both parties</li>
+                    <li>You may be contacted for additional information</li>
+                    <li>The professional will have 48 hours to respond</li>
+                    <li>A decision will be made within 24-48 hours</li>
+                    <li>The admin's decision is final</li>
+                </ul>
+            </div>
+            
             <p class="info-text">
-                <i class="fas fa-info-circle"></i> Your payment is held securely until you approve the completed work. You can track progress and communicate with the professional through messaging.
+                <i class="fas fa-shield-alt"></i> You can track the status of your dispute in the dispute detail page. You'll receive notifications about any updates.
             </p>
             
             <div class="actions">
-                <a href="{% url 'transactions:detail' transaction.id %}" class="btn btn-primary">
-                    <i class="fas fa-file-invoice-dollar"></i> View Transaction Details
-                </a>
                 <a href="{% url 'messaging:inbox' %}" class="btn btn-secondary">
                     <i class="fas fa-comments"></i> Message Professional
                 </a>
@@ -209,3 +240,4 @@
     </div>
 </body>
 </html>
+
