@@ -5,27 +5,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dispute Details - ProLink</title>
-    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=20241208">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
     .dispute-detail-container {
         max-width: 1200px;
-        margin: 40px auto;
+        margin: 20px auto 40px;
         padding: 20px;
     }
     
+    .back-button-top {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: white;
+        color: var(--primary-color, #2D5016);
+        border: 2px solid var(--primary-color, #2D5016);
+        border-radius: var(--border-radius, 8px);
+        font-weight: 600;
+        text-decoration: none;
+        transition: var(--transition-fast);
+        margin-bottom: 20px;
+    }
+    
+    .back-button-top:hover {
+        background: var(--gray-50, #F7F9F5);
+        transform: translateX(-3px);
+        box-shadow: var(--box-shadow);
+    }
+    
     .dispute-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #800020 0%, #5a0014 100%);
         color: white;
         padding: 30px;
-        border-radius: 15px;
+        border-radius: var(--border-radius-xl, 16px);
         margin-bottom: 30px;
+        box-shadow: var(--box-shadow-lg);
     }
     
     .dispute-header h2 {
         color: white;
-        margin-bottom: 10px;
+        margin: 0 0 10px 0;
+        font-size: 28px;
+    }
+    
+    .dispute-header p {
+        margin: 10px 0;
+        opacity: 0.95;
     }
     
     .status-badge {
@@ -36,11 +65,26 @@
         font-size: 14px;
     }
     
-    .status-open { background: #fff3cd; color: #856404; }
-    .status-under_review { background: #cfe2ff; color: #084298; }
-    .status-resolved_client { background: #d1e7dd; color: #0a3622; }
-    .status-resolved_professional { background: #d1e7dd; color: #0a3622; }
-    .status-closed { background: #e2e3e5; color: #41464b; }
+    .status-open { 
+        background: #fff3cd; 
+        color: #856404; 
+    }
+    .status-under_review { 
+        background: #dbeafe; 
+        color: #1e40af; 
+    }
+    .status-resolved_client { 
+        background: var(--gray-100, #E8F0E3); 
+        color: var(--primary-color, #2D5016); 
+    }
+    .status-resolved_professional { 
+        background: var(--gray-100, #E8F0E3); 
+        color: var(--primary-color, #2D5016); 
+    }
+    .status-closed { 
+        background: #e2e3e5; 
+        color: #41464b; 
+    }
     
     .info-grid {
         display: grid;
@@ -51,20 +95,34 @@
     
     .info-card {
         background: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        padding: 24px;
+        border-radius: var(--border-radius-lg, 12px);
+        box-shadow: var(--box-shadow);
+        border-left: 4px solid var(--primary-color, #2D5016);
+        transition: var(--transition-fast);
+    }
+    
+    .info-card:hover {
+        box-shadow: var(--box-shadow-lg);
+        transform: translateY(-2px);
     }
     
     .info-card h4 {
-        color: #666;
-        font-size: 14px;
-        margin-bottom: 10px;
+        color: var(--gray-600, #5A8A47);
+        font-size: 13px;
+        margin: 0 0 10px 0;
         text-transform: uppercase;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-card h4 i {
+        color: var(--primary-color, #2D5016);
+        margin-right: 6px;
     }
     
     .info-card p {
-        color: #2c3e50;
+        color: var(--gray-900, #0F1F06);
         font-size: 18px;
         font-weight: 600;
         margin: 0;
@@ -73,24 +131,31 @@
     .evidence-section {
         background: white;
         padding: 30px;
-        border-radius: 15px;
+        border-radius: var(--border-radius-xl, 16px);
         margin-bottom: 20px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        box-shadow: var(--box-shadow);
     }
     
     .evidence-section h3 {
-        color: #2c3e50;
-        margin-bottom: 20px;
+        color: var(--primary-color, #2D5016);
+        margin: 0 0 20px 0;
         padding-bottom: 15px;
-        border-bottom: 2px solid #f0f0f0;
+        border-bottom: 2px solid var(--gray-200, #D4E4CC);
+        font-size: 20px;
+    }
+    
+    .evidence-section h3 i {
+        margin-right: 8px;
     }
     
     .evidence-content {
-        background: #f8f9fa;
+        background: var(--gray-50, #F7F9F5);
         padding: 20px;
-        border-radius: 10px;
+        border-radius: var(--border-radius, 8px);
         margin: 15px 0;
-        border-left: 4px solid #667eea;
+        border-left: 4px solid var(--danger-color, #B85450);
+        line-height: 1.6;
+        color: var(--gray-800, #1A3009);
     }
     
     .file-list {
@@ -100,76 +165,165 @@
     }
     
     .file-list li {
-        background: #fff;
-        padding: 15px;
-        border-radius: 8px;
+        background: var(--gray-50, #F7F9F5);
+        padding: 15px 20px;
+        border-radius: var(--border-radius, 8px);
         margin-bottom: 10px;
         display: flex;
         align-items: center;
         justify-content: space-between;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid var(--gray-200, #D4E4CC);
+        transition: var(--transition-fast);
+    }
+    
+    .file-list li:hover {
+        background: white;
+        box-shadow: var(--box-shadow);
     }
     
     .file-list li i {
         margin-right: 10px;
-        color: #667eea;
+        color: var(--primary-color, #2D5016);
+        font-size: 18px;
     }
     
     .submit-evidence-form {
-        background: #f8f9fa;
+        background: var(--gray-50, #F7F9F5);
         padding: 25px;
-        border-radius: 10px;
+        border-radius: var(--border-radius-lg, 12px);
         margin-top: 20px;
+        border: 2px dashed var(--gray-300, #B8D4A8);
+    }
+    
+    .submit-evidence-form h4 {
+        color: var(--primary-color, #2D5016);
+        margin: 0 0 15px 0;
     }
     
     .submit-evidence-form textarea {
         width: 100%;
         padding: 15px;
-        border: 2px solid #e0e0e0;
-        border-radius: 10px;
+        border: 2px solid var(--gray-200, #D4E4CC);
+        border-radius: var(--border-radius, 8px);
         font-size: 15px;
         font-family: inherit;
         resize: vertical;
         margin-bottom: 15px;
+        transition: var(--transition-fast);
     }
     
     .submit-evidence-form textarea:focus {
         outline: none;
-        border-color: #667eea;
+        border-color: var(--primary-color, #2D5016);
+        box-shadow: 0 0 0 3px rgba(45, 80, 22, 0.1);
+    }
+    
+    .file-upload-wrapper {
+        margin-bottom: 20px;
+    }
+    
+    .file-upload-wrapper label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: var(--gray-700, #2D5016);
+    }
+    
+    .file-upload-wrapper label i {
+        color: var(--primary-color, #2D5016);
+        margin-right: 6px;
+    }
+    
+    .file-upload-area {
+        position: relative;
+        border: 2px dashed var(--gray-300, #B8D4A8);
+        border-radius: var(--border-radius, 8px);
+        padding: 30px 20px;
+        text-align: center;
+        background: white;
+        cursor: pointer;
+        transition: var(--transition-fast);
+    }
+    
+    .file-upload-area:hover {
+        border-color: var(--primary-color, #2D5016);
+        background: var(--gray-50, #F7F9F5);
+    }
+    
+    .file-upload-area i {
+        font-size: 36px;
+        color: var(--secondary-color, #7FB069);
+        margin-bottom: 10px;
+    }
+    
+    .file-upload-area p {
+        margin: 5px 0;
+        color: var(--gray-600, #5A8A47);
+    }
+    
+    .file-upload-area p strong {
+        color: var(--primary-color, #2D5016);
+    }
+    
+    .file-upload-area input[type="file"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
     }
     
     .btn-submit-evidence {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, var(--secondary-color, #7FB069) 0%, var(--accent-color, #5A8A47) 100%);
         color: white;
         border: none;
-        padding: 12px 30px;
-        border-radius: 8px;
+        padding: 14px 32px;
+        border-radius: var(--border-radius, 8px);
         font-weight: 600;
+        font-size: 16px;
         cursor: pointer;
-        transition: transform 0.2s;
+        transition: var(--transition-fast);
+        box-shadow: 0 4px 12px rgba(127, 176, 105, 0.3);
     }
     
     .btn-submit-evidence:hover {
         transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 6px 20px rgba(127, 176, 105, 0.4);
+        background: linear-gradient(135deg, var(--accent-color, #5A8A47) 0%, var(--primary-color, #2D5016) 100%);
     }
     
     .alert-box {
         padding: 20px;
-        border-radius: 10px;
+        border-radius: var(--border-radius-lg, 12px);
         margin: 20px 0;
+        display: flex;
+        align-items: start;
+        gap: 12px;
+    }
+    
+    .alert-box i {
+        font-size: 20px;
+        margin-top: 2px;
     }
     
     .alert-info {
         background: #e3f2fd;
         border-left: 4px solid #2196F3;
-        color: #1976d2;
+        color: #1565c0;
     }
     
     .alert-warning {
         background: #fff3cd;
-        border-left: 4px solid #ffc107;
+        border-left: 4px solid var(--warning-color, #8B7355);
         color: #856404;
+    }
+    
+    .alert-success {
+        background: var(--gray-100, #E8F0E3);
+        border-left: 4px solid var(--primary-color, #2D5016);
+        color: var(--primary-dark, #1A3009);
     }
     
     .timeline {
@@ -184,34 +338,36 @@
         left: 0;
         top: 0;
         height: 100%;
-        width: 2px;
-        background: #e0e0e0;
+        width: 3px;
+        background: var(--gray-200, #D4E4CC);
     }
     
     .timeline-item {
         position: relative;
-        padding-bottom: 20px;
+        padding-bottom: 25px;
     }
     
     .timeline-item::before {
         content: '';
         position: absolute;
-        left: -35px;
+        left: -36px;
         top: 5px;
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
         border-radius: 50%;
-        background: #667eea;
+        background: var(--secondary-color, #7FB069);
         border: 3px solid white;
-        box-shadow: 0 0 0 2px #667eea;
+        box-shadow: 0 0 0 2px var(--secondary-color, #7FB069);
     }
     
     .timeline-item strong {
-        color: #2c3e50;
+        color: var(--primary-color, #2D5016);
+        font-size: 16px;
     }
     
     .timeline-item small {
-        color: #666;
+        color: var(--gray-600, #5A8A47);
+        font-size: 14px;
     }
 </style>
 </head>
@@ -221,6 +377,10 @@
     <main class="main-content">
         <div class="dashboard-content">
 <div class="dispute-detail-container">
+    <a href="{% url 'request_detail' service_request.id %}" class="back-button-top">
+        <i class="fas fa-arrow-left"></i> Back to Request
+    </a>
+    
     <div class="dispute-header">
         <h2><i class="fas fa-gavel"></i> Dispute #{{ dispute.id }}</h2>
         <p style="margin: 10px 0;">Request: {{ service_request.title }}</p>
@@ -277,7 +437,7 @@
         <h3><i class="fas fa-user"></i> Client's Complaint</h3>
         
         <div style="margin-bottom: 15px;">
-            <strong style="color: #666;">Reason for Dispute:</strong>
+            <strong style="color: var(--gray-700, #2D5016);">Reason for Dispute:</strong>
         </div>
         <div class="evidence-content">
             {{ dispute.reason|linebreaks }}
@@ -285,7 +445,7 @@
 
         {% if dispute.client_evidence %}
         <div style="margin-top: 20px; margin-bottom: 15px;">
-            <strong style="color: #666;">Additional Evidence:</strong>
+            <strong style="color: var(--gray-700, #2D5016);">Additional Evidence:</strong>
         </div>
         <div class="evidence-content">
             {{ dispute.client_evidence|linebreaks }}
@@ -294,12 +454,12 @@
 
         {% if client_files %}
         <div style="margin-top: 20px;">
-            <strong style="color: #666;">Attached Files:</strong>
+            <strong style="color: var(--gray-700, #2D5016); display: block; margin-bottom: 10px;">Attached Files:</strong>
             <ul class="file-list">
                 {% for file in client_files %}
                 <li>
-                    <span>
-                        <i class="fas fa-paperclip"></i>
+                    <span style="display: flex; align-items: center;">
+                        <i class="fas fa-file-pdf"></i>
                         <strong>{{ file.name }}</strong>
                     </span>
                     <a href="{{ file.url }}" target="_blank" class="btn btn-sm btn-primary">
@@ -317,18 +477,18 @@
         <h3><i class="fas fa-briefcase"></i> Professional's Response</h3>
         
         {% if dispute.professional_evidence %}
-            <div class="evidence-content" style="border-left-color: #28a745;">
+            <div class="evidence-content" style="border-left-color: var(--secondary-color, #7FB069);">
                 {{ dispute.professional_evidence|linebreaks }}
             </div>
 
             {% if professional_files %}
             <div style="margin-top: 20px;">
-                <strong style="color: #666;">Attached Files:</strong>
+                <strong style="color: var(--gray-700, #2D5016); display: block; margin-bottom: 10px;">Attached Files:</strong>
                 <ul class="file-list">
                     {% for file in professional_files %}
                     <li>
-                        <span>
-                            <i class="fas fa-paperclip"></i>
+                        <span style="display: flex; align-items: center;">
+                            <i class="fas fa-file-pdf"></i>
                             <strong>{{ file.name }}</strong>
                         </span>
                         <a href="{{ file.url }}" target="_blank" class="btn btn-sm btn-primary">
@@ -344,11 +504,13 @@
                 <!-- Professional hasn't responded yet - show form -->
                 <div class="alert-box alert-warning">
                     <i class="fas fa-exclamation-triangle"></i>
-                    <strong>Action Required:</strong> Please submit your evidence and response to this dispute.
+                    <div>
+                        <strong>Action Required:</strong> Please submit your evidence and response to this dispute within 48 hours.
+                    </div>
                 </div>
 
                 <div class="submit-evidence-form">
-                    <h4 style="margin-bottom: 15px;">Submit Your Counter-Evidence</h4>
+                    <h4><i class="fas fa-shield-alt"></i> Submit Your Counter-Evidence</h4>
                     <form method="POST" action="{% url 'transactions:submit_evidence' dispute.id %}" enctype="multipart/form-data">
                         {% csrf_token %}
                         <textarea 
@@ -359,17 +521,24 @@
                             placeholder="Provide your detailed response to this dispute...&#10;&#10;Include:&#10;- Your side of the story&#10;- Evidence that you met the requirements&#10;- Any relevant communication history&#10;- Explanation of the situation"
                         ></textarea>
                         
-                        <div style="margin-bottom: 15px;">
-                            <label style="display: block; margin-bottom: 10px; font-weight: 600;">
+                        <div class="file-upload-wrapper">
+                            <label>
                                 <i class="fas fa-paperclip"></i> Upload Supporting Files (Optional)
                             </label>
-                            <input 
-                                type="file" 
-                                name="evidence_files" 
-                                multiple 
-                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                                style="width: 100%;"
-                            >
+                            <div class="file-upload-area" onclick="document.getElementById('evidence_files_input').click()">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p><strong>Click to upload files</strong></p>
+                                <p style="font-size: 13px;">PDF, PNG, JPG, DOC (Max 10MB each)</p>
+                                <input 
+                                    type="file" 
+                                    name="evidence_files" 
+                                    id="evidence_files_input"
+                                    multiple 
+                                    accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                    onchange="showSelectedFiles(this)"
+                                >
+                            </div>
+                            <div id="selected_files_preview" style="margin-top: 10px;"></div>
                         </div>
                         
                         <button type="submit" class="btn-submit-evidence">
@@ -380,7 +549,9 @@
             {% else %}
                 <div class="alert-box alert-info">
                     <i class="fas fa-clock"></i>
-                    <strong>Waiting for Response:</strong> The professional has not yet responded to this dispute.
+                    <div>
+                        <strong>Waiting for Response:</strong> The professional has not yet responded to this dispute. They have 48 hours to submit their evidence.
+                    </div>
                 </div>
             {% endif %}
         {% endif %}
@@ -388,23 +559,26 @@
 
     <!-- Admin Resolution (if resolved) -->
     {% if dispute.resolved_at %}
-    <div class="evidence-section" style="border: 2px solid #28a745;">
+    <div class="evidence-section" style="border: 2px solid var(--primary-color, #2D5016);">
         <h3><i class="fas fa-check-circle"></i> Admin Resolution</h3>
         
-        <div class="alert-box alert-info">
-            <strong>Resolved by:</strong> {{ dispute.resolved_by.get_full_name }}<br>
-            <strong>Date:</strong> {{ dispute.resolved_at|date:"M d, Y g:i A" }}<br>
-            <strong>Outcome:</strong> {{ dispute.get_status_display }}
-            
-            {% if dispute.refund_amount > 0 %}
-            <br><strong>Refund Amount:</strong> ₱{{ dispute.refund_amount|floatformat:2 }}
-            {% endif %}
+        <div class="alert-box alert-success">
+            <i class="fas fa-gavel"></i>
+            <div>
+                <strong>Resolved by:</strong> {{ dispute.resolved_by.get_full_name }}<br>
+                <strong>Date:</strong> {{ dispute.resolved_at|date:"M d, Y g:i A" }}<br>
+                <strong>Outcome:</strong> {{ dispute.get_status_display }}
+                
+                {% if dispute.refund_amount > 0 %}
+                <br><strong>Refund Amount:</strong> ₱{{ dispute.refund_amount|floatformat:2 }}
+                {% endif %}
+            </div>
         </div>
 
         {% if dispute.resolution_notes %}
         <div style="margin-top: 20px;">
-            <strong style="color: #666;">Resolution Notes:</strong>
-            <div class="evidence-content" style="border-left-color: #28a745;">
+            <strong style="color: var(--gray-700, #2D5016); display: block; margin-bottom: 10px;">Resolution Notes:</strong>
+            <div class="evidence-content" style="border-left-color: var(--primary-color, #2D5016);">
                 {{ dispute.resolution_notes|linebreaks }}
             </div>
         </div>
@@ -414,14 +588,50 @@
     <!-- Dispute still open -->
     <div class="alert-box alert-warning">
         <i class="fas fa-hourglass-half"></i>
-        <strong>Dispute Under Review:</strong> An administrator will review this dispute within 24-48 hours. Both parties will be notified of the decision.
+        <div>
+            <strong>Dispute Under Review:</strong> An administrator will review this dispute within 24-48 hours. Both parties will be notified of the decision.
+        </div>
     </div>
     {% endif %}
-
-    <div style="text-align: center; margin-top: 30px;">
-        <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Request
-        </a>
-    </div>
 </div>
-{% endblock %}
+        </div>
+    </main>
+    
+    <script>
+    function showSelectedFiles(input) {
+        const preview = document.getElementById('selected_files_preview');
+        const files = input.files;
+        
+        if (files.length === 0) {
+            preview.innerHTML = '';
+            return;
+        }
+        
+        let html = '<div style="background: white; padding: 15px; border-radius: 8px; border: 1px solid var(--gray-200, #D4E4CC);">';
+        html += '<strong style="color: var(--primary-color, #2D5016); display: block; margin-bottom: 10px;"><i class="fas fa-check-circle"></i> Selected Files (' + files.length + '):</strong>';
+        html += '<ul style="list-style: none; padding: 0; margin: 0;">';
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const fileSize = (file.size / 1024).toFixed(1); // Convert to KB
+            const sizeText = fileSize > 1024 ? (fileSize / 1024).toFixed(1) + ' MB' : fileSize + ' KB';
+            
+            // Check file size
+            const isTooBig = file.size > 10 * 1024 * 1024; // 10MB
+            const sizeColor = isTooBig ? '#dc2626' : 'var(--gray-600, #5A8A47)';
+            const warningIcon = isTooBig ? '<i class="fas fa-exclamation-triangle" style="color: #dc2626;"></i> ' : '';
+            
+            html += '<li style="padding: 8px 0; border-bottom: 1px solid var(--gray-100, #E8F0E3); display: flex; justify-content: space-between; align-items: center;">';
+            html += '<span style="color: var(--gray-800, #1A3009);"><i class="fas fa-file" style="color: var(--primary-color, #2D5016); margin-right: 8px;"></i>' + file.name + '</span>';
+            html += '<span style="color: ' + sizeColor + '; font-size: 13px;">' + warningIcon + sizeText + '</span>';
+            html += '</li>';
+        }
+        
+        html += '</ul>';
+        html += '</div>';
+        
+        preview.innerHTML = html;
+    }
+    </script>
+</body>
+</html>

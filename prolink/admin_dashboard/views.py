@@ -319,9 +319,62 @@ def admin_dispute_detail(request, dispute_id):
             # Update request status
             request_obj = transaction.request
             request_obj.status = 'completed'
+            if not request_obj.completed_at:
+                request_obj.completed_at = timezone.now()
             request_obj.save()
             
-            messages.success(request, f'Dispute resolved successfully. Status: {dispute.get_status_display()}')
+            # Notify both client and professional about resolution
+            from analytics.models import Notification
+            from django.urls import reverse
+            
+            try:
+                dispute_url = reverse('transactions:dispute_detail', args=[dispute.id])
+            except:
+                dispute_url = f'/transactions/dispute/{dispute.id}/'
+            
+            # Determine resolution outcome message
+            if resolution_type == 'resolved_client':
+                outcome = 'in favor of the client'
+                client_message = f'The dispute for "{request_obj.title}" has been resolved in your favor. '
+                if refund_amount > 0:
+                    client_message += f'You will receive a refund of ₱{refund_amount:,.2f}.'
+                professional_message = f'The dispute for "{request_obj.title}" has been resolved in favor of the client.'
+            elif resolution_type == 'resolved_professional':
+                outcome = 'in favor of the professional'
+                client_message = f'The dispute for "{request_obj.title}" has been resolved in favor of the professional. Payment has been released.'
+                professional_message = f'The dispute for "{request_obj.title}" has been resolved in your favor. Payment has been released to you.'
+            elif resolution_type == 'resolved_partial':
+                outcome = 'with a partial refund'
+                client_message = f'The dispute for "{request_obj.title}" has been resolved with a partial refund of ₱{refund_amount:,.2f}.'
+                professional_message = f'The dispute for "{request_obj.title}" has been resolved with a partial refund to the client of ₱{refund_amount:,.2f}.'
+            else:
+                outcome = 'closed'
+                client_message = f'The dispute for "{request_obj.title}" has been closed.'
+                professional_message = f'The dispute for "{request_obj.title}" has been closed.'
+            
+            # Notify Client
+            Notification.create_notification(
+                user=transaction.client,
+                notification_type='dispute_resolved',
+                title='Dispute Resolved',
+                message=client_message,
+                request=request_obj,
+                related_user=request.user,
+                link_url=dispute_url
+            )
+            
+            # Notify Professional
+            Notification.create_notification(
+                user=transaction.professional,
+                notification_type='dispute_resolved',
+                title='Dispute Resolved',
+                message=professional_message,
+                request=request_obj,
+                related_user=request.user,
+                link_url=dispute_url
+            )
+            
+            messages.success(request, f'Dispute resolved successfully. Status: {dispute.get_status_display()}. Both parties have been notified.')
             return redirect('admin_dashboard:disputes')
     
     context = {

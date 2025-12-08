@@ -1276,9 +1276,9 @@ def submit_review(request, request_id):
         messages.error(request, "You can only review completed requests.")
         return redirect('request_detail', request_id=request_id)
     
-    # Validate within 30 days - silently redirect if no completion date
+    # Validate within 30 days - show message if no completion date
     if not req.completed_at:
-        # Silently redirect without error message
+        messages.warning(request, "This request doesn't have a completion date set. Please contact support if you believe this is an error.")
         if user.email == req.client:
             return redirect('request_detail', request_id=request_id)
         else:

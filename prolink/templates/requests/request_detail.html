@@ -178,7 +178,7 @@
                         {% endif %}
 
                         <!-- Review Section (Completed Requests) -->
-                        {% if request.status == 'completed' and user.email == request.client %}
+                        {% if request.status == 'completed' and request.completed_at and user.email == request.client %}
                         <div class="detail-section" style="background: #e8f5e9; border: 2px solid #4caf50; border-radius: 15px; padding: 25px;">
                             <h3 style="color: #2e7d32; margin-bottom: 15px; display: flex; align-items: center; gap: 10px;">
                                 <i class="fas fa-star" style="color: #4caf50;"></i>
