@@ -619,10 +619,18 @@ def professional_detail(request, pk):
         id=professional.id
     ).select_related('user').prefetch_related('specializations').distinct()[:3]
     
+    # Get reviews for this professional (only client reviews, not professional-to-client reviews)
+    from analytics.models import Review
+    reviews = Review.objects.filter(
+        reviewee=professional.user,
+        is_professional_review=False  # Only show reviews from clients
+    ).select_related('reviewer', 'request').order_by('-created_at')[:10]
+    
     context = {
         'professional': professional,
         'is_saved': is_saved,
         'similar_professionals': similar_professionals,
+        'reviews': reviews,
     }
     
     return render(request, 'professionals/professional_detail.html', context)

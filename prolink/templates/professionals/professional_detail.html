@@ -5,8 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ professional.user.get_full_name }} - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/colors.css' %}">
     <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=3">
-    <link rel="stylesheet" href="{% static 'css/professionals.css' %}?v=2">
+    <link rel="stylesheet" href="{% static 'css/professionals.css' %}?v=20241208">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
@@ -561,36 +562,38 @@
                             Reviews & Ratings
                         </h2>
                         
-                        {% if professional.total_reviews > 0 %}
+                        {% if reviews %}
                             <p style="color: #666; margin-bottom: 1.5rem;">
                                 Based on {{ professional.total_reviews }} review{{ professional.total_reviews|pluralize }}
                             </p>
                             
-                            <!-- Sample reviews - replace with real data -->
+                            {% for review in reviews %}
                             <div class="review-item">
                                 <div class="review-header">
                                     <div class="reviewer-info">
                                         <div class="reviewer-avatar">
-                                            <img src="https://ui-avatars.com/api/?name=Sample+User&background=7FB069&color=fff" alt="Reviewer">
+                                            <img src="{{ review.reviewer.get_profile_picture }}" alt="{{ review.reviewer.get_full_name }}">
                                         </div>
                                         <div>
-                                            <div class="reviewer-name">Sample Client</div>
-                                            <div class="review-date">2 weeks ago</div>
+                                            <div class="reviewer-name">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</div>
+                                            <div class="review-date">{{ review.created_at|timesince }} ago</div>
                                         </div>
                                     </div>
                                     <div class="review-rating">
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
-                                        <i class="fas fa-star"></i>
+                                        {% for i in "12345" %}
+                                            {% if forloop.counter <= review.rating %}
+                                            <i class="fas fa-star"></i>
+                                            {% else %}
+                                            <i class="far fa-star"></i>
+                                            {% endif %}
+                                        {% endfor %}
                                     </div>
                                 </div>
-                                <p class="review-text">
-                                    Excellent professional! Very knowledgeable and delivered quality work on time. 
-                                    Highly recommended for anyone looking for expert consultation.
-                                </p>
+                                {% if review.comment %}
+                                <p class="review-text">{{ review.comment }}</p>
+                                {% endif %}
                             </div>
+                            {% endfor %}
                         {% else %}
                             <p style="color: #666;">No reviews yet. Be the first to work with this professional!</p>
                         {% endif %}
