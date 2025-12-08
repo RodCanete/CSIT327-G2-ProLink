@@ -74,8 +74,8 @@ def requests_list(request):
             models.Q(title__icontains=search_query) | 
             models.Q(professional__icontains=search_query)
         )
-    # Add progress calculation as annotation
-    requests_with_progress = []
+    # Attach professional_user objects and add progress to each request
+    requests_with_data = []
     for req in filtered_requests:
         # Calculate progress based on status
         progress = 0
@@ -89,10 +89,27 @@ def requests_list(request):
             progress = 0
         # Add progress attribute to the request object
         req.progress = progress
-        requests_with_progress.append(req)
+        
+        # Attach professional_user object if professional is assigned
+        if req.professional:
+            try:
+                req.professional_user = CustomUser.objects.get(email=req.professional)
+            except CustomUser.DoesNotExist:
+                req.professional_user = None
+        else:
+            req.professional_user = None
+            
+        # Attach transaction if exists
+        try:
+            from transactions.models import Transaction
+            req.transaction = Transaction.objects.filter(request=req).first()
+        except:
+            req.transaction = None
+            
+        requests_with_data.append(req)
     
     context = {
-        'requests': requests_with_progress,
+        'requests': requests_with_data,
         'current_status': status_filter,
         'search_query': search_query,
         'user_email': user_email,

@@ -450,11 +450,11 @@ def open_dispute(request, request_id):
                 storage_manager = get_storage_manager()
                 for file in evidence_files:
                     result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
-                    if result.get('success'):
+                    if result.get('uploaded'):
                         uploaded_evidence.append({
-                            'name': file.name,
-                            'url': result.get('url'),
-                            'size': file.size
+                            'name': result.get('original_name', file.name),
+                            'url': result.get('public_url'),
+                            'size': result.get('size', file.size)
                         })
             
             # Create dispute
@@ -625,11 +625,11 @@ def submit_evidence(request, dispute_id):
                 storage_manager = get_storage_manager()
                 for file in evidence_files:
                     result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
-                    if result.get('success'):
+                    if result.get('uploaded'):
                         uploaded_evidence.append({
-                            'name': file.name,
-                            'url': result.get('url'),
-                            'size': file.size
+                            'name': result.get('original_name', file.name),
+                            'url': result.get('public_url'),
+                            'size': result.get('size', file.size)
                         })
             
             # Update dispute
@@ -638,7 +638,7 @@ def submit_evidence(request, dispute_id):
             dispute.status = 'under_review'  # Move to under_review once professional responds
             dispute.save()
             
-            messages.success(request, '✅ Evidence submitted successfully. Admin will review both sides.')
+            messages.success(request, f'✅ Evidence submitted successfully. {len(uploaded_evidence)} file(s) uploaded. Admin will review both sides.')
             return redirect('transactions:dispute_detail', dispute_id=dispute_id)
             
         except Exception as e:
