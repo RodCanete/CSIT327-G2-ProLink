@@ -543,8 +543,9 @@ style.textContent = `
     
     .notification-content {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 0.75rem;
+        text-align: left;
     }
     
     .notification-close {
@@ -638,6 +639,8 @@ style.textContent = `
         cursor: pointer;
         transition: background-color 0.15s ease;
         position: relative;
+        text-align: left;
+        justify-content: flex-start;
     }
     
     .notification-item:hover {
@@ -669,6 +672,8 @@ style.textContent = `
         flex-direction: column;
         gap: 0.25rem;
         text-align: left;
+        align-items: flex-start;
+        justify-content: flex-start;
     }
     
     .notification-title {
@@ -678,6 +683,7 @@ style.textContent = `
         color: var(--gray-900);
         line-height: 1.4;
         text-align: left;
+        width: 100%;
     }
     
     .notification-details {
@@ -686,6 +692,7 @@ style.textContent = `
         line-height: 1.4;
         text-align: left;
         margin-top: 0.125rem;
+        width: 100%;
     }
     
     .notification-from {
@@ -702,6 +709,7 @@ style.textContent = `
         color: var(--gray-500);
         margin-top: 0.25rem;
         text-align: left;
+        width: 100%;
     }
     
     .notification-item.unread {
