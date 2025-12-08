@@ -22,7 +22,7 @@
                     <p>Submit your work for professional validation and feedback.</p>
                 </div>
                 <div class="page-actions">
-                    <a href="/requests/" class="btn btn-secondary">
+                    <a href="{% url 'requests_list' %}" class="btn btn-secondary">
                         <i class="fas fa-arrow-left"></i>
                         Back to Requests
                     </a>
@@ -213,10 +213,10 @@
 
                     <!-- Form Actions -->
                     <div class="form-actions">
-                        <button type="button" class="btn btn-secondary" onclick="window.location.href='/requests/'">
+                        <a href="{% url 'requests_list' %}" class="btn btn-secondary">
                             <i class="fas fa-times"></i>
                             Cancel
-                        </button>
+                        </a>
                         <button type="submit" class="btn btn-primary" id="submitBtn">
                             <i class="fas fa-paper-plane"></i>
                             Submit Request
@@ -257,15 +257,15 @@
                 <div class="uploaded-files-list" id="uploadedFilesList"></div>
             </div>
             <div class="success-actions">
-                <button class="btn btn-primary" onclick="window.location.href='/requests/'">
+                <a href="{% url 'requests_list' %}" class="btn btn-primary">
                     <i class="fas fa-list"></i>
                     View All Requests
-                </button>
+                </a>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/dashboard.js"></script>
+    <script src="{% static 'js/dashboard.js' %}"></script>
     
     <style>
         /* Inline Form Error Styles */

@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+# Note: app_name not set to maintain backward compatibility with existing templates
+# that reference URLs without namespace (e.g., 'request_detail' instead of 'requests:request_detail')
+
 urlpatterns = [
     path("", views.requests_list, name="requests_list"),
     path("professional/", views.professional_requests_list, name="professional_requests_list"),

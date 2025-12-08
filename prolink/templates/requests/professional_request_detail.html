@@ -98,6 +98,53 @@
                                         {% endif %}
                                     </div>
                                 </div>
+                                
+                                <!-- Reviews from Other Professionals -->
+                                {% if other_professional_reviews %}
+                                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
+                                    <h4 style="margin-bottom: 15px; color: #2D5016; font-size: 16px; display: flex; align-items: center; gap: 8px;">
+                                        <i class="fas fa-users"></i>
+                                        Reviews from Other Professionals
+                                    </h4>
+                                    <div style="max-height: 300px; overflow-y: auto;">
+                                        {% for review in other_professional_reviews %}
+                                        <div style="background: #f8f9fa; padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+                                                <div>
+                                                    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                                        <strong style="color: #2D5016; font-size: 14px;">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</strong>
+                                                        <span style="background: #e3f2fd; color: #1976d2; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 600;">
+                                                            Professional
+                                                        </span>
+                                                    </div>
+                                                    <div class="rating-stars" style="color: #ffc107; font-size: 12px;">
+                                                        {% for i in "12345" %}
+                                                            {% if forloop.counter <= review.rating %}
+                                                                <i class="fas fa-star"></i>
+                                                            {% else %}
+                                                                <i class="far fa-star"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                        <span style="margin-left: 4px; color: #666; font-weight: 600;">{{ review.rating }}/5</span>
+                                                    </div>
+                                                </div>
+                                                <span style="color: #999; font-size: 12px;">{{ review.created_at|date:"M d, Y" }}</span>
+                                            </div>
+                                            {% if review.comment %}
+                                            <p style="margin: 8px 0 0 0; color: #666; font-size: 13px; line-height: 1.5;">{{ review.comment|truncatewords:30 }}</p>
+                                            {% endif %}
+                                            <p style="margin: 8px 0 0 0; color: #999; font-size: 11px;">
+                                                <i class="fas fa-file-alt"></i> Request: {{ review.request.title|truncatewords:5 }}
+                                            </p>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                    <p style="margin-top: 10px; color: #666; font-size: 12px; font-style: italic;">
+                                        <i class="fas fa-info-circle"></i> These reviews are only visible to professionals, not to the client.
+                                    </p>
+                                </div>
+                                {% endif %}
+                                
                                 {% else %}
                                 <p>Client information not available</p>
                                 {% endif %}
@@ -298,7 +345,7 @@
                                     <span>View All Reviews</span>
                                 </a>
                             </div>
-                            <p style="margin-top: 15px; color: #856404; font-size: 0.875rem;"><i class="fas fa-info-circle"></i> Note: Your review will be visible to other professionals but hidden from the client.</p>
+                            
                             {% endif %}
                         </div>
                         {% endif %}
