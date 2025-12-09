@@ -1033,9 +1033,9 @@ def earnings_dashboard(request):
         # Get transactions for this professional
         professional_transactions = Transaction.objects.filter(professional=professional)
         
-        # Define completed transactions - adjust based on your business logic
+        # Define completed transactions - only transactions where payment has been released
         completed_transactions = professional_transactions.filter(
-            Q(status='completed') | Q(paid_at__isnull=False)
+            released_at__isnull=False
         )
         
         # Total earnings (released payments)
@@ -1098,7 +1098,7 @@ def earnings_dashboard(request):
         for i in range(30):
             date = thirty_days_ago + timedelta(days=i)
             daily_earnings = completed_transactions.filter(
-                created_at__date=date
+                released_at__date=date
             ).aggregate(
                 total=Sum('professional_payout')
             )['total'] or 0
@@ -1109,6 +1109,8 @@ def earnings_dashboard(request):
         context = {
             'total_earnings': total_earnings,
             'pending_earnings': pending_earnings,
+            'pending_payments': pending_earnings,  # Alias for template compatibility
+            'available_balance': total_earnings,  # Released payments available for withdrawal
             'completed_jobs': completed_jobs,
             'completed_this_month': jobs_this_month,
             'average_earning': average_earning,
@@ -1128,6 +1130,8 @@ def earnings_dashboard(request):
         context = {
             'total_earnings': 12500.00,
             'pending_earnings': 2500.00,
+            'pending_payments': 2500.00,  # Alias for template compatibility
+            'available_balance': 12500.00,  # Released payments available for withdrawal
             'completed_jobs': 45,
             'completed_this_month': 12,
             'average_earning': 277.78,
@@ -1282,7 +1286,10 @@ def submit_review(request, request_id):
     # Validate request is completed
     if req.status != 'completed':
         messages.error(request, "You can only review completed requests.")
-        return redirect('request_detail', request_id=request_id)
+        if user.email == req.client:
+            return redirect('request_detail', request_id=request_id)
+        else:
+            return redirect('professional_request_detail', request_id=request_id)
     
     # Validate within 30 days - show message if no completion date
     if not req.completed_at:
@@ -1295,7 +1302,10 @@ def submit_review(request, request_id):
     thirty_days_ago = timezone.now() - timedelta(days=30)
     if req.completed_at < thirty_days_ago:
         messages.error(request, "Review period has expired. Reviews must be submitted within 30 days of completion.")
-        return redirect('request_detail', request_id=request_id)
+        if user.email == req.client:
+            return redirect('request_detail', request_id=request_id)
+        else:
+            return redirect('professional_request_detail', request_id=request_id)
     
     # Determine reviewee
     if user.email == req.client:
