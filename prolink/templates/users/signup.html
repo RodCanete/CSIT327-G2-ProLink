@@ -146,22 +146,14 @@
 						<div class="form-group">
 							<label for="profession" class="form-label">
 								<i class="fas fa-user-tie"></i>
-								Profession
+								Specialization
 							</label>
 							<div class="select-wrapper">
 								<select id="profession" name="profession" class="form-input enhanced-select">
-									<option value="">Select your profession</option>
-									<option value="software_engineer">Software Engineer</option>
-									<option value="data_scientist">Data Scientist</option>
-									<option value="designer">Designer</option>
-									<option value="writer">Writer</option>
-									<option value="consultant">Consultant</option>
-									<option value="educator">Educator</option>
-									<option value="marketing">Marketing Specialist</option>
-									<option value="finance">Finance Professional</option>
-									<option value="healthcare">Healthcare Professional</option>
-									<option value="legal">Legal Professional</option>
-									<option value="other">Other</option>
+									<option value="">Select your specialization</option>
+									{% for spec in specializations %}
+									<option value="{{ spec.id }}">{{ spec.name }}</option>
+									{% endfor %}
 								</select>
 							</div>
 						</div>
@@ -174,22 +166,13 @@
 							<div class="select-wrapper">
 								<select id="experience" name="experience" class="form-input enhanced-select">
 									<option value="">Select experience level</option>
-									<option value="0-1">0-1 years (Entry Level)</option>
-									<option value="2-5">2-5 years (Mid Level)</option>
-									<option value="6-10">6-10 years (Senior Level)</option>
-									<option value="10+">10+ years (Expert Level)</option>
+									<option value="entry">0-1 years (Entry Level)</option>
+									<option value="mid">2-5 years (Mid Level)</option>
+									<option value="senior">6-10 years (Senior Level)</option>
+									<option value="expert">10+ years (Expert Level)</option>
 								</select>
 							</div>
 						</div>
-					</div>
-					
-					<!-- Other profession input field -->
-					<div id="other-profession-field" class="form-group" style="display: none;">
-						<label for="other_profession" class="form-label">
-							<i class="fas fa-edit"></i>
-							Please specify your profession
-						</label>
-						<input type="text" id="other_profession" name="other_profession" class="form-input" placeholder="Enter your profession">
 					</div>
 				</div>
 				
@@ -340,24 +323,6 @@
 			});
 		});
 		
-		// Show/hide other profession field
-		function toggleOtherProfessionField() {
-			const professionSelect = document.getElementById('profession');
-			const otherField = document.getElementById('other-profession-field');
-			const otherInput = document.getElementById('other_profession');
-			
-			if (professionSelect.value === 'other') {
-				otherField.style.display = 'block';
-				otherInput.required = true;
-			} else {
-				otherField.style.display = 'none';
-				otherInput.required = false;
-				otherInput.value = '';
-			}
-		}
-		
-		// Add event listener for profession selection
-		document.getElementById('profession').addEventListener('change', toggleOtherProfessionField);
 		
 		// Password strength indicator
 		document.getElementById('password1').addEventListener('input', function() {
