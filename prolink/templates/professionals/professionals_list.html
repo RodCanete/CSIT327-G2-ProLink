@@ -58,10 +58,10 @@
                             <label for="experience">Experience</label>
                             <select name="experience" id="experience" class="filter-select">
                                 <option value="">All Levels</option>
-                                <option value="entry" {% if request.GET.experience == 'entry' %}selected{% endif %}>Entry Level</option>
-                                <option value="intermediate" {% if request.GET.experience == 'intermediate' %}selected{% endif %}>Intermediate</option>
-                                <option value="experienced" {% if request.GET.experience == 'experienced' %}selected{% endif %}>Experienced</option>
-                                <option value="expert" {% if request.GET.experience == 'expert' %}selected{% endif %}>Expert</option>
+                                <option value="entry" {% if request.GET.experience == 'entry' %}selected{% endif %}>Entry Level (0-1 years)</option>
+                                <option value="mid" {% if request.GET.experience == 'mid' %}selected{% endif %}>Mid Level (2-5 years)</option>
+                                <option value="senior" {% if request.GET.experience == 'senior' %}selected{% endif %}>Senior Level (6-10 years)</option>
+                                <option value="expert" {% if request.GET.experience == 'expert' %}selected{% endif %}>Expert Level (10+ years)</option>
                             </select>
                         </div>
 

@@ -392,23 +392,39 @@ def signup(request):
                 
                 # If professional, create professional profile
                 if role == "professional":
+                    # Map experience level from form
+                    experience_mapping = {
+                        'entry': 'entry',
+                        'mid': 'mid',
+                        'senior': 'senior',
+                        'expert': 'expert'
+                    }
+                    mapped_experience = experience_mapping.get(experience, 'entry')
+                    
+                    # Determine years of experience based on level
+                    years_mapping = {
+                        'entry': 0,
+                        'mid': 3,
+                        'senior': 7,
+                        'expert': 12
+                    }
+                    years = years_mapping.get(mapped_experience, 0)
+                    
                     profile = ProfessionalProfile.objects.create(
                         user=user,
-                        experience_level='entry' if experience == 'entry' else 
-                                       'intermediate' if experience == 'intermediate' else
-                                       'experienced' if experience == 'experienced' else
-                                       'expert',
-                        years_of_experience=0,
+                        experience_level=mapped_experience,
+                        years_of_experience=years,
                         hourly_rate=50.00,
                         is_available=True
                     )
                     
                     # Add specialization if profession is specified
-                    if profession and profession != "other":
+                    if profession:
                         try:
-                            specialization = Specialization.objects.get(name__iexact=profession)
+                            # profession field now contains specialization ID
+                            specialization = Specialization.objects.get(id=int(profession))
                             profile.specializations.add(specialization)
-                        except Specialization.DoesNotExist:
+                        except (Specialization.DoesNotExist, ValueError):
                             pass
                 
                 # Redirect to registration success page with user info
@@ -422,9 +438,13 @@ def signup(request):
                 error = f"Registration failed: {str(e)}"
     
     from datetime import date
+    # Get all active specializations for the professional form
+    specializations = Specialization.objects.filter(is_active=True).order_by('name')
+    
     context = {
         "error": error,
-        "today": date.today().isoformat()
+        "today": date.today().isoformat(),
+        "specializations": specializations
     }
     return render(request, "users/signup.html", context)
 

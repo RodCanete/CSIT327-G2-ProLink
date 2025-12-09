@@ -82,10 +82,10 @@ class ProfessionalProfile(models.Model):
     Linked to CustomUser with OneToOne relationship.
     """
     EXPERIENCE_LEVELS = (
-        ('entry', 'Entry Level (0-2 years)'),
-        ('intermediate', 'Intermediate (3-5 years)'),
-        ('experienced', 'Experienced (6-10 years)'),
-        ('expert', 'Expert (10+ years)'),
+        ('entry', 'Entry Level (0-1 years)'),
+        ('mid', 'Mid Level (2-5 years)'),
+        ('senior', 'Senior Level (6-10 years)'),
+        ('expert', 'Expert Level (10+ years)'),
     )
     
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='professional_profile')
