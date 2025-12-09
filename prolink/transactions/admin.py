@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Transaction, Dispute
+from .models import Transaction, Dispute, WithdrawalRequest
 
 
 @admin.register(Transaction)
@@ -52,3 +52,46 @@ class DisputeAdmin(admin.ModelAdmin):
             'fields': ('created_at', 'resolved_at')
         }),
     )
+
+
+@admin.register(WithdrawalRequest)
+class WithdrawalRequestAdmin(admin.ModelAdmin):
+    list_display = ('professional', 'amount', 'payment_method', 'status', 'created_at', 'processed_by')
+    list_filter = ('status', 'payment_method', 'created_at')
+    search_fields = ('professional__username', 'professional__email', 'gcash_number', 'bank_account_number')
+    readonly_fields = ('created_at', 'processed_at')
+    date_hierarchy = 'created_at'
+    
+    fieldsets = (
+        ('Withdrawal Info', {
+            'fields': ('professional', 'amount', 'status')
+        }),
+        ('Payment Details - GCash', {
+            'fields': ('payment_method', 'gcash_number'),
+            'classes': ('collapse',)
+        }),
+        ('Payment Details - Bank', {
+            'fields': ('bank_name', 'bank_account_number', 'bank_account_name'),
+            'classes': ('collapse',)
+        }),
+        ('Processing', {
+            'fields': ('processed_by', 'admin_notes')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'processed_at')
+        }),
+    )
+    
+    actions = ['mark_as_processing', 'mark_as_completed']
+    
+    def mark_as_processing(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='processing', processed_by=request.user, processed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} withdrawal(s) marked as processing.")
+    mark_as_processing.short_description = "Mark selected as Processing"
+    
+    def mark_as_completed(self, request, queryset):
+        from django.utils import timezone
+        queryset.update(status='completed', processed_by=request.user, processed_at=timezone.now())
+        self.message_user(request, f"{queryset.count()} withdrawal(s) marked as completed.")
+    mark_as_completed.short_description = "Mark selected as Completed"

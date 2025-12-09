@@ -1062,94 +1062,57 @@ def earnings_dashboard(request):
             created_at__gte=thirty_days_ago
         ).count()
         
-        # Average earning per job
-        average_earning = completed_transactions.aggregate(
-            avg=Avg('professional_payout')
-        )['avg'] or 0
+        # Calculate withdrawn amount (completed and processing withdrawals)
+        from transactions.models import WithdrawalRequest
+        withdrawn_amount = WithdrawalRequest.objects.filter(
+            professional=professional,
+            status__in=['completed', 'processing']
+        ).aggregate(
+            total=Sum('amount')
+        )['total'] or 0
         
-        # Earnings by service type
-        earnings_by_service = completed_transactions.values(
-            'request__service_type'
-        ).annotate(
-            total_earnings=Sum('professional_payout'),
-            job_count=Count('id')
-        ).order_by('-total_earnings')
+        # Available balance = Total earnings - Withdrawn amount
+        available_balance = total_earnings - withdrawn_amount
         
-        # Calculate percentages and clean up data
-        for service in earnings_by_service:
-            if total_earnings > 0:
-                service['percentage'] = round((service['total_earnings'] / total_earnings) * 100, 1)
-            else:
-                service['percentage'] = 0
-            service['service_type'] = service['request__service_type'] or 'General Service'
-        
-        # If no service data, provide sample
-        if not earnings_by_service and total_earnings > 0:
-            earnings_by_service = [
-                {'service_type': 'Completed Services', 'total_earnings': total_earnings, 'percentage': 100, 'job_count': completed_jobs}
-            ]
-        
-        # Recent transactions (last 10)
-        recent_transactions = completed_transactions.select_related(
+        # All transactions (for transaction history)
+        all_transactions = professional_transactions.select_related(
             'client', 'request'
-        ).order_by('-created_at')[:10]
+        ).order_by('-created_at')
         
-        # Chart data (last 30 days)
-        chart_data = []
-        chart_labels = []
+        # Debug: Print transaction info
+        print(f"DEBUG - Professional: {professional.username}")
+        print(f"DEBUG - Total transactions: {professional_transactions.count()}")
+        print(f"DEBUG - Completed transactions (released_at not null): {completed_transactions.count()}")
+        print(f"DEBUG - Total earnings: {total_earnings}")
+        print(f"DEBUG - Withdrawn amount: {withdrawn_amount}")
+        print(f"DEBUG - Available balance: {available_balance}")
+        print(f"DEBUG - Pending earnings: {pending_earnings}")
         
-        for i in range(30):
-            date = thirty_days_ago + timedelta(days=i)
-            daily_earnings = completed_transactions.filter(
-                released_at__date=date
-            ).aggregate(
-                total=Sum('professional_payout')
-            )['total'] or 0
-            
-            chart_data.append(float(daily_earnings))
-            chart_labels.append(date.strftime('%b %d'))
+        for txn in all_transactions[:5]:  # Show first 5
+            print(f"  - Transaction #{txn.id}: Status={txn.status}, Amount={txn.professional_payout}, Released={txn.released_at}")
         
         context = {
             'total_earnings': total_earnings,
             'pending_earnings': pending_earnings,
-            'pending_payments': pending_earnings,  # Alias for template compatibility
-            'available_balance': total_earnings,  # Released payments available for withdrawal
+            'pending_payments': pending_earnings,
+            'available_balance': available_balance,  # Total earnings minus withdrawn
+            'withdrawn_amount': withdrawn_amount,  # For display/debugging
             'completed_jobs': completed_jobs,
             'completed_this_month': jobs_this_month,
-            'average_earning': average_earning,
-            'earnings_by_service': earnings_by_service,
-            'recent_transactions': recent_transactions,
-            'jobs_this_month': jobs_this_month,
-            'avg_rating': getattr(professional, 'rating', 4.5),
-            'repeat_clients_percentage': 65,
-            'completion_rate': 95,
-            'chart_data': chart_data,
-            'chart_labels': chart_labels,
+            'recent_transactions': all_transactions,  # Now shows all transactions
         }
         
     except Exception as e:
-        # Fallback to sample data if there's any error
+        # Fallback to empty/zero data if there's any error
         print(f"Error in earnings dashboard: {e}")
         context = {
-            'total_earnings': 12500.00,
-            'pending_earnings': 2500.00,
-            'pending_payments': 2500.00,  # Alias for template compatibility
-            'available_balance': 12500.00,  # Released payments available for withdrawal
-            'completed_jobs': 45,
-            'completed_this_month': 12,
-            'average_earning': 277.78,
-            'earnings_by_service': [
-                {'service_type': 'Web Development', 'total_earnings': 8000, 'percentage': 64, 'job_count': 25},
-                {'service_type': 'Consultation', 'total_earnings': 3000, 'percentage': 24, 'job_count': 15},
-                {'service_type': 'Maintenance', 'total_earnings': 1500, 'percentage': 12, 'job_count': 5},
-            ],
+            'total_earnings': 0,
+            'pending_earnings': 0,
+            'pending_payments': 0,
+            'available_balance': 0,
+            'completed_jobs': 0,
+            'completed_this_month': 0,
             'recent_transactions': [],
-            'jobs_this_month': 12,
-            'avg_rating': 4.8,
-            'repeat_clients_percentage': 65,
-            'completion_rate': 95,
-            'chart_data': [0, 150, 300, 200, 400, 350, 500, 450, 600, 550, 700, 650, 800, 750, 900, 850, 1000, 950, 1100, 1050, 1200, 1150, 1300, 1250, 1400, 1350, 1500, 1450, 1600, 1550],
-            'chart_labels': ['Oct 19', 'Oct 20', 'Oct 21', 'Oct 22', 'Oct 23', 'Oct 24', 'Oct 25', 'Oct 26', 'Oct 27', 'Oct 28', 'Oct 29', 'Oct 30', 'Oct 31', 'Nov 1', 'Nov 2', 'Nov 3', 'Nov 4', 'Nov 5', 'Nov 6', 'Nov 7', 'Nov 8', 'Nov 9', 'Nov 10', 'Nov 11', 'Nov 12', 'Nov 13', 'Nov 14', 'Nov 15', 'Nov 16', 'Nov 17'],
         }
     
     # Updated template path to match your folder structure

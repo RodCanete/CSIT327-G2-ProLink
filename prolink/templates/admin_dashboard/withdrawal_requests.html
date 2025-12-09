@@ -1,0 +1,475 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdrawal Requests - Admin Dashboard</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .withdrawal-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stat-card h3 {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d5016;
+        }
+        
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        
+        .withdrawal-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .withdrawal-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .withdrawal-table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .withdrawal-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        
+        .withdrawal-table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-completed {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .btn-approve,
+        .btn-reject {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-approve {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-approve:hover {
+            background: #218838;
+        }
+        
+        .btn-reject {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #c82333;
+        }
+        
+        .payment-details {
+            font-size: 0.9rem;
+            color: #666;
+        }
+        
+        .payment-details strong {
+            color: #333;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+        }
+        
+        .modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            max-width: 500px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            margin-bottom: 1.5rem;
+        }
+        
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+        }
+        
+        .modal-body {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+        
+        .btn-cancel {
+            padding: 0.75rem 1.5rem;
+            background: #6c757d;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-submit {
+            padding: 0.75rem 1.5rem;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-submit.reject {
+            background: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/admin_navbar.html' %}
+    
+    <div class="dashboard-container" style="max-width: 1400px; margin: 2rem auto; padding: 0 2rem;">
+        <h1><i class="fas fa-money-bill-wave"></i> Withdrawal Requests</h1>
+        
+        <!-- Statistics -->
+        <div class="withdrawal-stats">
+            <div class="stat-card">
+                <h3>Pending Requests</h3>
+                <div class="value">{{ pending_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Processing</h3>
+                <div class="value">{{ processing_count }}</div>
+            </div>
+            <div class="stat-card">
+                <h3>Total Pending Amount</h3>
+                <div class="value">₱{{ total_pending_amount|floatformat:2 }}</div>
+            </div>
+        </div>
+        
+        <!-- Filters -->
+        <div class="filters">
+            <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; width: 100%;">
+                <div class="filter-group">
+                    <label for="status">Status:</label>
+                    <select name="status" id="status" onchange="this.form.submit()">
+                        <option value="all" {% if status_filter == 'all' %}selected{% endif %}>All</option>
+                        <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending</option>
+                        <option value="processing" {% if status_filter == 'processing' %}selected{% endif %}>Processing</option>
+                        <option value="completed" {% if status_filter == 'completed' %}selected{% endif %}>Completed</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="filter-group" style="flex: 1;">
+                    <label for="search">Search:</label>
+                    <input type="text" name="search" id="search" placeholder="Username, email, GCash, account..." value="{{ search_query }}">
+                </div>
+                
+                <button type="submit" class="btn-approve">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </form>
+        </div>
+        
+        <!-- Withdrawal Requests Table -->
+        <div class="withdrawal-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Professional</th>
+                        <th>Amount</th>
+                        <th>Payment Method</th>
+                        <th>Payment Details</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in withdrawals %}
+                    <tr>
+                        <td>{{ withdrawal.created_at|date:"M d, Y H:i" }}</td>
+                        <td>
+                            <strong>{{ withdrawal.professional.get_full_name }}</strong><br>
+                            <small style="color: #666;">{{ withdrawal.professional.email }}</small>
+                        </td>
+                        <td><strong>₱{{ withdrawal.amount|floatformat:2 }}</strong></td>
+                        <td>{{ withdrawal.get_payment_method_display }}</td>
+                        <td class="payment-details">
+                            {% if withdrawal.payment_method == 'gcash' %}
+                                <strong>GCash:</strong> {{ withdrawal.gcash_number }}
+                            {% else %}
+                                <strong>Bank:</strong> {{ withdrawal.bank_name }}<br>
+                                <strong>Account:</strong> {{ withdrawal.bank_account_number }}<br>
+                                <strong>Name:</strong> {{ withdrawal.bank_account_name }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="status-badge status-{{ withdrawal.status }}">
+                                {{ withdrawal.get_status_display }}
+                            </span>
+                            {% if withdrawal.processed_by %}
+                            <br><small style="color: #666;">By: {{ withdrawal.processed_by.username }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if withdrawal.status == 'pending' or withdrawal.status == 'processing' %}
+                            <div class="action-buttons">
+                                <button class="btn-approve" onclick="openApproveModal({{ withdrawal.id }}, '{{ withdrawal.professional.get_full_name }}', {{ withdrawal.amount }})">
+                                    <i class="fas fa-check"></i> Approve
+                                </button>
+                                <button class="btn-reject" onclick="openRejectModal({{ withdrawal.id }}, '{{ withdrawal.professional.get_full_name }}', {{ withdrawal.amount }})">
+                                    <i class="fas fa-times"></i> Reject
+                                </button>
+                            </div>
+                            {% else %}
+                            <small style="color: #666;">
+                                {{ withdrawal.get_status_display }}<br>
+                                {{ withdrawal.processed_at|date:"M d, Y" }}
+                            </small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" style="text-align: center; padding: 3rem; color: #999;">
+                            <i class="fas fa-inbox" style="font-size: 3rem; margin-bottom: 1rem; display: block;"></i>
+                            No withdrawal requests found
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Approve Modal -->
+    <div id="approveModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-check-circle" style="color: #28a745;"></i> Approve Withdrawal</h2>
+            </div>
+            <div class="modal-body">
+                <p id="approveMessage"></p>
+                <form id="approveForm" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="approve_notes">Admin Notes (Optional):</label>
+                        <textarea name="admin_notes" id="approve_notes" placeholder="e.g., Transferred via GCash. Reference: 123456789"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('approveModal')">Cancel</button>
+                <button class="btn-submit" onclick="submitApprove()">
+                    <i class="fas fa-check"></i> Confirm Approval
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-times-circle" style="color: #dc3545;"></i> Reject Withdrawal</h2>
+            </div>
+            <div class="modal-body">
+                <p id="rejectMessage"></p>
+                <form id="rejectForm" method="POST">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label for="reject_notes">Rejection Reason (Required):</label>
+                        <textarea name="admin_notes" id="reject_notes" placeholder="Please provide a reason for rejection..." required></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" onclick="closeModal('rejectModal')">Cancel</button>
+                <button class="btn-submit reject" onclick="submitReject()">
+                    <i class="fas fa-times"></i> Confirm Rejection
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let currentWithdrawalId = null;
+        
+        function openApproveModal(withdrawalId, professionalName, amount) {
+            currentWithdrawalId = withdrawalId;
+            document.getElementById('approveMessage').textContent = 
+                `Are you sure you want to approve and complete the withdrawal of ₱${amount.toFixed(2)} to ${professionalName}?`;
+            document.getElementById('approveModal').classList.add('active');
+        }
+        
+        function openRejectModal(withdrawalId, professionalName, amount) {
+            currentWithdrawalId = withdrawalId;
+            document.getElementById('rejectMessage').textContent = 
+                `Are you sure you want to reject the withdrawal of ₱${amount.toFixed(2)} to ${professionalName}?`;
+            document.getElementById('rejectModal').classList.add('active');
+        }
+        
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+            currentWithdrawalId = null;
+        }
+        
+        function submitApprove() {
+            if (currentWithdrawalId) {
+                const form = document.getElementById('approveForm');
+                form.action = `/admin-dashboard/withdrawals/${currentWithdrawalId}/approve/`;
+                form.submit();
+            }
+        }
+        
+        function submitReject() {
+            const notes = document.getElementById('reject_notes').value.trim();
+            if (!notes) {
+                alert('Please provide a rejection reason.');
+                return;
+            }
+            
+            if (currentWithdrawalId) {
+                const form = document.getElementById('rejectForm');
+                form.action = `/admin-dashboard/withdrawals/${currentWithdrawalId}/reject/`;
+                form.submit();
+            }
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.classList.remove('active');
+                currentWithdrawalId = null;
+            }
+        }
+    </script>
+</body>
+</html>
+

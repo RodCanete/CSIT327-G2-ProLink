@@ -1,0 +1,387 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Withdraw Funds - ProLink</title>
+    <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=4">
+    <link rel="stylesheet" href="{% static 'css/professional_earnings.css' %}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .withdrawal-form-container {
+            max-width: 800px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+        
+        .balance-summary {
+            background: linear-gradient(135deg, #4a7c59 0%, #5a8c69 100%);
+            color: white;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .balance-summary h2 {
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .balance-amount {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        
+        .balance-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .balance-item {
+            text-align: center;
+        }
+        
+        .balance-item label {
+            display: block;
+            font-size: 0.85rem;
+            opacity: 0.8;
+            margin-bottom: 0.25rem;
+        }
+        
+        .balance-item span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .withdrawal-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4a7c59;
+        }
+        
+        .payment-method-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .payment-option {
+            position: relative;
+        }
+        
+        .payment-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+        }
+        
+        .payment-option label {
+            display: block;
+            padding: 1rem;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        
+        .payment-option input[type="radio"]:checked + label {
+            border-color: #4a7c59;
+            background: #f0f7f3;
+        }
+        
+        .payment-details {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: #f9f9f9;
+            border-radius: 8px;
+        }
+        
+        .payment-details.active {
+            display: block;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #4a7c59 0%, #5a8c69 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pending-withdrawals {
+            margin-top: 2rem;
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .pending-withdrawal-item {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .pending-withdrawal-item:last-child {
+            border-bottom: none;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-processing {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #4a7c59;
+            text-decoration: none;
+            margin-bottom: 1rem;
+            font-weight: 500;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    {% include 'components/navbar.html' %}
+    
+    <main class="withdrawal-form-container">
+        <a href="{% url 'professional_earnings' %}" class="back-link">
+            <i class="fas fa-arrow-left"></i>
+            Back to Earnings
+        </a>
+        
+        <div class="balance-summary">
+            <h2>Available Balance</h2>
+            <div class="balance-amount">₱{{ available_balance|floatformat:2 }}</div>
+            
+            <div class="balance-details">
+                <div class="balance-item">
+                    <label>Total Earnings</label>
+                    <span>₱{{ total_earnings|floatformat:2 }}</span>
+                </div>
+                <div class="balance-item">
+                    <label>Withdrawn</label>
+                    <span>₱{{ withdrawn_amount|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+        
+        {% if available_balance > 0 %}
+        <div class="withdrawal-form">
+            <h2>Request Withdrawal</h2>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="amount">Withdrawal Amount (₱)</label>
+                    <input type="number" 
+                           id="amount" 
+                           name="amount" 
+                           step="0.01" 
+                           min="1" 
+                           max="{{ available_balance }}"
+                           placeholder="Enter amount"
+                           required>
+                    <small style="color: #666; font-size: 0.85rem;">Maximum: ₱{{ available_balance|floatformat:2 }}</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-method-options">
+                        <div class="payment-option">
+                            <input type="radio" id="gcash" name="payment_method" value="gcash" checked>
+                            <label for="gcash">
+                                <i class="fas fa-mobile-alt" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem;"></i>
+                                GCash
+                            </label>
+                        </div>
+                        <div class="payment-option">
+                            <input type="radio" id="bank" name="payment_method" value="bank_transfer">
+                            <label for="bank">
+                                <i class="fas fa-university" style="font-size: 1.5rem; display: block; margin-bottom: 0.5rem;"></i>
+                                Bank Transfer
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="gcash-details" class="payment-details active">
+                    <div class="form-group">
+                        <label for="gcash_number">GCash Number</label>
+                        <input type="text" 
+                               id="gcash_number" 
+                               name="gcash_number" 
+                               placeholder="09XX XXX XXXX"
+                               pattern="[0-9]{11}"
+                               maxlength="11">
+                    </div>
+                </div>
+                
+                <div id="bank-details" class="payment-details">
+                    <div class="form-group">
+                        <label for="bank_name">Bank Name</label>
+                        <input type="text" id="bank_name" name="bank_name" placeholder="e.g., BDO, BPI, Metrobank">
+                    </div>
+                    <div class="form-group">
+                        <label for="bank_account_number">Account Number</label>
+                        <input type="text" id="bank_account_number" name="bank_account_number" placeholder="Enter account number">
+                    </div>
+                    <div class="form-group">
+                        <label for="bank_account_name">Account Name</label>
+                        <input type="text" id="bank_account_name" name="bank_account_name" placeholder="Name as it appears on account">
+                    </div>
+                </div>
+                
+                <button type="submit" class="submit-btn">
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Withdrawal Request
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="withdrawal-form" style="text-align: center; padding: 3rem;">
+            <i class="fas fa-wallet" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
+            <h2 style="color: #666;">No Available Balance</h2>
+            <p style="color: #999;">Complete jobs to earn and build your available balance.</p>
+            <a href="{% url 'professional_earnings' %}" class="btn-primary" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; text-decoration: none;">
+                Back to Earnings
+            </a>
+        </div>
+        {% endif %}
+        
+        {% if pending_withdrawals %}
+        <div class="pending-withdrawals">
+            <h2>Pending Withdrawals</h2>
+            {% for withdrawal in pending_withdrawals %}
+            <div class="pending-withdrawal-item">
+                <div>
+                    <strong>₱{{ withdrawal.amount|floatformat:2 }}</strong>
+                    <span style="color: #666; font-size: 0.9rem; margin-left: 0.5rem;">
+                        via {{ withdrawal.get_payment_method_display }}
+                    </span>
+                    <div style="font-size: 0.85rem; color: #999; margin-top: 0.25rem;">
+                        Requested: {{ withdrawal.created_at|date:"M d, Y" }}
+                    </div>
+                </div>
+                <span class="status-badge status-{{ withdrawal.status }}">
+                    {{ withdrawal.get_status_display }}
+                </span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </main>
+    
+    <script>
+        // Payment method toggle
+        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
+        const gcashDetails = document.getElementById('gcash-details');
+        const bankDetails = document.getElementById('bank-details');
+        
+        paymentMethods.forEach(method => {
+            method.addEventListener('change', function() {
+                if (this.value === 'gcash') {
+                    gcashDetails.classList.add('active');
+                    bankDetails.classList.remove('active');
+                    document.getElementById('gcash_number').required = true;
+                    document.getElementById('bank_name').required = false;
+                    document.getElementById('bank_account_number').required = false;
+                    document.getElementById('bank_account_name').required = false;
+                } else {
+                    gcashDetails.classList.remove('active');
+                    bankDetails.classList.add('active');
+                    document.getElementById('gcash_number').required = false;
+                    document.getElementById('bank_name').required = true;
+                    document.getElementById('bank_account_number').required = true;
+                    document.getElementById('bank_account_name').required = true;
+                }
+            });
+        });
+        
+        // Amount validation
+        const amountInput = document.getElementById('amount');
+        const maxAmount = {{ available_balance }};
+        
+        amountInput.addEventListener('input', function() {
+            if (parseFloat(this.value) > maxAmount) {
+                this.value = maxAmount;
+            }
+        });
+    </script>
+</body>
+</html>
+

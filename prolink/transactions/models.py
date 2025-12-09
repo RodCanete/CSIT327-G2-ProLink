@@ -106,3 +106,48 @@ class Dispute(models.Model):
     
     def __str__(self):
         return f"Dispute #{self.id} - {self.transaction} - {self.get_status_display()}"
+
+
+class WithdrawalRequest(models.Model):
+    """
+    Withdrawal requests from professionals
+    """
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+    
+    PAYMENT_METHOD_CHOICES = (
+        ('gcash', 'GCash'),
+        ('bank_transfer', 'Bank Transfer'),
+    )
+    
+    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='withdrawal_requests')
+    amount = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(0)])
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    
+    # Payment details
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHOD_CHOICES, default='gcash')
+    gcash_number = models.CharField(max_length=15, blank=True, help_text="Professional's GCash number")
+    bank_name = models.CharField(max_length=100, blank=True, help_text="Bank name for bank transfer")
+    bank_account_number = models.CharField(max_length=50, blank=True, help_text="Bank account number")
+    bank_account_name = models.CharField(max_length=100, blank=True, help_text="Account holder name")
+    
+    # Admin notes
+    admin_notes = models.TextField(blank=True, help_text="Internal notes for processing")
+    processed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True,
+                                     related_name='withdrawals_processed', help_text="Admin who processed")
+    
+    # Dates
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed_at = models.DateTimeField(null=True, blank=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Withdrawal Request'
+        verbose_name_plural = 'Withdrawal Requests'
+    
+    def __str__(self):
+        return f"Withdrawal ₱{self.amount} - {self.professional.username} - {self.get_status_display()}"
