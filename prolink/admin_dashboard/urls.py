@@ -13,5 +13,8 @@ urlpatterns = [
     path('disputes/<int:dispute_id>/', views.admin_dispute_detail, name='dispute_detail'),
     path('professionals/', views.admin_professionals, name='professionals'),
     path('professionals/<int:professional_id>/toggle-verification/', views.toggle_professional_verification, name='toggle_verification'),
+    path('withdrawals/', views.withdrawal_requests, name='withdrawal_requests'),
+    path('withdrawals/<int:withdrawal_id>/approve/', views.approve_withdrawal, name='approve_withdrawal'),
+    path('withdrawals/<int:withdrawal_id>/reject/', views.reject_withdrawal, name='reject_withdrawal'),
 ]
 

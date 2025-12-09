@@ -23,9 +23,17 @@
             <span>Requests</span>
         </a>
         
-        <a href="{% url 'admin_dashboard:transactions' %}" class="nav-link {% if '/admin-dashboard/transactions' in request.path %}active{% endif %}" style="color: white;">
+        <a href="{% url 'admin_dashboard:transactions' %}" class="nav-link {% if '/admin-dashboard/transactions' in request.path and '/withdrawals' not in request.path %}active{% endif %}" style="color: white;">
             <i class="fas fa-money-bill-wave"></i>
             <span>Transactions</span>
+        </a>
+        
+        <a href="{% url 'admin_dashboard:withdrawal_requests' %}" class="nav-link {% if '/admin-dashboard/withdrawals' in request.path %}active{% endif %}" style="color: white;">
+            <i class="fas fa-hand-holding-usd"></i>
+            <span>Withdrawals</span>
+            {% if pending_count|default:0 > 0 %}
+            <span class="nav-badge" style="background: var(--warning-color, #ffc107);">{{ pending_count }}</span>
+            {% endif %}
         </a>
         
             <a href="{% url 'admin_dashboard:disputes' %}" class="nav-link {% if '/admin-dashboard/disputes' in request.path %}active{% endif %}" style="color: white;">

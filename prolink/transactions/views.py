@@ -4,6 +4,7 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Q
+from decimal import Decimal
 from .models import Transaction, Dispute
 from requests.models import Request
 from users.models import CustomUser
@@ -699,3 +700,93 @@ def transaction_detail(request, transaction_id):
     }
     
     return render(request, 'transactions/detail.html', context)
+
+
+@login_required
+def withdraw_funds(request):
+    """Request withdrawal of available balance"""
+    from django.db.models import Sum
+    from .models import WithdrawalRequest
+    
+    # Ensure only professionals can withdraw
+    if request.user.user_role != 'professional':
+        messages.error(request, 'Only professionals can request withdrawals.')
+        return redirect('dashboard')
+    
+    professional = request.user
+    
+    # Calculate available balance (released payments)
+    transactions = Transaction.objects.filter(
+        professional=professional,
+        released_at__isnull=False
+    )
+    total_earnings = transactions.aggregate(
+        total=Sum('professional_payout')
+    )['total'] or 0
+    
+    # Calculate already withdrawn amount
+    completed_withdrawals = WithdrawalRequest.objects.filter(
+        professional=professional,
+        status__in=['completed', 'processing']
+    ).aggregate(
+        total=Sum('amount')
+    )['total'] or 0
+    
+    available_balance = total_earnings - completed_withdrawals
+    
+    # Get pending withdrawal requests
+    pending_withdrawals = WithdrawalRequest.objects.filter(
+        professional=professional,
+        status='pending'
+    )
+    
+    if request.method == 'POST':
+        withdrawal_amount = request.POST.get('amount')
+        payment_method = request.POST.get('payment_method')
+        
+        try:
+            withdrawal_amount = Decimal(withdrawal_amount)
+            
+            # Validate amount
+            if withdrawal_amount <= 0:
+                messages.error(request, 'Withdrawal amount must be greater than zero.')
+            elif withdrawal_amount > available_balance:
+                messages.error(request, f'Insufficient balance. Available: ₱{available_balance:.2f}')
+            else:
+                # Create withdrawal request
+                withdrawal = WithdrawalRequest(
+                    professional=professional,
+                    amount=withdrawal_amount,
+                    payment_method=payment_method,
+                    status='pending'
+                )
+                
+                # Get payment details based on method
+                if payment_method == 'gcash':
+                    withdrawal.gcash_number = request.POST.get('gcash_number')
+                    if not withdrawal.gcash_number:
+                        messages.error(request, 'GCash number is required.')
+                        return redirect('transactions:withdraw_funds')
+                elif payment_method == 'bank_transfer':
+                    withdrawal.bank_name = request.POST.get('bank_name')
+                    withdrawal.bank_account_number = request.POST.get('bank_account_number')
+                    withdrawal.bank_account_name = request.POST.get('bank_account_name')
+                    if not all([withdrawal.bank_name, withdrawal.bank_account_number, withdrawal.bank_account_name]):
+                        messages.error(request, 'All bank details are required.')
+                        return redirect('transactions:withdraw_funds')
+                
+                withdrawal.save()
+                messages.success(request, f'Withdrawal request for ₱{withdrawal_amount:.2f} submitted successfully!')
+                return redirect('professional_earnings')
+        
+        except (ValueError, TypeError):
+            messages.error(request, 'Invalid withdrawal amount.')
+    
+    context = {
+        'available_balance': available_balance,
+        'total_earnings': total_earnings,
+        'withdrawn_amount': completed_withdrawals,
+        'pending_withdrawals': pending_withdrawals,
+    }
+    
+    return render(request, 'transactions/withdraw_funds.html', context)

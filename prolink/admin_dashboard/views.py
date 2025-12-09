@@ -7,7 +7,7 @@ from datetime import timedelta
 from .decorators import admin_required
 from users.models import CustomUser, ProfessionalProfile
 from requests.models import Request
-from transactions.models import Transaction, Dispute
+from transactions.models import Transaction, Dispute, WithdrawalRequest
 from analytics.models import Review, Notification
 from messaging.models import Conversation, Message
 
@@ -15,6 +15,11 @@ from messaging.models import Conversation, Message
 def get_open_disputes_count():
     """Helper function to get count of open disputes"""
     return Dispute.objects.filter(status__in=['open', 'under_review']).count()
+
+
+def get_pending_withdrawals_count():
+    """Helper function to get count of pending withdrawals"""
+    return WithdrawalRequest.objects.filter(status='pending').count()
 
 
 @login_required
@@ -146,6 +151,7 @@ def admin_dashboard(request):
         'recent_requests': recent_requests,
         'recent_disputes': recent_disputes,
         'open_disputes_count': open_disputes_count,
+        'pending_count': get_pending_withdrawals_count(),
     }
     
     return render(request, 'admin_dashboard/dashboard.html', context)
@@ -547,4 +553,137 @@ def toggle_professional_verification(request, professional_id):
         messages.success(request, f'Professional {professional.user.username} has been {status}.')
     
     return redirect('admin_dashboard:professionals')
+
+
+@login_required
+@admin_required
+def withdrawal_requests(request):
+    """
+    View and manage withdrawal requests from professionals
+    """
+    # Get filter parameters
+    status_filter = request.GET.get('status', 'pending')
+    search_query = request.GET.get('search', '')
+    
+    # Base queryset
+    withdrawals = WithdrawalRequest.objects.select_related('professional', 'processed_by')
+    
+    # Apply status filter
+    if status_filter and status_filter != 'all':
+        withdrawals = withdrawals.filter(status=status_filter)
+    
+    # Apply search
+    if search_query:
+        withdrawals = withdrawals.filter(
+            Q(professional__username__icontains=search_query) |
+            Q(professional__email__icontains=search_query) |
+            Q(gcash_number__icontains=search_query) |
+            Q(bank_account_number__icontains=search_query)
+        )
+    
+    # Order by date (newest first)
+    withdrawals = withdrawals.order_by('-created_at')
+    
+    # Calculate statistics
+    pending_count = WithdrawalRequest.objects.filter(status='pending').count()
+    processing_count = WithdrawalRequest.objects.filter(status='processing').count()
+    total_pending_amount = WithdrawalRequest.objects.filter(
+        status__in=['pending', 'processing']
+    ).aggregate(total=Sum('amount'))['total'] or 0
+    
+    context = {
+        'withdrawals': withdrawals,
+        'status_filter': status_filter,
+        'search_query': search_query,
+        'pending_count': pending_count,
+        'processing_count': processing_count,
+        'total_pending_amount': total_pending_amount,
+        'open_disputes_count': get_open_disputes_count(),
+    }
+    
+    return render(request, 'admin_dashboard/withdrawal_requests.html', context)
+
+
+@login_required
+@admin_required
+def approve_withdrawal(request, withdrawal_id):
+    """
+    Approve and complete a withdrawal request
+    """
+    if request.method == 'POST':
+        withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
+        
+        # Check if already processed
+        if withdrawal.status == 'completed':
+            messages.warning(request, 'This withdrawal has already been completed.')
+            return redirect('admin_dashboard:withdrawal_requests')
+        
+        # Get admin notes from form
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        # Update withdrawal
+        withdrawal.status = 'completed'
+        withdrawal.processed_by = request.user
+        withdrawal.processed_at = timezone.now()
+        withdrawal.admin_notes = admin_notes
+        withdrawal.save()
+        
+        # Send notification to professional
+        try:
+            Notification.create_notification(
+                user=withdrawal.professional,
+                notification_type='payment_released',
+                title='Withdrawal Completed',
+                message=f'Your withdrawal request for ₱{withdrawal.amount:,.2f} has been processed and completed.',
+                link_url='/earnings/'
+            )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+        
+        messages.success(request, f'Withdrawal of ₱{withdrawal.amount:,.2f} to {withdrawal.professional.username} has been approved and completed.')
+        return redirect('admin_dashboard:withdrawal_requests')
+    
+    return redirect('admin_dashboard:withdrawal_requests')
+
+
+@login_required
+@admin_required
+def reject_withdrawal(request, withdrawal_id):
+    """
+    Reject/cancel a withdrawal request
+    """
+    if request.method == 'POST':
+        withdrawal = get_object_or_404(WithdrawalRequest, id=withdrawal_id)
+        
+        # Check if already processed
+        if withdrawal.status in ['completed', 'cancelled']:
+            messages.warning(request, 'This withdrawal has already been processed.')
+            return redirect('admin_dashboard:withdrawal_requests')
+        
+        # Get rejection reason
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        # Update withdrawal
+        withdrawal.status = 'cancelled'
+        withdrawal.processed_by = request.user
+        withdrawal.processed_at = timezone.now()
+        withdrawal.admin_notes = admin_notes
+        withdrawal.save()
+        
+        # Send notification to professional
+        try:
+            Notification.create_notification(
+                user=withdrawal.professional,
+                notification_type='general',
+                title='Withdrawal Request Cancelled',
+                message=f'Your withdrawal request for ₱{withdrawal.amount:,.2f} has been cancelled. Reason: {admin_notes}',
+                link_url='/earnings/'
+            )
+        except Exception as e:
+            print(f"Error creating notification: {e}")
+        
+        messages.warning(request, f'Withdrawal of ₱{withdrawal.amount:,.2f} to {withdrawal.professional.username} has been cancelled.')
+        return redirect('admin_dashboard:withdrawal_requests')
+    
+    return redirect('admin_dashboard:withdrawal_requests')
 
