@@ -114,7 +114,7 @@
 
             <!-- Results Summary -->
             <div class="results-summary">
-                <p>Found <strong>{{ professionals.count }}</strong> professional{{ professionals.count|pluralize }}</p>
+                <p>Found <strong>{{ total_count }}</strong> professional{{ total_count|pluralize }}</p>
             </div>
 
             <!-- Professionals Grid -->
@@ -224,7 +224,7 @@
             {% if professionals.has_other_pages %}
             <div class="pagination">
                 {% if professionals.has_previous %}
-                <a href="?page={{ professionals.previous_page_number }}&{{ request.GET.urlencode }}" class="pagination-btn">
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ professionals.previous_page_number }}" class="pagination-btn">
                     <i class="fas fa-chevron-left"></i>
                     Previous
                 </a>
@@ -235,13 +235,13 @@
                         {% if professionals.number == num %}
                         <span class="pagination-number active">{{ num }}</span>
                         {% elif num > professionals.number|add:'-3' and num < professionals.number|add:'3' %}
-                        <a href="?page={{ num }}&{{ request.GET.urlencode }}" class="pagination-number">{{ num }}</a>
+                        <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ num }}" class="pagination-number">{{ num }}</a>
                         {% endif %}
                     {% endfor %}
                 </div>
 
                 {% if professionals.has_next %}
-                <a href="?page={{ professionals.next_page_number }}&{{ request.GET.urlencode }}" class="pagination-btn">
+                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ professionals.next_page_number }}" class="pagination-btn">
                     Next
                     <i class="fas fa-chevron-right"></i>
                 </a>

@@ -574,6 +574,9 @@ def find_professionals(request):
             user=request.user
         ).values_list('professional_id', flat=True)
     
+    # Get total count before pagination
+    total_count = professionals.count()
+    
     # Pagination
     paginator = Paginator(professionals, 12)  # 12 professionals per page
     page_number = request.GET.get('page')
@@ -583,7 +586,7 @@ def find_professionals(request):
         'professionals': professionals_page,
         'specializations': specializations,
         'saved_professionals': list(saved_professionals),
-        'total_count': professionals.count(),
+        'total_count': total_count,
     }
     
     return render(request, 'professionals/professionals_list.html', context)
