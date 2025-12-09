@@ -140,29 +140,125 @@
                         <p style="margin: 0; font-size: 1.125rem; font-weight: 600;">{{ dispute.created_at|date:"M d, Y H:i" }}</p>
                     </div>
                 </div>
+
+                <!-- Request Details -->
+                <div class="evidence-section">
+                    <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-file-alt"></i> Request Details</h3>
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Description</h4>
+                        <p style="margin: 0; color: var(--gray-700); white-space: pre-wrap;">{{ request_obj.description }}</p>
+                    </div>
+                    
+                    {% if attached_files %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 1rem 0; color: var(--gray-600);"><i class="fas fa-paperclip"></i> Original Request Attachments ({{ attached_files|length }})</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            {% for file in attached_files %}
+                            <a href="{{ file.public_url }}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; text-decoration: none; color: var(--gray-700); border: 1px solid #e5e7eb;">
+                                <i class="fas fa-file-download" style="color: var(--primary-color); font-size: 1.25rem;"></i>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--gray-900);">{{ file.original_name }}</div>
+                                    {% if file.size %}
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ file.size|filesizeformat }}</div>
+                                    {% endif %}
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color: var(--gray-400);"></i>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if deliverable_files %}
+                    <div style="background: #e8f5e9; padding: 1.5rem; border-radius: 8px; border-left: 4px solid var(--primary-color);">
+                        <h4 style="margin: 0 0 1rem 0; color: var(--primary-color);"><i class="fas fa-check-circle"></i> Work Submitted by Professional ({{ deliverable_files|length }} file(s))</h4>
+                        {% if request_obj.deliverable_notes %}
+                        <div style="background: white; padding: 1rem; border-radius: 6px; margin-bottom: 1rem;">
+                            <strong style="color: var(--gray-700);">Release Notes:</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); white-space: pre-wrap;">{{ request_obj.deliverable_notes }}</p>
+                        </div>
+                        {% endif %}
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            {% for file in deliverable_files %}
+                            <a href="{{ file.public_url }}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; text-decoration: none; color: var(--gray-700); border: 1px solid var(--primary-color);">
+                                <i class="fas fa-file-download" style="color: var(--primary-color); font-size: 1.25rem;"></i>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--gray-900);">{{ file.original_name }}</div>
+                                    {% if file.size %}
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ file.size|filesizeformat }}</div>
+                                    {% endif %}
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color: var(--primary-color);"></i>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
                 
                 <!-- Client Evidence -->
                 <div class="evidence-section">
                     <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-user"></i> Client's Evidence</h3>
                     <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
                         <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Reason</h4>
-                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.reason }}</p>
+                        <p style="margin: 0; color: var(--gray-700); white-space: pre-wrap;">{{ dispute.reason }}</p>
                     </div>
                     {% if dispute.client_evidence %}
                     <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
-                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Evidence</h4>
-                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.client_evidence }}</p>
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Additional Evidence</h4>
+                        <p style="margin: 0; color: var(--gray-700); white-space: pre-wrap;">{{ dispute.client_evidence }}</p>
+                    </div>
+                    {% endif %}
+                    {% if client_evidence_files %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="margin: 0 0 1rem 0; color: var(--gray-600);"><i class="fas fa-paperclip"></i> Client's Attached Evidence ({{ client_evidence_files|length }} file(s))</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            {% for file in client_evidence_files %}
+                            <a href="{{ file.public_url }}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; text-decoration: none; color: var(--gray-700); border: 1px solid #e5e7eb;">
+                                <i class="fas fa-file-download" style="color: #ef4444; font-size: 1.25rem;"></i>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--gray-900);">{{ file.original_name }}</div>
+                                    {% if file.size %}
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ file.size|filesizeformat }}</div>
+                                    {% endif %}
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color: var(--gray-400);"></i>
+                            </a>
+                            {% endfor %}
+                        </div>
                     </div>
                     {% endif %}
                 </div>
                 
                 <!-- Professional Evidence -->
-                {% if dispute.professional_evidence %}
+                {% if dispute.professional_evidence or professional_evidence_files %}
                 <div class="evidence-section">
                     <h3 style="margin: 0 0 1rem 0;"><i class="fas fa-user-tie"></i> Professional's Response</h3>
-                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
-                        <p style="margin: 0; color: var(--gray-700);">{{ dispute.professional_evidence }}</p>
+                    {% if dispute.professional_evidence %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px; margin-bottom: 1rem;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-600);">Counter-Evidence</h4>
+                        <p style="margin: 0; color: var(--gray-700); white-space: pre-wrap;">{{ dispute.professional_evidence }}</p>
                     </div>
+                    {% endif %}
+                    {% if professional_evidence_files %}
+                    <div style="background: #f9fafb; padding: 1.5rem; border-radius: 8px;">
+                        <h4 style="margin: 0 0 1rem 0; color: var(--gray-600);"><i class="fas fa-paperclip"></i> Professional's Attached Evidence ({{ professional_evidence_files|length }} file(s))</h4>
+                        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            {% for file in professional_evidence_files %}
+                            <a href="{{ file.public_url }}" target="_blank" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 6px; text-decoration: none; color: var(--gray-700); border: 1px solid #e5e7eb;">
+                                <i class="fas fa-file-download" style="color: var(--secondary-color); font-size: 1.25rem;"></i>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: var(--gray-900);">{{ file.original_name }}</div>
+                                    {% if file.size %}
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">{{ file.size|filesizeformat }}</div>
+                                    {% endif %}
+                                </div>
+                                <i class="fas fa-external-link-alt" style="color: var(--gray-400);"></i>
+                            </a>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
                 {% endif %}
                 

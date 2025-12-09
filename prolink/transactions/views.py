@@ -443,19 +443,23 @@ def open_dispute(request, request_id):
             return render(request, 'transactions/open_dispute.html', context)
         
         try:
-            # Upload evidence files
+            # Upload evidence files using the same method as create_request
             uploaded_evidence = []
+            upload_errors = []
             if evidence_files:
                 from requests.storage_utils import get_storage_manager
                 storage_manager = get_storage_manager()
-                for file in evidence_files:
-                    result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
-                    if result.get('uploaded'):
-                        uploaded_evidence.append({
-                            'name': result.get('original_name', file.name),
-                            'url': result.get('public_url'),
-                            'size': result.get('size', file.size)
-                        })
+                
+                # Use upload_multiple_files for consistent handling
+                uploaded_evidence, upload_errors = storage_manager.upload_multiple_files(
+                    evidence_files,
+                    folder=f'disputes/{transaction.id}'
+                )
+                
+                # If there are upload errors, show them
+                if upload_errors:
+                    for error in upload_errors:
+                        messages.warning(request, f'File upload warning: {error}')
             
             # Create dispute
             dispute = Dispute.objects.create(
@@ -618,19 +622,23 @@ def submit_evidence(request, dispute_id):
             return redirect('transactions:dispute_detail', dispute_id=dispute_id)
         
         try:
-            # Upload evidence files
+            # Upload evidence files using the same method as create_request
             uploaded_evidence = []
+            upload_errors = []
             if evidence_files:
                 from requests.storage_utils import get_storage_manager
                 storage_manager = get_storage_manager()
-                for file in evidence_files:
-                    result = storage_manager.upload_file(file, folder=f'disputes/{transaction.id}')
-                    if result.get('uploaded'):
-                        uploaded_evidence.append({
-                            'name': result.get('original_name', file.name),
-                            'url': result.get('public_url'),
-                            'size': result.get('size', file.size)
-                        })
+                
+                # Use upload_multiple_files for consistent handling
+                uploaded_evidence, upload_errors = storage_manager.upload_multiple_files(
+                    evidence_files,
+                    folder=f'disputes/{transaction.id}'
+                )
+                
+                # If there are upload errors, show them
+                if upload_errors:
+                    for error in upload_errors:
+                        messages.warning(request, f'File upload warning: {error}')
             
             # Update dispute
             dispute.professional_evidence = professional_evidence

@@ -10,7 +10,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    {% include 'components/navbar.html' %}
+    {% if user.is_staff %}
+        {% include 'components/admin_navbar.html' %}
+    {% else %}
+        {% include 'components/navbar.html' %}
+    {% endif %}
 
     <!-- Main Content Area -->
     <main class="main-content">

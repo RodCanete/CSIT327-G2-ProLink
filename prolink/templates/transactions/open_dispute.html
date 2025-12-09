@@ -11,9 +11,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
     .file-upload-area {
+        position: relative;
         border: 2px dashed var(--gray-300);
         border-radius: var(--border-radius);
-        padding: 20px;
+        padding: 30px 20px;
         text-align: center;
         background: var(--gray-50);
         cursor: pointer;
@@ -26,9 +27,38 @@
     }
     
     .file-upload-area i {
-        font-size: 36px;
-        color: var(--primary-color);
+        font-size: 48px;
+        color: var(--secondary-color);
         margin-bottom: 10px;
+        display: block;
+    }
+    
+    .file-upload-content {
+        pointer-events: none;
+    }
+    
+    .file-upload-content h4 {
+        color: var(--dark-color);
+        margin: 10px 0;
+    }
+    
+    .file-upload-content p {
+        color: var(--gray-600);
+        margin: 5px 0;
+    }
+    
+    .file-upload-link {
+        pointer-events: all;
+        color: var(--primary-color);
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: underline;
+    }
+    
+    .file-upload-info {
+        margin-top: 10px;
+        color: var(--gray-500);
+        font-size: 12px;
     }
     
     .form-group {
@@ -59,18 +89,11 @@
         border-color: var(--primary-color);
     }
     
-    .action-buttons {
-        display: flex;
-        gap: 12px;
-        margin-top: 20px;
-    }
-    
     .btn-submit-dispute {
-        flex: 1;
         background: linear-gradient(135deg, var(--danger-color) 0%, #dc2626 100%);
         color: white;
         border: none;
-        padding: 12px 20px;
+        padding: 14px 24px;
         border-radius: var(--border-radius);
         font-size: 16px;
         font-weight: 600;
@@ -84,7 +107,7 @@
     
     .btn-submit-dispute:hover {
         transform: translateY(-2px);
-        box-shadow: var(--box-shadow);
+        box-shadow: var(--box-shadow-lg);
     }
     
     .warning-box {
@@ -236,23 +259,31 @@
                                     <div class="form-group">
                                         <label>
                                             Upload supporting documents, screenshots, or other evidence
-                                            <small style="font-weight: normal; color: var(--gray-600); display: block; margin-top: 4px;">(Optional - screenshots, documents, etc.)</small>
+                                            <small style="font-weight: normal; color: var(--gray-600); display: block; margin-top: 4px;">(Optional - Maximum 5 files, 10MB each)</small>
                                         </label>
-                                        <div class="file-upload-area" onclick="document.getElementById('evidence_files').click()">
-                                            <i class="fas fa-cloud-upload-alt"></i>
-                                            <p style="margin: 5px 0; font-size: 13px;"><strong>Click to upload files</strong></p>
-                                            <p style="margin: 0; color: var(--gray-600); font-size: 12px;">PDF, PNG, JPG, DOC (Max 10MB each)</p>
+                                        <div class="file-upload-area" id="clientFileUploadArea">
+                                            <div class="file-upload-content">
+                                                <i class="fas fa-cloud-upload-alt"></i>
+                                                <h4 style="margin: 10px 0; font-size: 16px;">Drag & drop files here</h4>
+                                                <p>or <span class="file-upload-link" style="color: var(--primary-color); cursor: pointer; text-decoration: underline;">browse files</span></p>
+                                                <div class="file-upload-info">
+                                                    <small>Maximum 5 files, 10MB each</small>
+                                                    <br>
+                                                    <small>Supported: PDF, PNG, JPG, DOC, DOCX</small>
+                                                </div>
+                                            </div>
+                                            <input 
+                                                type="file" 
+                                                name="evidence_files" 
+                                                id="evidence_files" 
+                                                class="file-input"
+                                                multiple 
+                                                accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
+                                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer;"
+                                                onchange="showFileNames()"
+                                            >
                                         </div>
-                                        <input 
-                                            type="file" 
-                                            name="evidence_files" 
-                                            id="evidence_files" 
-                                            multiple 
-                                            accept=".pdf,.png,.jpg,.jpeg,.doc,.docx"
-                                            style="display: none;"
-                                            onchange="showFileNames()"
-                                        >
-                                        <div id="fileNames" style="margin-top: 8px; color: var(--gray-600); font-size: 12px;"></div>
+                                        <div id="fileNames" style="margin-top: 8px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -276,11 +307,11 @@
                             </div>
 
                             <!-- Action Buttons -->
-                            <div class="action-buttons">
-                                <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary" style="flex: 1;">
+                            <div class="action-buttons" style="display: flex; gap: 15px; margin-top: 30px;">
+                                <a href="{% url 'request_detail' service_request.id %}" class="btn btn-secondary" style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 14px 24px; text-decoration: none;">
                                     <i class="fas fa-times"></i> Cancel
                                 </a>
-                                <button type="button" class="btn-submit-dispute" onclick="showDisputeModal()">
+                                <button type="button" class="btn-submit-dispute" style="flex: 1;" onclick="showDisputeModal()">
                                     <i class="fas fa-gavel"></i> Open Dispute
                                 </button>
                             </div>
@@ -354,16 +385,75 @@
     </div>
 
     <script>
+    // Client file upload with drag and drop
+    const clientFileUploadArea = document.getElementById('clientFileUploadArea');
+    const clientFileInput = document.getElementById('evidence_files');
+    
+    if (clientFileUploadArea && clientFileInput) {
+        // Click to upload
+        clientFileUploadArea.addEventListener('click', (e) => {
+            if (e.target.classList.contains('file-upload-link') || e.target.closest('.file-upload-content')) {
+                clientFileInput.click();
+            }
+        });
+        
+        // Drag and drop
+        clientFileUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            clientFileUploadArea.style.borderColor = 'var(--primary-color)';
+            clientFileUploadArea.style.background = 'var(--gray-100)';
+        });
+        
+        clientFileUploadArea.addEventListener('dragleave', () => {
+            clientFileUploadArea.style.borderColor = 'var(--gray-300)';
+            clientFileUploadArea.style.background = 'var(--gray-50)';
+        });
+        
+        clientFileUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            clientFileUploadArea.style.borderColor = 'var(--gray-300)';
+            clientFileUploadArea.style.background = 'var(--gray-50)';
+            
+            clientFileInput.files = e.dataTransfer.files;
+            showFileNames();
+        });
+        
+        clientFileInput.addEventListener('change', showFileNames);
+    }
+    
     function showFileNames() {
         const input = document.getElementById('evidence_files');
         const fileNamesDiv = document.getElementById('fileNames');
         
-        if (input.files.length > 0) {
-            const fileList = Array.from(input.files).map(f => `📎 ${f.name}`).join('<br>');
-            fileNamesDiv.innerHTML = `<strong>Selected files:</strong><br>${fileList}`;
-        } else {
+        if (input.files.length === 0) {
             fileNamesDiv.innerHTML = '';
+            return;
         }
+        
+        // Check file count
+        if (input.files.length > 5) {
+            fileNamesDiv.innerHTML = '<div style="padding: 12px; background: #fee2e2; border: 1px solid #dc2626; border-radius: var(--border-radius); color: #dc2626;"><i class="fas fa-exclamation-triangle"></i> <strong>Maximum 5 files allowed.</strong> Please remove ' + (input.files.length - 5) + ' file(s).</div>';
+            return;
+        }
+        
+        let html = '<div style="padding: 15px; background: white; border: 1px solid var(--gray-200); border-radius: var(--border-radius); margin-top: 10px;">';
+        html += '<strong style="color: var(--primary-color); display: block; margin-bottom: 10px;"><i class="fas fa-check-circle"></i> ✓ ' + input.files.length + ' file(s) selected:</strong>';
+        html += '<ul style="list-style: none; padding: 0; margin: 0;">';
+        
+        Array.from(input.files).forEach(file => {
+            const sizeMB = (file.size / 1024 / 1024).toFixed(2);
+            const isTooBig = file.size > 10 * 1024 * 1024;
+            const sizeColor = isTooBig ? '#dc2626' : 'var(--gray-600)';
+            const warningIcon = isTooBig ? '<i class="fas fa-exclamation-triangle" style="color: #dc2626;"></i> ' : '';
+            
+            html += '<li style="padding: 8px 0; border-bottom: 1px solid var(--gray-100); display: flex; justify-content: space-between; align-items: center;">';
+            html += '<span style="color: var(--dark-color);"><i class="fas fa-file" style="color: var(--primary-color); margin-right: 8px;"></i>' + file.name + '</span>';
+            html += '<span style="color: ' + sizeColor + '; font-size: 12px;">' + warningIcon + sizeMB + ' MB</span>';
+            html += '</li>';
+        });
+        
+        html += '</ul></div>';
+        fileNamesDiv.innerHTML = html;
     }
 
     function showDisputeModal() {

@@ -377,10 +377,49 @@ def admin_dispute_detail(request, dispute_id):
             messages.success(request, f'Dispute resolved successfully. Status: {dispute.get_status_display()}. Both parties have been notified.')
             return redirect('admin_dashboard:disputes')
     
+    # Parse file attachments
+    import json
+    request_obj = dispute.transaction.request
+    
+    # Parse original request attachments
+    attached_files = []
+    if request_obj.attached_files:
+        try:
+            attached_files = json.loads(request_obj.attached_files)
+        except json.JSONDecodeError:
+            attached_files = []
+    
+    # Parse deliverable files (work submitted by professional)
+    deliverable_files = []
+    if hasattr(request_obj, 'deliverable_files') and request_obj.deliverable_files:
+        try:
+            deliverable_files = json.loads(request_obj.deliverable_files)
+        except json.JSONDecodeError:
+            deliverable_files = []
+    
+    # Parse dispute evidence files
+    client_evidence_files = []
+    if dispute.client_files:
+        try:
+            client_evidence_files = json.loads(dispute.client_files)
+        except json.JSONDecodeError:
+            client_evidence_files = []
+    
+    professional_evidence_files = []
+    if dispute.professional_files:
+        try:
+            professional_evidence_files = json.loads(dispute.professional_files)
+        except json.JSONDecodeError:
+            professional_evidence_files = []
+    
     context = {
         'dispute': dispute,
         'transaction': dispute.transaction,
-        'request_obj': dispute.transaction.request,
+        'request_obj': request_obj,
+        'attached_files': attached_files,
+        'deliverable_files': deliverable_files,
+        'client_evidence_files': client_evidence_files,
+        'professional_evidence_files': professional_evidence_files,
         'open_disputes_count': get_open_disputes_count(),
     }
     

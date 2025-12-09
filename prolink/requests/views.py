@@ -126,7 +126,7 @@ def requests_list(request):
     return render(request, 'requests/requests.html', context)
 
 def request_detail(request, request_id):
-    """Client view for request details"""
+    """Client view for request details (also accessible by admins)"""
     # Check if user is authenticated
     if not request.user.is_authenticated:
         messages.error(request, "Please log in to view request details.")
@@ -134,9 +134,17 @@ def request_detail(request, request_id):
     
     user_email = request.user.email
     
-    # Get the request - CLIENT ONLY
+    # Check if user is admin
+    is_admin = hasattr(request.user, 'is_staff') and request.user.is_staff
+    
+    # Get the request - CLIENT or ADMIN
     try:
-        req = Request.objects.get(id=request_id, client=user_email)
+        if is_admin:
+            # Admins can view any request
+            req = Request.objects.get(id=request_id)
+        else:
+            # Regular users can only view their own requests
+            req = Request.objects.get(id=request_id, client=user_email)
     except Request.DoesNotExist:
         messages.error(request, "Request not found or you don't have permission to view it.")
         return redirect('requests_list')
@@ -321,7 +329,7 @@ def professional_requests_list(request):
 
 
 def professional_request_detail(request, request_id):
-    """Professional view for request details"""
+    """Professional view for request details (also accessible by admins)"""
     from users.models import CustomUser
     from transactions.models import Transaction
     from analytics.models import Review
@@ -331,16 +339,24 @@ def professional_request_detail(request, request_id):
         messages.error(request, "Please log in to view request details.")
         return redirect("login")
     
-    # Check if user is a professional
-    if request.user.user_role != 'professional':
+    # Check if user is admin
+    is_admin = hasattr(request.user, 'is_staff') and request.user.is_staff
+    
+    # Check if user is a professional or admin
+    if not is_admin and request.user.user_role != 'professional':
         messages.error(request, "This page is for professionals only.")
         return redirect('dashboard')
     
     user_email = request.user.email
     
-    # Get the request - PROFESSIONAL ONLY (must be assigned to them)
+    # Get the request - PROFESSIONAL or ADMIN
     try:
-        req = Request.objects.get(id=request_id, professional=user_email)
+        if is_admin:
+            # Admins can view any request
+            req = Request.objects.get(id=request_id)
+        else:
+            # Professionals can only view requests assigned to them
+            req = Request.objects.get(id=request_id, professional=user_email)
     except Request.DoesNotExist:
         messages.error(request, "Request not found or not assigned to you.")
         return redirect('dashboard')
