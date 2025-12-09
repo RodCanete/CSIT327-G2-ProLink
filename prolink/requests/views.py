@@ -105,6 +105,12 @@ def requests_list(request):
             req.transaction = Transaction.objects.filter(request=req).first()
         except:
             req.transaction = None
+        
+        # Check if conversation exists (safely handle OneToOne relationship)
+        try:
+            req.has_conversation = hasattr(req, 'conversation') and req.conversation is not None
+        except:
+            req.has_conversation = False
             
         requests_with_data.append(req)
     
