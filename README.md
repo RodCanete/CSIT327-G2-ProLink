@@ -128,7 +128,6 @@ The platform is designed to:
 | Name | Role | CIT-U Email |
 |------|------|-------------|
 | Rod Gabrielle M. Cañete | Lead Developer | rodgabrielle.canete@cit.edu |
-| Mac Howard T. Caranzo | Frontend Developer | machoward.caranzo@cit.edu |
 | Patrick James A. Cantero | Backend Developer | patrickjames.cantero@cit.edu |
 
 ---
